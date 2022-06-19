@@ -28,10 +28,8 @@ object Deck {
       .copy(seed = RNG.RandomSeed(Random.nextInt(24 + 1)))
   }
 
-  def blackJackShoe(numberOfShoes: Int): Deck = {
-    // Deck( (for (i <- 0 until numberOfShoes) yield jokersExcluded()).toList.flatten, RNG.nextInt(52*numberOfShoes+1))
-  
-    ???
+  def blackJackShoe(numberOfDecks: Int): Deck = {
+    implicit val view = (d: Deck) => d.cards.toList.iterator
+    Deck( (for (i <- 0 until numberOfDecks) yield jokersExcluded()).toList.flatten, RNG.RandomSeed(Random.nextInt((52 * numberOfDecks) + 1)))
   }
-
 }
