@@ -28,22 +28,29 @@ import cards.models.classes.Joker._
 sealed trait Card {
   val isJoker: Boolean
   val direction: FaceDirection = Down
-  val isDealt: Option[Boolean] = None
+  val isDealt: Boolean = false
+
+  def copy(isJoker: Boolean = this.isJoker, direction: FaceDirection = this.direction, isDealt: Boolean = this.isDealt): Card = this match {
+    case UnsuitedCard(joker, _, _) => UnsuitedCard(joker, direction, isDealt) 
+    case SuitedCard(rank, suit, _, _) => SuitedCard(rank, suit, direction, isDealt)
+  }
 }
 object Card {
   implicit def ordering[A <: Card]: Ordering[A] = Ordering.by(_.toString)
 }
 
-case class SuitedCard(rank: Rank, suit: Suit, override val direction: FaceDirection = Down, override val isDealt: Option[Boolean] = None) extends Card {
+case class SuitedCard(rank: Rank, suit: Suit, override val direction: FaceDirection = Down, override val isDealt: Boolean = false) extends Card {
   override val isJoker = false
   override def toString(): String = s"$rank of $suit"
+  require(!isJoker) 
 }
 
-case class UnsuitedCard(rank: Joker, override val direction: FaceDirection = Down, override val isDealt: Option[Boolean] = None) extends Card {
+case class UnsuitedCard(rank: Joker, override val direction: FaceDirection = Down, override val isDealt: Boolean = false) extends Card {
   override val isJoker = true
   override def toString(): String = rank match {
     case LeftBower => "Left Bower Joker"
     case RightBower => "Right Bower Joker"
   }
+  require(isJoker) 
 }
 

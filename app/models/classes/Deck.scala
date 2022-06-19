@@ -6,30 +6,57 @@ import cards.models.classes.Joker.{ LeftBower, RightBower }
 import cards.models.classes.Rank._
 import scala.util.Random
 
+sealed trait DeckType
+object DeckType {
+  case object AllCards extends DeckType
+  case object JokersExcluded extends DeckType
+  case object Euchre extends DeckType
+}
+import DeckType._
+
 case class Deck private (cards: List[Card], seed: RNG) {
   def foreach(block: Card => Unit): Unit = cards.foreach(block)
   def map(f: Card => Card): Deck = Deck(cards.map(f), seed)
   def withFilter(p: Card => Boolean): Deck = Deck(cards.filter(p), seed)
   def filter(p: Card => Boolean): Deck = withFilter(p)
-  def size(): Int = cards.length
+  // def contains[A <: Card](c: A): Boolean = cards.contains(c.asInstanceOf[Card])
+  def contains[A <: Card](c: A): Boolean = cards.contains(c.asInstanceOf[Card].copy(isDealt = false))
+  def contains[A <: Card](cs: Seq[A]): Boolean = cs.foldLeft(false)((acc, c) => contains(c)) 
+  val remaining: List[Card] = cards.filter(!_.isDealt)
+  val length: Int = remaining.length
+
+  def deal(n: Int = 1): (Seq[Card], Deck) = {
+    var (dealt, next): (Seq[Card], RNG) = (Nil, seed)
+    for (i <- 0 until n) {
+      val (index, nextSeed) = seed.boundedPositiveInt(remaining.length)
+      dealt = dealt ++ Seq(remaining(index))
+    }
+    (dealt, map(c => if (dealt.contains(c.copy(isDealt = false))) c.copy(isDealt = true) else c).copy(seed = next))
+  }
 }
 
 object Deck {
-  def allCards(): Deck = 
-    Deck( 
-      (for { r <- Rank.values; s <- Suit.values } yield SuitedCard(r, s)).toList ++ List(UnsuitedCard(LeftBower), UnsuitedCard(RightBower))
-      , RNG.RandomSeed(Random.nextInt(54 + 1)))
+  def apply(deckType: DeckType): Deck = deckType match {
+    case AllCards =>  
+      Deck( 
+        (for { r <- Rank.values; s <- Suit.values } yield SuitedCard(r, s)).toList ++ List(UnsuitedCard(LeftBower), UnsuitedCard(RightBower))
+        , RNG.RandomSeed(Random.nextInt(54 + 1)))
 
-  def jokersExcluded(): Deck = allCards().filter(!_.isJoker).copy(seed = RNG.RandomSeed(Random.nextInt(52 + 1)))
+    case JokersExcluded =>
+      Deck(AllCards).filter(!_.isJoker).copy(seed = RNG.RandomSeed(Random.nextInt(52 + 1)))
 
-  def euchreDeck(): Deck = {
-    jokersExcluded()
-      .filter(c => !Seq(Two, Three, Four, Five, Six, Seven, Eight).contains(c.asInstanceOf[SuitedCard].rank))
-      .copy(seed = RNG.RandomSeed(Random.nextInt(24 + 1)))
+    case Euchre => 
+      Deck(JokersExcluded)
+        .filter(c => !Seq(Two, Three, Four, Five, Six, Seven, Eight).contains(c.asInstanceOf[SuitedCard].rank))
+        .copy(seed = RNG.RandomSeed(Random.nextInt(24 + 1)))
   }
 
-  def blackJackShoe(numberOfDecks: Int): Deck = {
+  def apply[A <: Card](excluded: Seq[A] = Nil, numberOfDecks: Int = 1): Deck = {
     implicit val view = (d: Deck) => d.cards.toList.iterator
-    Deck( (for (i <- 0 until numberOfDecks) yield jokersExcluded()).toList.flatten, RNG.RandomSeed(Random.nextInt((52 * numberOfDecks) + 1)))
+    val available: Deck = Deck(AllCards).filter(c => !excluded.contains(c))
+    Deck( 
+      (for (i <- 0 until numberOfDecks) yield available).toList.flatten
+      , RNG.RandomSeed(Random.nextInt((54 - excluded.length) * numberOfDecks + 1)))
   }
+
 }
