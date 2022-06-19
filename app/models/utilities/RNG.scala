@@ -1,4 +1,4 @@
-package models.utilities
+package cards.models.utilities
 
 trait RNG {
   def nextLong: (Long, RNG)
