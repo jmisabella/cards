@@ -24,13 +24,17 @@ case class Deck private (cards: List[Card], seed: RNG) {
   val length: Int = cards.length
 
   def deal(n: Int = 1): (Seq[Card], Deck) = {
-    var (dealt, next): (Seq[Card], RNG) = (Nil, seed)
+    if (cards.length < n) {
+      throw new IllegalArgumentException(s"Cannot deal [$n] cards because there are only [${cards.length}] cards left in the deck")
+    }
+    var (dealt, remaining, next): (Seq[Card], List[Card], RNG) = (Nil, cards, seed)
     for (i <- 0 until n) {
-      val (index, nextSeed) = next.boundedPositiveInt(cards.length)
-      dealt = dealt ++ Seq(cards(index))
+      val (index, nextSeed) = next.boundedPositiveInt(remaining.length)
+      dealt = dealt ++ Seq(remaining(index))
+      remaining = remaining.filter(c => !dealt.contains(c))
       next = nextSeed
     }
-    (dealt, filter(c => !dealt.contains(c)).copy(seed = next))
+    (dealt, Deck(remaining, next))
   }
 }
 
@@ -57,5 +61,4 @@ object Deck {
       (for (i <- 0 until numberOfDecks) yield available).toList.flatten
       , RNG.RandomSeed(Random.nextInt((54 - excluded.length) * numberOfDecks + 1)))
   }
-
 }

@@ -65,7 +65,6 @@ class DeckSpec extends AnyFlatSpec {
     assert(deck.length == 54)
     val (dealt, next): (Seq[Card], Deck) = deck.deal(2)
     assert(dealt.length == 2)
-    println("LENGTH: " + next.length)
     assert(next.length == 52)
     assert(!next.contains(dealt.head))
     assert(!next.contains(dealt(1)))
@@ -74,5 +73,24 @@ class DeckSpec extends AnyFlatSpec {
     println("CARD 2: " + dealt(1))
   }
 
+  it should "deal all cards in the deck" in {
+    val deck: Deck = Deck()
+    assert(deck.length == 54)
+    val (dealt, next): (Seq[Card], Deck) = deck.deal(54)
+    assert(dealt.length == 54)
+    assert(next.length == 0)
+  }
 
+  it should "error when unable to deal more cards than available in the deck" in {
+    val deck: Deck = Deck()
+    assert(deck.length == 54)
+    try {
+      val (dealt, next): (Seq[Card], Deck) = deck.deal(55)
+      assert(false)
+    } catch {
+      case e: IllegalArgumentException => assert(true)
+      case _: Exception => assert(false)
+    }
+
+  }
 }
