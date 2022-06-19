@@ -58,8 +58,6 @@ class DeckSpec extends AnyFlatSpec {
     assert(dealt.length == 1)
     assert(next.length == 53)
     assert(!next.contains(dealt.head))
-    assert(next.cards.contains(dealt.head.copy(isDealt = true)))
-    assert(!next.cards.contains(dealt.head.copy(isDealt = false)))
   }
 
   it should "deal 2 cards" in {
@@ -68,13 +66,13 @@ class DeckSpec extends AnyFlatSpec {
     val (dealt, next): (Seq[Card], Deck) = deck.deal(2)
     assert(dealt.length == 2)
     println("LENGTH: " + next.length)
-    // assert(next.length == 52)
-    // assert(!next.contains(dealt.head))
-    // assert(!next.contains(dealt(1)))
-    // assert(next.cards.contains(dealt.head.copy(isDealt = true)))
-    // assert(!next.cards.contains(dealt.head.copy(isDealt = false)))
-    // assert(next.cards.contains(dealt(1).copy(isDealt = true)))
-    // assert(!next.cards.contains(dealt(1).copy(isDealt = false)))
+    assert(next.length == 52)
+    assert(!next.contains(dealt.head))
+    assert(!next.contains(dealt(1)))
 
+    println("CARD 1: " + dealt.head)
+    println("CARD 2: " + dealt(1))
   }
+
+
 }

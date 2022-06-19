@@ -19,19 +19,18 @@ case class Deck private (cards: List[Card], seed: RNG) {
   def map(f: Card => Card): Deck = Deck(cards.map(f), seed)
   def withFilter(p: Card => Boolean): Deck = Deck(cards.filter(p), seed)
   def filter(p: Card => Boolean): Deck = withFilter(p)
-  // def contains[A <: Card](c: A): Boolean = cards.contains(c.asInstanceOf[Card])
-  def contains[A <: Card](c: A): Boolean = cards.contains(c.asInstanceOf[Card].copy(isDealt = false))
+  def contains[A <: Card](c: A): Boolean = cards.contains(c.asInstanceOf[Card])
   def contains[A <: Card](cs: Seq[A]): Boolean = cs.foldLeft(false)((acc, c) => contains(c)) 
-  val remaining: List[Card] = cards.filter(!_.isDealt)
-  val length: Int = remaining.length
+  val length: Int = cards.length
 
   def deal(n: Int = 1): (Seq[Card], Deck) = {
     var (dealt, next): (Seq[Card], RNG) = (Nil, seed)
     for (i <- 0 until n) {
-      val (index, nextSeed) = seed.boundedPositiveInt(remaining.length)
-      dealt = dealt ++ Seq(remaining(index))
+      val (index, nextSeed) = next.boundedPositiveInt(cards.length)
+      dealt = dealt ++ Seq(cards(index))
+      next = nextSeed
     }
-    (dealt, map(c => if (dealt.contains(c.copy(isDealt = false))) c.copy(isDealt = true) else c).copy(seed = next))
+    (dealt, filter(c => !dealt.contains(c)).copy(seed = next))
   }
 }
 
