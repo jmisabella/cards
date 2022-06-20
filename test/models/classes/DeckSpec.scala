@@ -2,13 +2,18 @@ package cards.models.classes
 
 import cards.models.classes.Deck
 import cards.models.classes.DeckType._
-import cards.models.classes.Joker._
+// import cards.models.classes.Joker._
 import cards.models.classes.Rank._
 import cards.models.classes.Suit._
 import org.scalatest.flatspec.AnyFlatSpec
 
 class DeckSpec extends AnyFlatSpec {
   "Deck" should "have Deck(AllCards) yield 54 cards, including 2 jokers" in {
+
+    println("SUITED RANKS: " + Rank.suitedRanks.mkString(", "))
+    println("UNSUITED RANKS: " + Rank.unsuitedRanks.mkString(", "))
+
+
     val deck: Deck = Deck(AllCards)
     assert(deck.length == 54)
     assert(deck.filter(_.isJoker).length == 2)
