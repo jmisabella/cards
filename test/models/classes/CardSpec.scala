@@ -37,6 +37,12 @@ class CardSpec extends AnyFlatSpec {
     assert(cards.sorted != cards)
   }
 
+  it should "consider 3 unsorted multi ranked cards as unsorted, when 2 cards are of the same rank" in {
+    val cards: List[Card] = List(SuitedCard(Queen, Clubs), SuitedCard(Queen, Diamonds), SuitedCard(Eight, Spades)) 
+    println("SORTED: " + cards.sorted)
+    assert(cards.sorted != cards && cards != List(SuitedCard(Queen, Diamonds), SuitedCard(Queen, Clubs), SuitedCard(Eight, Spades)))
+  }
+  
   it should "1: consider 3 sorted multi ranked cards as sorted, when 2 cards are of the same rank" in {
     val cards: List[Card] = List(SuitedCard(Queen, Clubs), SuitedCard(Queen, Diamonds), SuitedCard(King, Spades)) 
     println("SORTED: " + cards.sorted)
@@ -47,11 +53,5 @@ class CardSpec extends AnyFlatSpec {
     val cards: List[Card] = List(SuitedCard(Three, Clubs), SuitedCard(Three, Diamonds), SuitedCard(Nine, Spades)) 
     println("SORTED: " + cards.sorted)
     assert(cards.sorted == cards || cards.sorted == List(SuitedCard(Three, Diamonds), SuitedCard(Three, Clubs), SuitedCard(Nine, Spades)))
-  }
-  
-  it should "consider 3 unsorted multi ranked cards as unsorted, when 2 cards are of the same rank" in {
-    val cards: List[Card] = List(SuitedCard(Queen, Clubs), SuitedCard(Queen, Diamonds), SuitedCard(Eight, Spades)) 
-    println("SORTED: " + cards.sorted)
-    assert(cards.sorted != cards && cards != List(SuitedCard(Queen, Diamonds), SuitedCard(Queen, Clubs), SuitedCard(Eight, Spades)))
   }
 }
