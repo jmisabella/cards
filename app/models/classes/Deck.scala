@@ -41,7 +41,7 @@ object Deck {
   def apply(deckType: DeckType): Deck = deckType match {
     case AllCards =>  
       Deck( 
-        (for { r <- Rank.suitedRanks; s <- Suit.values.toSeq } yield SuitedCard(r, s)).toList ++ List(UnsuitedCard(LeftBower), UnsuitedCard(RightBower))
+        (for { r <- Rank.suited; s <- Suit.values.toSeq } yield SuitedCard(r, s)).toList ++ List(UnsuitedCard(LeftBower), UnsuitedCard(RightBower))
         , RNG.RandomSeed(Random.nextInt(54 + 1)))
 
     case JokersExcluded =>

@@ -4,8 +4,8 @@ object Rank extends Enumeration {
   type Rank = Value
   val Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Jack, Queen, King, Ace, LeftBower, RightBower = Value
   implicit def ordering [A <: Rank]: Ordering[A] = Ordering.by(_.id)
-  val suitedRanks: Seq[Rank.Value] = values.toSeq.filter(r => !Seq(LeftBower, RightBower).contains(r))
-  val unsuitedRanks: Seq[Rank.Value] = values.toSeq.filter(r => Seq(LeftBower, RightBower).contains(r))
+  val suited: Seq[Rank.Value] = values.toSeq.filter(r => !Seq(LeftBower, RightBower).contains(r))
+  val unsuited: Seq[Rank.Value] = values.toSeq.filter(r => Seq(LeftBower, RightBower).contains(r))
 }
 
 object Suit extends Enumeration {
