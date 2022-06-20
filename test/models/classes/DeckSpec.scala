@@ -91,6 +91,7 @@ class DeckSpec extends AnyFlatSpec {
       case e: IllegalArgumentException => assert(true)
       case _: Exception => assert(false)
     }
-
   }
+
+
 }
