@@ -9,11 +9,6 @@ import org.scalatest.flatspec.AnyFlatSpec
 
 class DeckSpec extends AnyFlatSpec {
   "Deck" should "have Deck(AllCards) yield 54 cards, including 2 jokers" in {
-
-    println("SUITED RANKS: " + Rank.suitedRanks.mkString(", "))
-    println("UNSUITED RANKS: " + Rank.unsuitedRanks.mkString(", "))
-
-
     val deck: Deck = Deck(AllCards)
     assert(deck.length == 54)
     assert(deck.filter(_.isJoker).length == 2)

@@ -16,14 +16,14 @@ trait Commons {
     (for (s <- Suit.values.toSeq) yield (s -> suited.count(_.suit == s))).toMap
   }
 
-  // given cards, whether more than 1 card and each card is sequenced by rank (Two, Three, Four, etc...)
+  // given cards, whether more than 1 card and each card is sequenced by rank (Two, Three, Four, etc... with no repeated ranks)
   def sequenced(cards: Seq[Card]): Boolean = cards.sorted.toList match {
     case Nil => false
     case x :: Nil => false
     case x :: xs => {
       val min: Int = x.rank.id
-      val max: Int = xs.head.rank.id
-      cards.sorted.map(_.rank.id) == (min to max).toSeq 
+      val max: Int = xs.reverse.head.rank.id
+      cards.sorted.map(_.rank.id).toSeq == (min to max).toSeq
     }
   }
 
@@ -39,7 +39,7 @@ trait Commons {
     case (_, Max, Some(s)) => Some(cards.filter(c => c.isInstanceOf[SuitedCard] && c.asInstanceOf[SuitedCard].suit == s).max.rank)
     case (_, Min, None) => Some(cards.min.rank)
     case (_, Max, None) => Some(cards.max.rank)
-    case (_, _, None) => None
+    case (_, _, _) => None
   }
 
   // rank of lowest card, optionally filtered by suit
@@ -55,15 +55,12 @@ trait Commons {
     case Some(r) => cards.filter(_.rank == r) 
   }
 
-  // highest by rank, optionally filtered by suit; 
-  // returns sequence to account for when there are multiples of the same rank 
-  def highest(cards: Seq[Card], suit: Option[Suit] = None): Seq[Card] = lowestOrHighest(cards, Max, suit) 
-
   // lowest by rank, optionally filtered by suit; 
   // returns sequence to account for when there are multiples of the same rank 
   def lowest(cards: Seq[Card], suit: Option[Suit] = None): Seq[Card] = lowestOrHighest(cards, Min, suit) 
 
-  
-
+  // highest by rank, optionally filtered by suit; 
+  // returns sequence to account for when there are multiples of the same rank 
+  def highest(cards: Seq[Card], suit: Option[Suit] = None): Seq[Card] = lowestOrHighest(cards, Max, suit) 
 
 }
