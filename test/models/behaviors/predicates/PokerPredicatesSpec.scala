@@ -63,4 +63,16 @@ class PokerPredicatesSpec extends AnyFlatSpec {
     assert(result)
   }
 
+  it should "observe when it's a high card" in {
+    val cards: Seq[Card] = Seq(
+      SuitedCard(Ten, Hearts), 
+      SuitedCard(Two, Clubs), 
+      SuitedCard(Queen, Diamonds), 
+      SuitedCard(Ace, Hearts),
+      SuitedCard(Five, Clubs))
+
+    val result = module.highCard(cards)
+    assert(result)
+  }
+
 }
