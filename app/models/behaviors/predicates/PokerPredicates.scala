@@ -15,7 +15,7 @@ trait PokerPredicates {
 
   def straightFlush(cards: Seq[Card]): Boolean = straight(cards) && flush(cards)
 
-  def royalFlush(cards: Seq[Card]): Boolean = straightFlush(cards) && cards.count(c => Seq(Ten, Jack, Queen, King, Ace).contains(c)) == cards.length
+  def royalFlush(cards: Seq[Card]): Boolean = straightFlush(cards) && cards.count(c => Seq(Ten, Jack, Queen, King, Ace).contains(c.rank)) == cards.length
 
   def onePair(cards: Seq[Card]): Boolean = commons.countRank(cards).values.toSeq.count(_ == 2) == 1
   
