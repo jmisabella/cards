@@ -1,6 +1,6 @@
 package models.utilities
 
-import models.utilities.RNG
+import cards.models.utilities.RNG
 import org.scalatest.flatspec.AnyFlatSpec
 
 class RNGSpec extends AnyFlatSpec {
