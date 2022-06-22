@@ -16,7 +16,7 @@ trait Commons {
     (for (s <- Suit.values.toSeq) yield (s -> suited.count(_.suit == s))).toMap
   }
 
-  // given cards, whether more than 1 card and each card is sequenced by rank (Two, Three, Four, etc... with no repeated ranks)
+  // given a hand with more than 1 card, is each card is sequenced by rank (Two, Three, Four, etc... with no repeated ranks)
   def sequenced(cards: Seq[Card]): Boolean = cards.sorted.toList match {
     case Nil => false
     case x :: Nil => false
@@ -63,4 +63,17 @@ trait Commons {
   // returns sequence to account for when there are multiples of the same rank 
   def highest(cards: Seq[Card], suit: Option[Suit] = None): Seq[Card] = lowestOrHighest(cards, Max, suit) 
 
+  // if card has a numeric value for rank (e.g. non-royal, non-joker) yield the value, else 0
+  def getNumeric(card: Card): Int = card.rank match {
+    case Two => 2
+    case Three => 3
+    case Four => 4
+    case Five => 5
+    case Six => 6
+    case Seven => 7
+    case Eight => 8
+    case Nine => 9
+    case Ten =>10 
+    case _ => 0
+  }
 }
