@@ -17,7 +17,7 @@ trait BlackJackHandEvaluation extends HandEvaluation {
   }
   // TODO: test 
   override def eval(cards: Seq[Card]): Int = {
-    // reduce score (e.g. 2 instead of 11 for ace) as needed to drop below 22
+    // reduce score (e.g. 2 instead of 11 for ace) as necessary/allowed to drop below 22
     reduce(
       cards
         .map { c =>
@@ -26,7 +26,7 @@ trait BlackJackHandEvaluation extends HandEvaluation {
             case Queen => 10
             case King => 10
             case Ace => 11
-            case r => commons.getNumeric(c)
+            case r => commons.getNumeric(r)
           }
         }.foldLeft(0)(_ + _)
       , cards.count(_.rank == Ace)) // ace count

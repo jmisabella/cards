@@ -64,7 +64,7 @@ trait Commons {
   def highest(cards: Seq[Card], suit: Option[Suit] = None): Seq[Card] = lowestOrHighest(cards, Max, suit) 
 
   // if card has a numeric value for rank (e.g. non-royal, non-joker) yield the value, else 0
-  def getNumeric(card: Card): Int = card.rank match {
+  def getNumeric(rank: Rank): Int = rank match {
     case Two => 2
     case Three => 3
     case Four => 4
@@ -76,4 +76,11 @@ trait Commons {
     case Ten =>10 
     case _ => 0
   }
+
+  def getNumeric(card: Card): Int = getNumeric(card.rank)
+
+  def suited(cards: Seq[Card]): Seq[SuitedCard] = cards
+      .filter(_.isInstanceOf[SuitedCard])
+      .map(_.asInstanceOf[SuitedCard])
+
 }
