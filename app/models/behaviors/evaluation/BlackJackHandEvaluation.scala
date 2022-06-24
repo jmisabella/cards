@@ -13,9 +13,8 @@ trait BlackJackHandEvaluation extends HandEvaluation {
   private def reduce(score: Int, aces: Int): Int = (score, aces) match {
     case (x, 0) => x // no more aces, yield score
     case (x, _) if (x <= 21) => x // score <= 21, no need to reduce any further
-    case (x, n) => reduce(x - 11 + 2, n - 1)
+    case (x, n) => reduce(x - 11 + 1, n - 1)
   }
-  // TODO: test 
   override def eval(cards: Seq[Card]): Int = {
     // reduce score (e.g. 2 instead of 11 for ace) as necessary/allowed to drop below 22
     reduce(
