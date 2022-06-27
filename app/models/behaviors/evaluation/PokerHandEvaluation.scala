@@ -13,9 +13,8 @@ trait PokerHandEvaluation extends HandEvaluation {
   val predicates: P
   
   override def eval(cards: Seq[Card]): Int = {
-    def scoreBase(exponent: Int): Int = pow(10, exponent).toInt
 
-    def cardEval(card: Card): Int = card.rank match {
+    def evaluateCard(card: Card): Int = card.rank match {
       case Jack => 11
       case Queen => 12
       case King => 13
@@ -23,11 +22,11 @@ trait PokerHandEvaluation extends HandEvaluation {
       case r => predicates.commons.getNumeric(r)
     }
 
-    def handEval(cards: Seq[Card]): Int = cards.foldLeft(0)((acc, c) => acc + cardEval(c))
+    def evaluateCards(cards: Seq[Card]): Int = cards.foldLeft(0)((acc, c) => acc + evaluateCard(c))
 
     predicates.handType(cards) match {
-      case Some(t) => (scoreBase(t.id + 1) * handEval(predicates.matched(cards))) + handEval(predicates.unmatched(cards))
-      case None => handEval(cards)
+      case Some(t) => (pow(10, t.id + 1).toInt * evaluateCards(predicates.matched(cards))) + evaluateCards(predicates.unmatched(cards))
+      case None => evaluateCards(cards)
     }
   }
 }
