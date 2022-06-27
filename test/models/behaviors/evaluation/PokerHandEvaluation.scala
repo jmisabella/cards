@@ -89,5 +89,22 @@ class PokerHandEvaluationSpec extends AnyFlatSpec {
     assert(result == None) // no preference
   }
 
+  it should "have no preference when both hands are royal flushes" in {
+    val royalA: Seq[Card] = Seq(SuitedCard(Ten, Diamonds), SuitedCard(Jack, Diamonds), SuitedCard(Queen, Diamonds), SuitedCard(King, Diamonds), SuitedCard(Ace, Diamonds))
+    val royalB: Seq[Card] = Seq(SuitedCard(Ten, Clubs), SuitedCard(Jack, Clubs), SuitedCard(Queen, Clubs), SuitedCard(King, Clubs), SuitedCard(Ace, Clubs))
+    assert(module.predicates.isRoyalFlush(royalA))
+    assert(module.predicates.isRoyalFlush(royalB))
+    val result: Option[Seq[Card]] = module.preference(royalA.sorted, royalB.sorted)
+    assert(result == None) // no preference
+  }
 
+  it should "prefer highest card when there are no matches in either hand, but one high card is higher than the others" in {
+    val highCardA: Seq[Card] = Seq(SuitedCard(Ace, Diamonds), SuitedCard(Two, Diamonds), SuitedCard(Three, Clubs), SuitedCard(Six, Spades), SuitedCard(Eight, Diamonds))
+    val highCardB: Seq[Card] = Seq(SuitedCard(Ten, Clubs), SuitedCard(King, Clubs), SuitedCard(Queen, Spades), SuitedCard(Seven, Clubs), SuitedCard(Nine, Clubs))
+    assert(module.predicates.isHighCard(highCardA))
+    assert(module.predicates.isHighCard(highCardB))
+    val result: Option[Seq[Card]] = module.preference(highCardA.sorted, highCardB.sorted)
+    assert(result == Some(highCardA.sorted))
+
+  }
 }
