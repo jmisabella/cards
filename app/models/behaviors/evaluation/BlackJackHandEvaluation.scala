@@ -6,8 +6,8 @@ import cards.models.behaviors.Commons
 import scala.annotation.tailrec
 
 trait BlackJackHandEvaluation extends HandEvaluation {
-  type CB <: Commons
-  val commons: CB 
+  type C <: Commons
+  val commons: C 
   
   @tailrec
   private def reduce(score: Int, aces: Int): Int = (score, aces) match {

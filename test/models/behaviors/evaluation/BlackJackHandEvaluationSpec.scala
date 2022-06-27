@@ -10,7 +10,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 class BlackJackHandEvaluationSpec extends AnyFlatSpec {
   private[evaluation] case object _commons extends Commons
   case object module extends BlackJackHandEvaluation {
-    override type CB = Commons
+    override type C = Commons
     override val commons = _commons
   }
 
@@ -74,4 +74,29 @@ class BlackJackHandEvaluationSpec extends AnyFlatSpec {
     val result: Int = module.eval(cards)
     assert(result == 21)
   }
+
+  it should "not have a hand preference between 2 hands which are both empty" in {
+    val cs1: Seq[Card] = Nil
+    val cs2: Seq[Card] = Nil
+    val result: Option[Seq[Card]] = module.preference(cs1, cs2)
+    assert(!result.isDefined)
+    assert(result.isEmpty)
+  }
+
+  it should "not have a hand preference between 2 hands which match in rank" in {
+    val cs1: Seq[Card] = Seq(SuitedCard(Two, Spades), SuitedCard(Five, Diamonds))
+    val cs2: Seq[Card] = Seq(SuitedCard(Five, Hearts), SuitedCard(Two, Clubs))
+    val result: Option[Seq[Card]] = module.preference(cs1, cs2)
+    assert(!result.isDefined)
+    assert(result.isEmpty)
+  }
+
+  it should "prefer a single card hand over an empty hand" in {
+    val cs1: Seq[Card] = Seq(SuitedCard(Five, Diamonds))
+    val cs2: Seq[Card] = Nil
+    val result: Option[Seq[Card]] = module.preference(cs1, cs2)
+    assert(result.isDefined)
+    assert(result.get == cs1)
+  }
+
 }

@@ -6,8 +6,8 @@ import cards.models.behaviors.Commons
 import scala.annotation.tailrec
 
 trait ThirtyOneHandEvaluation extends HandEvaluation {
-  type CB <: Commons
-  val commons: CB 
+  type C <: Commons
+  val commons: C 
 
   override def eval(cards: Seq[Card]): Int = commons.suited(cards) match {
     // 3-of-a-kind is 30.5 points, so to simulate, we're making this 31, and actual 31 will then be 32

@@ -10,7 +10,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 class ThirtyOneHandEvaluationSpec extends AnyFlatSpec {
   private[evaluation] case object _commons extends Commons
   case object module extends ThirtyOneHandEvaluation {
-    override type CB = Commons
+    override type C = Commons
     override val commons = _commons
   }
 
