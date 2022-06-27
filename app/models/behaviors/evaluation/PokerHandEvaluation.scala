@@ -12,7 +12,6 @@ trait PokerHandEvaluation extends HandEvaluation {
   type P <: PokerPredicates 
   val predicates: P
   
-  // TODO: test 
   override def eval(cards: Seq[Card]): Int = {
     def scoreBase(exponent: Int): Int = pow(10, exponent).toInt
 
