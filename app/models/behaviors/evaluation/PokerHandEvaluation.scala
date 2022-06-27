@@ -1,6 +1,7 @@
 package cards.models.behaviors.evaluation
 
-import cards.models.classes.{ Card, SuitedCard, PokerHandType }
+import cards.models.classes.{ Card, SuitedCard, PokerHandType, Deck, DeckType }
+import cards.models.classes.DeckType._
 import cards.models.classes.Rank._
 import cards.models.classes.PokerHandType._
 import cards.models.behaviors.Commons
@@ -25,9 +26,9 @@ trait PokerHandEvaluation extends HandEvaluation {
     def evaluateCards(cards: Seq[Card]): Int = cards.foldLeft(0)((acc, c) => acc + evaluateCard(c))
 
     predicates.handType(cards) match {
-      // case Some(t) => (pow(10, t.id + 1).toInt * evaluateCards(predicates.matched(cards))) + evaluateCards(predicates.unmatched(cards))
       case Some(t) => (pow(10, t.id + 2).toInt * evaluateCards(predicates.matched(cards))) + evaluateCards(predicates.unmatched(cards))
       case None => evaluateCards(cards)
     }
   }
+
 }

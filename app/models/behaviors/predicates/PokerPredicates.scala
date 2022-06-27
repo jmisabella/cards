@@ -1,9 +1,10 @@
 package cards.models.behaviors.predicates
 
 import cards.models.behaviors.Commons
-import cards.models.classes.{ Card, SuitedCard, Rank, Suit, PokerHandType }
+import cards.models.classes.{ Card, SuitedCard, Rank, Suit, PokerHandType, Deck, DeckType }
 import cards.models.classes.Rank._
 import cards.models.classes.Suit._
+import cards.models.classes.DeckType._
 import cards.models.classes.PokerHandType._
 
 trait PokerPredicates {
@@ -87,24 +88,6 @@ trait PokerPredicates {
   def straightFlush(cards: Seq[Card]): Option[Seq[Card]] = filterByPredicate(cards, isStraightFlush) (cs => cs)
   
   def royalFlush(cards: Seq[Card]): Option[Seq[Card]] = filterByPredicate(cards, isRoyalFlush) (cs => cs)
-
-  // def highCardRank(cards: Seq[Card]): Option[Rank] = (commons.suited(cards), highCard(cards)) match {
-  //   case (Nil, _) => None
-  //   case (_, false) => None
-  //   case (cs, true) => Some(cs.sorted.reverse.head.rank)
-  // }
-
-  // def onePairRank(cards: Seq[Card]): Option[Rank] = (commons.suited(cards), onePair(cards)) match {
-  //   case (Nil, _) => None
-  //   case (_, false) => None
-  //   case (cs, true) => Some(commons.countRank(cs).filter(_._2 == 2).head._1) 
-  // }
-
-  // def twoPairRanks(cards: Seq[Card]): Option[(Rank, Rank)] = (commons.suited(cards), twoPair(cards)) match {
-  //   case (Nil, _) => None
-  //   case (_, false) => None
-  //   case (cs, true) => Some(commons.countRank(cs).filter(_._2 == 2).map(_._1))
-  // }
 
   def handType(cards: Seq[Card]): Option[PokerHandType] = {
     (isHighCard(cards), isOnePair(cards), isTwoPair(cards), isThreeOfAKind(cards), isStraight(cards), isFlush(cards), isFullHouse(cards), isFourOfAKind(cards), isStraightFlush(cards), isRoyalFlush(cards)) match {

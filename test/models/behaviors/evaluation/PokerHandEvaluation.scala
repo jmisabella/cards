@@ -3,7 +3,7 @@ package cards.models.behaviors.evaluation
 import cards.models.behaviors.Commons
 import cards.models.behaviors.evaluation.PokerHandEvaluation
 import cards.models.behaviors.predicates.PokerPredicates
-import cards.models.classes.{ Card, SuitedCard, Rank, Suit, PokerHandType }
+import cards.models.classes.{ Card, SuitedCard, UnsuitedCard, Rank, Suit, PokerHandType }
 import cards.models.classes.PokerHandType._
 import cards.models.classes.Rank._
 import cards.models.classes.Suit._
@@ -105,6 +105,26 @@ class PokerHandEvaluationSpec extends AnyFlatSpec {
     assert(module.predicates.isHighCard(highCardB))
     val result: Option[Seq[Card]] = module.preference(highCardA.sorted, highCardB.sorted)
     assert(result == Some(highCardA.sorted))
+  }
 
+  it should "have no preference between a Joker and an Ace" in {
+    val joker: Seq[Card] = Seq(UnsuitedCard(LeftBower))
+    val ace: Seq[Card] = Seq(SuitedCard(Ace, Spades))
+    val result: Option[Seq[Card]] = module.preference(joker, ace)
+    assert(result == None)
+  }
+
+  it should "prefer a Joker over an empty hand" in {
+    val joker: Seq[Card] = Seq(UnsuitedCard(LeftBower))
+    val empty: Seq[Card] = Nil
+    val result: Option[Seq[Card]] = module.preference(joker, empty)
+    assert(result == Some(joker))
+  }
+
+  it should "prefer pair of twos, pair of threes, and a joker over a plain flush" in {
+    val fullHouseWithJoker: Seq[Card] = Seq(UnsuitedCard(RightBower), SuitedCard(Two, Clubs), SuitedCard(Two, Hearts), SuitedCard(Three, Spades), SuitedCard(Three, Clubs))
+    val flush: Seq[Card] = Seq(SuitedCard(Five, Hearts), SuitedCard(Seven, Hearts), SuitedCard(Ten, Hearts), SuitedCard(Jack, Hearts), SuitedCard(Ace, Hearts))
+    val result: Option[Seq[Card]] = module.preference(fullHouseWithJoker, flush)
+    assert(result == Some(fullHouseWithJoker))
   }
 }
