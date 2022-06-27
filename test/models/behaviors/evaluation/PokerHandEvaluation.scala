@@ -62,5 +62,49 @@ class PokerHandEvaluationSpec extends AnyFlatSpec {
     assert(result == Some(pairOfThrees.sorted))
   }
 
+  it should "prefer three of a kind (three twos with three and four) over hand with 2 pair (aces and kings) and a queen card" in {
+    val twoPair: Seq[Card] = Seq(SuitedCard(Ace, Diamonds), SuitedCard(Ace, Hearts), SuitedCard(King, Clubs), SuitedCard(King, Spades), SuitedCard(Queen, Hearts))
+    val threeOfAKind: Seq[Card] = Seq(SuitedCard(Two, Diamonds), SuitedCard(Two, Hearts), SuitedCard(Two, Clubs), SuitedCard(Three, Spades), SuitedCard(Four, Hearts))
+    assert(module.predicates.isTwoPair(twoPair))
+    assert(module.predicates.isThreeOfAKind(threeOfAKind))
+    val result: Option[Seq[Card]] = module.preference(twoPair.sorted, threeOfAKind.sorted)
+    assert(result == Some(threeOfAKind.sorted))
+  }
 
+  it should "prefer four of a kind (4 twos and a three) over a full house (three aces and 2 kings)" in {
+    val fourOfAKind: Seq[Card] = Seq(SuitedCard(Two, Diamonds), SuitedCard(Two, Hearts), SuitedCard(Two, Clubs), SuitedCard(Two, Spades), SuitedCard(Three, Hearts))
+    val fullHouse: Seq[Card] = Seq(SuitedCard(Ace, Diamonds), SuitedCard(Ace, Hearts), SuitedCard(Ace, Clubs), SuitedCard(King, Spades), SuitedCard(King, Hearts))
+    assert(module.predicates.isFourOfAKind(fourOfAKind))
+    assert(module.predicates.isFullHouse(fullHouse))
+    val result: Option[Seq[Card]] = module.preference(fullHouse.sorted, fourOfAKind.sorted)
+    assert(result == Some(fourOfAKind.sorted))
+  }
+
+  it should "have no preference when both hands are straights and all ranks match between hands" in {
+    val straightA: Seq[Card] = Seq(SuitedCard(Two, Diamonds), SuitedCard(Three, Hearts), SuitedCard(Four, Clubs), SuitedCard(Five, Spades), SuitedCard(Six, Hearts))
+    val straightB: Seq[Card] = Seq(SuitedCard(Two, Clubs), SuitedCard(Three, Diamonds), SuitedCard(Four, Diamonds), SuitedCard(Five, Clubs), SuitedCard(Six, Clubs))
+    assert(module.predicates.isStraight(straightA))
+    assert(module.predicates.isStraight(straightB))
+    val result: Option[Seq[Card]] = module.preference(straightA.sorted, straightB.sorted)
+    assert(result == None) // no preference
+  }
+
+  it should "have no preference when both hands are royal flushes" in {
+    val royalA: Seq[Card] = Seq(SuitedCard(Ten, Diamonds), SuitedCard(Jack, Diamonds), SuitedCard(Queen, Diamonds), SuitedCard(King, Diamonds), SuitedCard(Ace, Diamonds))
+    val royalB: Seq[Card] = Seq(SuitedCard(Ten, Clubs), SuitedCard(Jack, Clubs), SuitedCard(Queen, Clubs), SuitedCard(King, Clubs), SuitedCard(Ace, Clubs))
+    assert(module.predicates.isRoyalFlush(royalA))
+    assert(module.predicates.isRoyalFlush(royalB))
+    val result: Option[Seq[Card]] = module.preference(royalA.sorted, royalB.sorted)
+    assert(result == None) // no preference
+  }
+
+  it should "prefer highest card when there are no matches in either hand, but one high card is higher than the others" in {
+    val highCardA: Seq[Card] = Seq(SuitedCard(Ace, Diamonds), SuitedCard(Two, Diamonds), SuitedCard(Three, Clubs), SuitedCard(Six, Spades), SuitedCard(Eight, Diamonds))
+    val highCardB: Seq[Card] = Seq(SuitedCard(Ten, Clubs), SuitedCard(King, Clubs), SuitedCard(Queen, Spades), SuitedCard(Seven, Clubs), SuitedCard(Nine, Clubs))
+    assert(module.predicates.isHighCard(highCardA))
+    assert(module.predicates.isHighCard(highCardB))
+    val result: Option[Seq[Card]] = module.preference(highCardA.sorted, highCardB.sorted)
+    assert(result == Some(highCardA.sorted))
+
+  }
 }

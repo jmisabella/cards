@@ -8,7 +8,7 @@ import cards.models.classes.PokerHandType._
 
 trait PokerPredicates {
   type CB <: Commons
-  val commons: CB 
+  val commons: CB
 
   def isStraight(cards: Seq[Card]): Boolean = commons.sequenced(cards)
 
@@ -19,9 +19,8 @@ trait PokerPredicates {
     isStraight(cards) && isFlush(cards)
 
   def isRoyalFlush(cards: Seq[Card]): Boolean = 
-    isStraightFlush(cards) && 
-    cards.count(c => Seq(Ten, Jack, Queen, King, Ace).contains(c.rank)) == cards.length &&
-    cards.length == 5
+    isStraightFlush(cards) &&
+    cards.sorted.map(_.rank) == Seq(Ten, Jack, Queen, King, Ace)
 
   def isOnePair(cards: Seq[Card]): Boolean = 
     commons.countRank(cards).values.toSeq.count(_ == 2) == 1
@@ -123,7 +122,6 @@ trait PokerPredicates {
     }
   }
 
-  // TODO: test
   def matched(cards: Seq[Card]): Seq[Card] = handType(cards) match {
     case Some(RoyalFlush) => royalFlush(cards).getOrElse(Nil)
     case Some(StraightFlush) => straightFlush(cards).getOrElse(Nil)
@@ -139,8 +137,6 @@ trait PokerPredicates {
     case None => Nil
   }
 
-  // TODO: test
   def unmatched(cards: Seq[Card]): Seq[Card] = cards.diff(matched(cards))
-
 
 }
