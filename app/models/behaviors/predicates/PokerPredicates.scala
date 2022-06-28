@@ -1,10 +1,8 @@
 package cards.models.behaviors.predicates
 
 import cards.models.behaviors.Commons
-import cards.models.classes.{ Card, SuitedCard, Rank, Suit, PokerHandType, Deck, DeckType }
+import cards.models.classes.{ Card, SuitedCard, PokerHandType }
 import cards.models.classes.Rank._
-import cards.models.classes.Suit._
-import cards.models.classes.DeckType._
 import cards.models.classes.PokerHandType._
 
 trait PokerPredicates {

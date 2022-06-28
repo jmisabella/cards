@@ -11,28 +11,34 @@ class DeckSpec extends AnyFlatSpec {
   "Deck" should "have Deck(AllCards) yield 54 cards, including 2 jokers" in {
     val deck: Deck = Deck(AllCards)
     assert(deck.length == 54)
-    assert(deck.filter(_.isJoker).length == 2)
+    assert(deck.count(_.isJoker) == 2)
   }
 
   it should "have Deck() yield 54 cards, including 2 jokers" in {
     val deck: Deck = Deck()
     assert(deck.length == 54)
-    assert(deck.filter(_.isJoker).length == 2)
+    assert(deck.count(_.isJoker) == 2)
   }
 
   it should "exclude 1 left-bower joker from the deck, yielding 53 cards" in {
     val deck: Deck = Deck(excluded = Seq(UnsuitedCard(LeftBower)))
     assert(deck.length == 53)
-    assert(deck.filter(_.isJoker).length == 1)
+    assert(deck.count(_.isJoker) == 1)
     assert(!deck.contains(UnsuitedCard(LeftBower)))
   }
 
   it should "exclude both jokers from the deck, yielding 52 cards" in {
     val deck: Deck = Deck(excluded = Seq(UnsuitedCard(LeftBower), UnsuitedCard(RightBower)))
     assert(deck.length == 52)
-    assert(deck.filter(_.isJoker).length == 0)
+    assert(deck.count(_.isJoker) == 0)
     assert(!deck.contains(UnsuitedCard(LeftBower)))
     assert(!deck.contains(UnsuitedCard(RightBower)))
+  }
+
+  it should "create a 3 deck shoe deck excluding jokers, which has 52 * 3 cards total" in {
+    val deck: Deck = Deck(excluded = Seq(UnsuitedCard(LeftBower), UnsuitedCard(RightBower)), numberOfDecks = 3)
+    assert(deck.length == 52 * 3)
+    assert(deck.count(_.isJoker) == 0)
   }
 
   it should "have Euchre deck not contain any jokers nor any cards below 9" in {

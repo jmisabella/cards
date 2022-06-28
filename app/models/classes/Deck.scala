@@ -20,6 +20,7 @@ case class Deck private (cards: List[Card], seed: RNG) {
   def filter(p: Card => Boolean): Deck = withFilter(p)
   def contains[A <: Card](c: A): Boolean = cards.contains(c.asInstanceOf[Card])
   def contains[A <: Card](cs: Seq[A]): Boolean = cs.foldLeft(false)((acc, c) => contains(c)) 
+  def count[A <: Card](p: Card => Boolean): Int = cards count p 
   val length: Int = cards.length
 
   def deal(n: Int = 1): (Seq[Card], Deck) = {

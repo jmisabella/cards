@@ -1,6 +1,6 @@
 package cards.models.behaviors.evaluation
 
-import cards.models.classes.{ Card, Deck, DeckType }
+import cards.models.classes.{ Card, Deck }
 import cards.models.classes.DeckType._
 
 trait HandEvaluation {
@@ -20,7 +20,7 @@ trait HandEvaluation {
         val possibility: List[Card] = cs ++ cards.filter(!_.isJoker)
         (possibility, eval(possibility))
       }
-      possibilities.maxBy(_._2)._1 // take the max hand; arbitrarily chooses in case of multiple ties at max score
+      possibilities.maxBy(_._2)._1 // take the max hand; arbitrarily choose in case of multiple ties at max score
     }
   }
 
@@ -36,5 +36,4 @@ trait HandEvaluation {
       case (_, _) => None // scores match, no preference
     }
   }
-
 }

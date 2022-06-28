@@ -19,5 +19,4 @@ trait BlackJackPredicates {
     // only eligible if first turn (dealer only has 1 face up card) and the face up card is an Ace 
     dealerFaceUpCards.length == 1 && dealerFaceUpCards.head.rank == Ace
 
-
 }
