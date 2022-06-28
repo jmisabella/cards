@@ -9,7 +9,7 @@ trait HandEvaluation {
   def eval(cards: Seq[Card]): Int
 
   // transform hand into the best possible hand with jokers replaced by suited cards 
-  private def replaceJokers(cards: Seq[Card]): Seq[Card] = cards.count(_.isJoker) match {
+  def jokerWildcardReplacement(cards: Seq[Card]): Seq[Card] = cards.count(_.isJoker) match {
     case 0 => cards // no jokers, nothing to replace
     case n => {
       // all combinations of replacements for however many joker cards exist
@@ -28,7 +28,7 @@ trait HandEvaluation {
   def preference(cs1: Seq[Card], cs2: Seq[Card], jokerReplacement: Boolean = true): Option[Seq[Card]] = {
     val (score1, score2): (Int, Int) = jokerReplacement match {
       case false => (eval(cs1), eval(cs2))
-      case true => (eval(replaceJokers(cs1)), eval(replaceJokers(cs2)))
+      case true => (eval(jokerWildcardReplacement(cs1)), eval(jokerWildcardReplacement(cs2)))
     }
     (score1, score2) match {
       case (x, y) if (x < y) => Some(cs2)

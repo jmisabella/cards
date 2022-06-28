@@ -88,18 +88,19 @@ trait PokerPredicates {
   def royalFlush(cards: Seq[Card]): Option[Seq[Card]] = filterByPredicate(cards, isRoyalFlush) (cs => cs)
 
   def handType(cards: Seq[Card]): Option[PokerHandType] = {
-    (isHighCard(cards), isOnePair(cards), isTwoPair(cards), isThreeOfAKind(cards), isStraight(cards), isFlush(cards), isFullHouse(cards), isFourOfAKind(cards), isStraightFlush(cards), isRoyalFlush(cards)) match {
-      case (_, _, _, _, _, _, _, _, _, true) => Some(RoyalFlush)
-      case (_, _, _, _, _, _, _, _, true, _) => Some(StraightFlush)
-      case (_, _, _, _, _, _, _, true, _, _) => Some(FourOfAKind)
-      case (_, _, _, _, _, _, true, _, _, _) => Some(FullHouse)
-      case (_, _, _, _, _, true, _, _, _, _) => Some(Flush)
-      case (_, _, _, _, true, _, _, _, _, _) => Some(Straight)
-      case (_, _, _, true, _, _, _, _, _, _) => Some(ThreeOfAKind)
-      case (_, _, true, _, _, _, _, _, _, _) => Some(TwoPair)
-      case (_, true, _, _, _, _, _, _, _, _) => Some(OnePair)
-      case (true, _, _, _, _, _, _, _, _, _) => Some(HighCard)
-      case (_, _, _, _, _, _, _, _, _, _) => None
+    (isHighCard(cards), isOnePair(cards), isTwoPair(cards), isThreeOfAKind(cards), isStraight(cards), isFlush(cards), isFullHouse(cards), isFourOfAKind(cards), 
+      isStraightFlush(cards), isRoyalFlush(cards)) match {
+        case (_, _, _, _, _, _, _, _, _, true) => Some(RoyalFlush)
+        case (_, _, _, _, _, _, _, _, true, _) => Some(StraightFlush)
+        case (_, _, _, _, _, _, _, true, _, _) => Some(FourOfAKind)
+        case (_, _, _, _, _, _, true, _, _, _) => Some(FullHouse)
+        case (_, _, _, _, _, true, _, _, _, _) => Some(Flush)
+        case (_, _, _, _, true, _, _, _, _, _) => Some(Straight)
+        case (_, _, _, true, _, _, _, _, _, _) => Some(ThreeOfAKind)
+        case (_, _, true, _, _, _, _, _, _, _) => Some(TwoPair)
+        case (_, true, _, _, _, _, _, _, _, _) => Some(OnePair)
+        case (true, _, _, _, _, _, _, _, _, _) => Some(HighCard)
+        case (_, _, _, _, _, _, _, _, _, _) => None
     }
   }
 
