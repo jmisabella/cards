@@ -1,10 +1,7 @@
 package cards.models.behaviors.evaluation
 
-import cards.models.classes.{ Card, SuitedCard, PokerHandType, Deck, DeckType }
-import cards.models.classes.DeckType._
+import cards.models.classes.Card
 import cards.models.classes.Rank._
-import cards.models.classes.PokerHandType._
-import cards.models.behaviors.Commons
 import cards.models.behaviors.predicates.PokerPredicates
 import scala.annotation.tailrec
 import scala.math.pow

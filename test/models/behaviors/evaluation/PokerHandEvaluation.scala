@@ -121,10 +121,17 @@ class PokerHandEvaluationSpec extends AnyFlatSpec {
     assert(result == Some(joker))
   }
 
-  it should "prefer pair of twos, pair of threes, and a joker over a plain flush" in {
+  it should "prefer pair of Twos, pair of Threes, and a Joker over a plain Flush" in {
     val fullHouseWithJoker: Seq[Card] = Seq(UnsuitedCard(RightBower), SuitedCard(Two, Clubs), SuitedCard(Two, Hearts), SuitedCard(Three, Spades), SuitedCard(Three, Clubs))
     val flush: Seq[Card] = Seq(SuitedCard(Five, Hearts), SuitedCard(Seven, Hearts), SuitedCard(Ten, Hearts), SuitedCard(Jack, Hearts), SuitedCard(Ace, Hearts))
-    val result: Option[Seq[Card]] = module.preference(fullHouseWithJoker, flush)
-    assert(result == Some(fullHouseWithJoker))
+    val result: Option[Seq[Card]] = module.preference(fullHouseWithJoker.sorted, flush.sorted)
+    assert(result == Some(fullHouseWithJoker.sorted))
+  }
+
+  it should "prefer three Twos, a Three, and a Joker over a Full House with 3 Aces and 2 Kings" in {
+    val fourOfAKindWithJoker: Seq[Card] = Seq(UnsuitedCard(LeftBower), SuitedCard(Two, Clubs), SuitedCard(Two, Hearts), SuitedCard(Two, Spades), SuitedCard(Three, Clubs))
+    val fullHouse: Seq[Card] = Seq(SuitedCard(Ace, Hearts), SuitedCard(Ace, Diamonds), SuitedCard(Ace, Clubs), SuitedCard(King, Hearts), SuitedCard(King, Spades))
+    val result: Option[Seq[Card]] = module.preference(fourOfAKindWithJoker.sorted, fullHouse.sorted)
+    assert(result == Some(fourOfAKindWithJoker.sorted))
   }
 }
