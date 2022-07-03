@@ -134,4 +134,5 @@ class PokerHandEvaluationSpec extends AnyFlatSpec {
     val result: Option[Seq[Card]] = module.preference(fourOfAKindWithJoker.sorted, fullHouse.sorted)
     assert(result == Some(fourOfAKindWithJoker.sorted))
   }
+
 }
