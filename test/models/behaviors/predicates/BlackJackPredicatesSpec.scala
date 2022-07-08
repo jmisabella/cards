@@ -2,7 +2,7 @@ package cards.models.behaviors.predicates
 
 import cards.models.behaviors.Commons
 import cards.models.behaviors.predicates.BlackJackPredicates
-import cards.models.classes.{ Card, SuitedCard, UnsuitedCard, Rank, Suit }
+import cards.models.classes.{ Card, Rank, Suit }
 import cards.models.classes.Rank._
 import cards.models.classes.Suit._
 import org.scalatest.flatspec.AnyFlatSpec
@@ -21,25 +21,25 @@ class BlackJackPredicatesSpec extends AnyFlatSpec {
   }
 
   it should "not allow split for a single-card hand" in {
-    val cards: Seq[Card] = Seq(SuitedCard(Three, Clubs))
+    val cards: Seq[Card] = Seq(Card(Three, Clubs))
     val result: Boolean = module.canSplit(cards)
     assert(!result) 
   }
 
   it should "not allow split for a 2-card hand with cards of different rank" in {
-    val cards: Seq[Card] = Seq(SuitedCard(Seven, Hearts), SuitedCard(Nine, Spades))
+    val cards: Seq[Card] = Seq(Card(Seven, Hearts), Card(Nine, Spades))
     val result: Boolean = module.canSplit(cards)
     assert(!result) 
   }
 
   it should "allow split for a 2-card hand with cards of matching rank" in {
-    val cards: Seq[Card] = Seq(SuitedCard(Jack, Clubs), SuitedCard(Jack, Hearts))
+    val cards: Seq[Card] = Seq(Card(Jack, Clubs), Card(Jack, Hearts))
     val result: Boolean = module.canSplit(cards)
     assert(result) 
   }
   
   it should "not allow split for a 3-card hand with 2 cards of matching rank and one additional card" in {
-    val cards: Seq[Card] = Seq(SuitedCard(Jack, Clubs), SuitedCard(Jack, Hearts), SuitedCard(Two, Clubs))
+    val cards: Seq[Card] = Seq(Card(Jack, Clubs), Card(Jack, Hearts), Card(Two, Clubs))
     val result: Boolean = module.canSplit(cards)
     assert(!result) 
   }
@@ -51,13 +51,13 @@ class BlackJackPredicatesSpec extends AnyFlatSpec {
   }
   
   it should "not allow players insurance if dealer's face-up cards have more than 1 card (an ace and one additional card)" in {
-    val dealerFaceUpCards: Seq[Card] = Seq(SuitedCard(Ace, Spades), SuitedCard(King, Spades)) 
+    val dealerFaceUpCards: Seq[Card] = Seq(Card(Ace, Spades), Card(King, Spades)) 
     val result: Boolean = module.eligibleForInstance(dealerFaceUpCards)
     assert(!result) 
   }
 
   it should "allow players insurance if dealer's face-up has only 1 card, an ace" in {
-    val dealerFaceUpCards: Seq[Card] = Seq(SuitedCard(Ace, Hearts)) 
+    val dealerFaceUpCards: Seq[Card] = Seq(Card(Ace, Hearts)) 
     val result: Boolean = module.eligibleForInstance(dealerFaceUpCards)
     assert(result) 
   }

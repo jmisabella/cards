@@ -5,7 +5,7 @@ import play.api.libs.streams.ActorFlow
 import javax.inject.Inject
 import akka.actor.ActorSystem
 import akka.stream.Materializer
-import models.SimpleWebSocketActor
+import cards.models.SimpleWebSocketActor
 import play.api.libs.json._
 
 // the ‘implicit’ here is needed for the `ActorFlow.actorRef` below.

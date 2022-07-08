@@ -1,8 +1,7 @@
 package cards.models.classes
 
-import cards.models.classes.Deck
+import cards.models.classes.{ Card, Deck }
 import cards.models.classes.DeckType._
-// import cards.models.classes.Joker._
 import cards.models.classes.Rank._
 import cards.models.classes.Suit._
 import org.scalatest.flatspec.AnyFlatSpec
@@ -21,22 +20,22 @@ class DeckSpec extends AnyFlatSpec {
   }
 
   it should "exclude 1 left-bower joker from the deck, yielding 53 cards" in {
-    val deck: Deck = Deck(excluded = Seq(UnsuitedCard(LeftBower)))
+    val deck: Deck = Deck(excluded = Seq(Card(LeftBower, Joker)))
     assert(deck.length == 53)
     assert(deck.count(_.isJoker) == 1)
-    assert(!deck.contains(UnsuitedCard(LeftBower)))
+    assert(!deck.contains(Card(LeftBower, Joker)))
   }
 
   it should "exclude both jokers from the deck, yielding 52 cards" in {
-    val deck: Deck = Deck(excluded = Seq(UnsuitedCard(LeftBower), UnsuitedCard(RightBower)))
+    val deck: Deck = Deck(excluded = Seq(Card(LeftBower, Joker), Card(RightBower, Joker)))
     assert(deck.length == 52)
     assert(deck.count(_.isJoker) == 0)
-    assert(!deck.contains(UnsuitedCard(LeftBower)))
-    assert(!deck.contains(UnsuitedCard(RightBower)))
+    assert(!deck.contains(Card(LeftBower,Joker)))
+    assert(!deck.contains(Card(RightBower, Joker)))
   }
 
   it should "create a 3 deck shoe deck excluding jokers, which has 52 * 3 cards total" in {
-    val deck: Deck = Deck(excluded = Seq(UnsuitedCard(LeftBower), UnsuitedCard(RightBower)), numberOfDecks = 3)
+    val deck: Deck = Deck(excluded = Seq(Card(LeftBower, Joker), Card(RightBower, Joker)), numberOfDecks = 3)
     assert(deck.length == 52 * 3)
     assert(deck.count(_.isJoker) == 0)
   }
@@ -44,9 +43,9 @@ class DeckSpec extends AnyFlatSpec {
   it should "have Euchre deck not contain any jokers nor any cards below 9" in {
     val deck: Deck = Deck(Euchre)
     assert(deck.length == 24)
-    assert(!deck.contains(Seq(UnsuitedCard(LeftBower), UnsuitedCard(RightBower)) ++
-      (for { r <- Seq(Two, Three, Four, Five, Six, Seven, Eight); s <- Suit.values} yield SuitedCard(r, s)).toList))
-    assert(deck.contains( (for { r <- Seq(Nine, Ten, Jack, Queen, King, Ace); s <- Suit.values} yield SuitedCard(r, s)).toList))
+    assert(!deck.contains(Seq(Card(LeftBower, Joker), Card(RightBower, Joker)) ++
+      (for { r <- Seq(Two, Three, Four, Five, Six, Seven, Eight); s <- Suit.values} yield Card(r, s)).toList))
+    assert(deck.contains( (for { r <- Seq(Nine, Ten, Jack, Queen, King, Ace); s <- Suit.values} yield Card(r, s)).toList))
   }
 
   it should "deal 0 cards" in {

@@ -1,8 +1,9 @@
 package cards.models.classes
 
 import cards.models.utilities.RNG
-import cards.models.classes.{ Card, SuitedCard, Rank, Suit }
+import cards.models.classes.{ Card, Rank, Suit }
 import cards.models.classes.Rank._
+import cards.models.classes.Suit._
 import scala.util.Random
 
 sealed trait DeckType
@@ -42,7 +43,7 @@ object Deck {
   def apply(deckType: DeckType): Deck = deckType match {
     case AllCards =>  
       Deck( 
-        (for { r <- Rank.suited; s <- Suit.values.toSeq } yield SuitedCard(r, s)).toList ++ List(UnsuitedCard(LeftBower), UnsuitedCard(RightBower))
+        (for { r <- Rank.suited; s <- Suit.suited } yield Card(r, s)).toList ++ List(Card(LeftBower, Joker), Card(RightBower, Joker))
         , RNG.RandomSeed(Random.nextInt(54 + 1)))
 
     case JokersExcluded =>
@@ -50,7 +51,7 @@ object Deck {
 
     case Euchre => 
       Deck(JokersExcluded)
-        .filter(c => !Seq(Two, Three, Four, Five, Six, Seven, Eight).contains(c.asInstanceOf[SuitedCard].rank))
+        .filter(c => !Seq(Two, Three, Four, Five, Six, Seven, Eight).contains(c.rank))
         .copy(seed = RNG.RandomSeed(Random.nextInt(24 + 1)))
   }
 
