@@ -50,12 +50,12 @@ class CardSerializationSpec extends AnyFlatSpec {
     val cards: Seq[Card] = Seq(Card(LeftBower, Joker), Card(Two, Spades), Card(Three, Hearts))
     val json = module.json(cards)
     println("JSON: " + json)
-    // val result: Either[String, Seq[Card]] = module.parse(json)
-    // // assert(result.isRight)
-    // result match {
-    //   case Right(cs) => println("RESULT: " + cs)
-    //   case Left(e) => println("ERROR IN RESULT: " + e)
-    // }
+    val result: Either[String, Seq[Card]] = module.parse(json)
+    assert(result.isRight)
+    result match {
+      case Right(cs) => println("RESULT: " + cs)
+      case Left(e) => println("ERROR IN RESULT: " + e)
+    }
   }
 
 }

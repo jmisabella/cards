@@ -27,20 +27,12 @@ import cards.models.classes.Suit._
 
 case class Card(rank: Rank, suit: Suit) {
   val isJoker: Boolean = rank == LeftBower || rank == RightBower
-  implicit def ordering[A <: Card]: Ordering[A] = Ordering.by(_.rank.id)
   override def toString(): String = {
     (Json.obj(
       "rank" -> rank,
       "suit" -> suit
     )).toString()
   }
-
-  // override def toString(): String = (Json.obj (
-  //   "suited-card" -> Json.obj(
-  //       "rank" -> rank,
-  //       "suit" -> suit,
-  //     ))).toString()
-
 }
 object Card {
   implicit val format: Format[Card] = Json.format[Card]
@@ -54,59 +46,3 @@ case class Cards(cards: Seq[Card]) {
 object Cards {
   implicit val format: Format[Cards] = Json.format[Cards]
 }
-
-// sealed trait Card {
-//   val rank: Rank
-//   val isJoker: Boolean = rank == LeftBower || rank == RightBower 
-//   override def toString(): String = (this match {
-//     case SuitedCard(rank, suit) => Json.obj("rank" -> rank, "suit" -> suit)
-//     case UnsuitedCard(rank) => Json.obj("rank" -> rank)
-//   }).toString()
-// }
-
-// object Card {
-//   implicit def ordering[A <: Card]: Ordering[A] = Ordering.by(_.rank.id)
-//   implicit val format: Format[Card] = Json.format[Card]
-    
-// }
-
-
-// case class SuitedCard(override val rank: Rank, suit: Suit) extends Card {
-//   require(!isJoker, s"SuitedCard is not supposed to have isJoker but it does; rank [$rank], suit [$suit]")
-//   implicit def ordering[A <: SuitedCard]: Ordering[A] = Ordering.by(_.rank.id)
-//   override def toString(): String = {
-//     (Json.obj(
-//       "rank" -> rank,
-//       "suit" -> suit
-//     )).toString()
-//   }
-
-//   // override def toString(): String = (Json.obj (
-//   //   "suited-card" -> Json.obj(
-//   //       "rank" -> rank,
-//   //       "suit" -> suit,
-//   //     ))).toString()
-
-// }
-// object SuitedCard {
-//   implicit val format: Format[SuitedCard] = Json.format[SuitedCard]
-// }
-
-// case class UnsuitedCard(override val rank: Rank) extends Card {
-//   override def toString(): String = {
-//     (Json.obj(
-//       "rank" -> rank,
-//     )).toString()
-//   }
-//   // override def toString(): String = (Json.obj (
-//   //   "unsuited-card" -> Json.obj(
-//   //       "rank" -> rank,
-//   //     ))).toString()
-  
-//   implicit def ordering[A <: UnsuitedCard]: Ordering[A] = Ordering.by(_.rank.id)
-//   require(isJoker, s"UnsuitedCard is supposed to have isJoker but it does not; rank [$rank]")
-// }
-
-// object UnsuitedCard {
-//   implicit val format: Format[UnsuitedCard] = Json.format[UnsuitedCard]
-// }

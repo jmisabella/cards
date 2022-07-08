@@ -5,7 +5,6 @@ import play.api.libs.json. { Json, JsSuccess }
 import com.fasterxml.jackson.core.JsonParseException
 
 trait CardSerialization {
-  // TODO: test
   def parse(json: String): Either[String, Seq[Card]] = try {
     Json.parse(json).validate[Cards] match {
       case JsSuccess(cs, _) => Right(cs.cards)
@@ -15,6 +14,5 @@ trait CardSerialization {
     case e: JsonParseException => Left(e.getMessage())
   }
 
-  // TODO: test
   def json(cards: Seq[Card]): String = Cards(cards).toString()
 }
