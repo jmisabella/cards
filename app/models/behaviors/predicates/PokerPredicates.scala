@@ -1,7 +1,7 @@
 package cards.models.behaviors.predicates
 
 import cards.models.behaviors.Commons
-import cards.models.classes.{ Card, SuitedCard, PokerHandType }
+import cards.models.classes.{ Card, PokerHandType }
 import cards.models.classes.Rank._
 import cards.models.classes.PokerHandType._
 
@@ -45,13 +45,13 @@ trait PokerPredicates {
     !isFourOfAKind(cards) && 
     cards.length > 0
 
-  def filterByPredicate(cards: Seq[Card], p: Seq[Card] => Boolean)(f: Seq[SuitedCard] => Seq[Card]): Option[Seq[Card]] = (commons.suited(cards), p(cards)) match {
+  def filterByPredicate(cards: Seq[Card], p: Seq[Card] => Boolean)(f: Seq[Card] => Seq[Card]): Option[Seq[Card]] = (commons.suited(cards), p(cards)) match {
     case (Nil, _) => None
     case (_, false) => None
     case (cs, true) => Some(f(cs))  
   }
 
-  def cardByPredicate(cards: Seq[Card], p: Seq[Card] => Boolean)(f: Seq[SuitedCard] => Card): Option[Card] = (commons.suited(cards), p(cards)) match {
+  def cardByPredicate(cards: Seq[Card], p: Seq[Card] => Boolean)(f: Seq[Card] => Card): Option[Card] = (commons.suited(cards), p(cards)) match {
     case (Nil, _) => None
     case (_, false) => None
     case (cs, true) => Some(f(cs))  

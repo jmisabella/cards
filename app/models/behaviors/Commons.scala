@@ -1,6 +1,6 @@
 package cards.models.behaviors
 
-import cards.models.classes.{ Rank, Suit, SuitedCard, Card }
+import cards.models.classes.{ Rank, Suit, Card }
 import cards.models.classes.Suit._
 import cards.models.classes.Rank._
 
@@ -12,7 +12,7 @@ trait Commons {
   }
 
   def countSuit(cards: Seq[Card]): Map[Suit, Int] = {
-    val suited: Seq[SuitedCard] = cards.filter(_.isInstanceOf[SuitedCard]).map(_.asInstanceOf[SuitedCard])
+    val suited: Seq[Card] = cards.filter(c => !c.isJoker)
     (for (s <- Suit.values.toSeq) yield (s -> suited.count(_.suit == s))).toMap
   }
 
@@ -35,8 +35,8 @@ trait Commons {
   // rank of either lowest or highest card, optionally filtered by suit
   private def minMaxRank(cards: Seq[Card], minMax: MinMax, suit: Option[Suit] = None): Option[Rank] = (cards, minMax, suit) match {
     case (Nil, _, _) => None
-    case (_, Min, Some(s)) => Some(cards.filter(c => c.isInstanceOf[SuitedCard] && c.asInstanceOf[SuitedCard].suit == s).min.rank)
-    case (_, Max, Some(s)) => Some(cards.filter(c => c.isInstanceOf[SuitedCard] && c.asInstanceOf[SuitedCard].suit == s).max.rank)
+    case (_, Min, Some(s)) => Some(cards.filter(c => c.suit == s).min.rank)
+    case (_, Max, Some(s)) => Some(cards.filter(c => c.suit == s).max.rank)
     case (_, Min, None) => Some(cards.min.rank)
     case (_, Max, None) => Some(cards.max.rank)
     case (_, _, _) => None
@@ -79,8 +79,6 @@ trait Commons {
 
   def getNumeric(card: Card): Int = getNumeric(card.rank)
 
-  def suited(cards: Seq[Card]): Seq[SuitedCard] = cards
-      .filter(_.isInstanceOf[SuitedCard])
-      .map(_.asInstanceOf[SuitedCard])
+  def suited(cards: Seq[Card]): Seq[Card] = cards.filter(c => !c.isJoker)
 
 }
