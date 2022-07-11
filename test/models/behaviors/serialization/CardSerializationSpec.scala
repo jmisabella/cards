@@ -1,6 +1,6 @@
-package cards.models.behaviors
+package cards.models.behaviors.serialization
 
-import cards.models.behaviors.CardSerialization
+import cards.models.behaviors.serialization.CardSerialization
 import cards.models.classes.{ Card, Rank, Suit }
 import cards.models.classes.Rank._
 import cards.models.classes.Suit._
