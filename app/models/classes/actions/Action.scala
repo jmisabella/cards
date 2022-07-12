@@ -6,14 +6,14 @@ import cards.models.classes.actions.BlackJackAction._
 import play.api.libs.json. { Json, Format }
 
 // TODO: behaviors, json serialization, testing
-case class Action[A <: Enumeration#Value](before: Seq[Card], after: Seq[Card], action: A, actionCards: Seq[Card] = Nil, actionTokens: Int = 0) {
+case class Action[A <: Enumeration#Value](action: A, actionCards: Seq[Card] = Nil, actionTokens: Int = 0, before: Seq[Card] = Nil, after: Seq[Card] = Nil ) {
   override def toString(): String = 
     (Json.obj(
-      "before" -> before.mkString("[", ", ", "]"),
-      "after" -> after.mkString("[", ", ", "]"),
+      "before" -> before,
+      "after" -> after,
       "action" -> action.toString(),
-      "actionCards" -> actionCards.mkString("[", ", ", "]"),
-      "actionTokens" -> actionTokens.toString()
+      "actionCards" -> actionCards,
+      "actionTokens" -> actionTokens
     )).toString()
 }
 
