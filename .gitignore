@@ -14,3 +14,8 @@ server.pid
 *.eml
 /dist/
 .cache
+.metals/metals.lock.db
+
+.metals/metals.log
+
+.metals/metals.mv.db
