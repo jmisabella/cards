@@ -10,9 +10,9 @@ trait ThirtyOneHandEvaluation extends HandEvaluation {
   val commons: C 
 
   override def eval(cards: Seq[Card]): Int = commons.suited(cards) match {
-    // 3-of-a-kind is 30.5 points, so to simulate we're making this 31, and actual 31 will then be scored as 32
+    // 3-of-a-kind is 30.5 points, so to simulate we're making it instead be 31, and actual 31 will then be scored as 32 (behind the scenes)
     case Nil => 0 
-    case cs if (commons.countRank(cs).values.toSeq.contains(3)) => 31 // 3-of-a-kind
+    case cs if (commons.countRank(cs).values.toSeq.contains(3)) => 31 // 3-of-a-kind, 30.5 points (see explanation above)
     case cs => { // else not 3-of-a-kind, so determine highest score grouped by suit
       val cardEval = (rank: Rank) => rank match {
         case Jack => 10
@@ -38,7 +38,7 @@ trait ThirtyOneHandEvaluation extends HandEvaluation {
       case (Nil, Nil) => None
       case (Nil, _) => Some(cs2)
       case (_, Nil) => Some(cs1)
-      // determine highest single card in either hand and if possible use it to break the tie
+      // determine highest single card in either hand and use it to break the tie if possible
       case (_, _) => (commons.highest(cs1).head.rank.id.toInt, commons.highest(cs2).head.rank.id.toInt) match {
         case (c1, c2) if (c1 == c2) => None
         case (c1, c2) if (c1 > c2) => Some(cs1)
