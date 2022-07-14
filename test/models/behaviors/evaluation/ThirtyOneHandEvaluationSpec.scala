@@ -74,4 +74,28 @@ class ThirtyOneHandEvaluationSpec extends AnyFlatSpec {
     assert(result == 31)
   } 
 
+  it should "break a tie by using high card, v1" in {
+    val cards1: Seq[Card] = Seq(Card(Two, Diamonds), Card(Six, Diamonds), Card(King, Diamonds))
+    val cards2: Seq[Card] = Seq(Card(Seven, Spades), Card(Three, Spades), Card(Eight, Spades))
+    val preferred: Option[Seq[Card]] = module.preference(cards1, cards2)
+    assert(preferred.isDefined)
+    assert(preferred.get.sorted == cards1.sorted)
+  }
+
+  it should "break a tie by using high card, v2" in {
+    val cards1: Seq[Card] = Seq(Card(Two, Diamonds), Card(Six, Diamonds), Card(Jack, Diamonds))
+    val cards2: Seq[Card] = Seq(Card(Four, Spades), Card(Four, Spades), Card(King, Spades))
+    val preferred: Option[Seq[Card]] = module.preference(cards1, cards2)
+    assert(preferred.isDefined)
+    assert(preferred.get.sorted == cards2.sorted)
+  }
+
+  it should "not break a tie when both hands share the same high card rank" in {
+    val cards1: Seq[Card] = Seq(Card(Two, Diamonds), Card(Queen, Diamonds), Card(Ten, Diamonds))
+    val cards2: Seq[Card] = Seq(Card(Two, Spades), Card(Jack, Spades), Card(Queen, Spades))
+    val preferred: Option[Seq[Card]] = module.preference(cards1, cards2)
+    assert(preferred.isEmpty)
+    assert(!preferred.isDefined)
+  }
+
 }

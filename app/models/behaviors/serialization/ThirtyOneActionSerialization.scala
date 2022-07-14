@@ -7,7 +7,6 @@ import play.api.libs.json. { Json, JsSuccess, Format }
 import com.fasterxml.jackson.core.JsonParseException
 
 trait ThirtyOneActionSerialization extends Serialization[Action[ThirtyOneAction]] {
-  // TODO: test 
   override def parse(json: String): Either[String, Seq[Action[ThirtyOneAction]]] = try {
     Json.parse(json).validate[Actions[ThirtyOneAction]] match {
       case JsSuccess(as, _) => Right(as.actions)
@@ -17,7 +16,6 @@ trait ThirtyOneActionSerialization extends Serialization[Action[ThirtyOneAction]
     case e: JsonParseException => Left(e.getMessage())
   }
 
-  // TODO: test 
   override def json(items: Seq[Action[ThirtyOneAction]]): String = Actions(items).toString()
 }
 

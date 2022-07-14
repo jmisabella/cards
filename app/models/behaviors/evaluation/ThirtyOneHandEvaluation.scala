@@ -30,4 +30,20 @@ trait ThirtyOneHandEvaluation extends HandEvaluation {
         }
     }
   }
+
+  // override preference so that if both hand evals tie, then hand with highest card by rank would break the tie (unless both highest ranks match)
+  override def preference(cs1: Seq[Card], cs2: Seq[Card], jokerReplacement: Boolean = true): Option[Seq[Card]] = super.preference(cs1, cs2) match {
+    case Some(results) => Some(results)
+    case None => (cs1, cs2) match {
+      case (Nil, Nil) => None
+      case (Nil, _) => Some(cs2)
+      case (_, Nil) => Some(cs1)
+      // determine highest single card in either hand and if possible use it to break the tie
+      case (_, _) => (commons.highest(cs1).head.rank.id.toInt, commons.highest(cs2).head.rank.id.toInt) match {
+        case (c1, c2) if (c1 == c2) => None
+        case (c1, c2) if (c1 > c2) => Some(cs1)
+        case (c1, c2) if (c1 < c2) => Some(cs2)
+      }
+    }
+  }
 }
