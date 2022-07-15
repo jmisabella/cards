@@ -13,7 +13,7 @@ class ThirtyOneActionSerializationSpec extends AnyFlatSpec {
 
   "ThirtyOneActionSerialization" should "create valid json from Draw action even if all card collections are empty" in {
     // val action: Seq[Action[ThirtyOneAction]] = Seq(Action[ThirtyOneAction](Draw, Seq(Card(Two, Diamonds)), 0, Nil, Seq(Card(Two, Diamonds))))
-    val action: Seq[Action[ThirtyOneAction]] = Seq(Action[ThirtyOneAction](Draw))
+    val action: Seq[Action[ThirtyOneAction]] = Seq(Action[ThirtyOneAction]("JMI", Draw))
     val json: String = module.json(action)
     println("JSON: " + json)
     val result: Either[String, Seq[Action[ThirtyOneAction]]] = module.parse(json)
@@ -28,6 +28,7 @@ class ThirtyOneActionSerializationSpec extends AnyFlatSpec {
     val action: Seq[Action[ThirtyOneAction]] = 
       Seq(
         Action[ThirtyOneAction](
+          playerId="JMI",
           action=Draw, 
           actionCards=Seq(Card(Two, Spades)), 
           actionTokens=0, 
