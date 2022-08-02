@@ -77,7 +77,7 @@ trait ThirtyOneNonPlayer {
         currentPlayerIndex = Some(gameState.nextPlayerIndex()),
         history = gameState.history ++ 
           Seq(Action(currentPlayer.id, DrawFromDiscard, Seq(gameState.discardPile.head)), Action(currentPlayer.id, Discard, Seq(drawDiscardPileDiscardedCard))), 
-        players = gameState.updatedSuspectedCards(newCard = gameState.discardPile.head, discard = drawDiscardPileDiscardedCard), // update suspected cards
+        players = gameState.updatedHandAndSuspectedCards(updatedHand = drawDiscardPileHand, discarded = Seq(drawDiscardPileDiscardedCard), publiclyViewedNewCards = Seq(gameState.discardPile.head)),
         discardPile = gameState.discardPile.tail)
     }
     val drawDiscardNextPlayerPotentialScore: Int = evaluation.permutationsAndScores(Seq(drawDiscardPileDiscardedCard) ++ nextPlayer.suspectedCards, 3).maxBy(_._2)._2
@@ -86,7 +86,7 @@ trait ThirtyOneNonPlayer {
         currentPlayerIndex = Some(gameState.nextPlayerIndex()),
         history = gameState.history ++ 
           Seq(Action(currentPlayer.id, DrawFromDiscard, Seq(gameState.discardPile.head)), Action(currentPlayer.id, Discard, Seq(drawDiscardPileDiscardedCard))), 
-        players = gameState.updatedSuspectedCards(newCard = gameState.discardPile.head, discard = drawDiscardPileDiscardedCard), // update suspected cards
+        players = gameState.updatedHandAndSuspectedCards(updatedHand = drawDiscardPileHand, discarded = Seq(drawDiscardPileDiscardedCard), publiclyViewedNewCards = Seq(gameState.discardPile.head)),
         discardPile = gameState.discardPile.tail)
     }
     
@@ -117,6 +117,7 @@ trait ThirtyOneNonPlayer {
             ._2 
         }
         .toMap
+
     val discardsToAvoid: Seq[Card] = nextPlayerPotentialScores.filter(_._2 >= 32).toSeq.map(_._1)
     val safePermutationsAndScores: Seq[(Seq[Card], Int)] = drawCardPermutationsAndScores.filter(_._1.intersect(discardsToAvoid).nonEmpty)
     val drawHand: Seq[Card] = safePermutationsAndScores.maxBy(_._2)._1
@@ -126,7 +127,7 @@ trait ThirtyOneNonPlayer {
       currentPlayerIndex = Some(gameState.nextPlayerIndex()),
       history = gameState.history ++ 
         Seq(Action(currentPlayer.id, Draw, drawnCard), Action(currentPlayer.id, Discard, Seq(discardedCard))), 
-      players = gameState.updatedSuspectedCards(newCards = Nil, discarded = Seq(discardedCard)), // update suspected cards
+      players = gameState.updatedHandAndSuspectedCards(updatedHand = drawHand, discarded = Seq(discardedCard)),
       discardPile = Seq(discardedCard) ++ gameState.discardPile)
   }
 
