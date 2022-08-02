@@ -128,6 +128,7 @@ trait ThirtyOneNonPlayer {
       history = gameState.history ++ 
         Seq(Action(currentPlayer.id, Draw, drawnCard), Action(currentPlayer.id, Discard, Seq(discardedCard))), 
       players = gameState.updatedHandAndSuspectedCards(updatedHand = drawHand, discarded = Seq(discardedCard)),
+      deck = updatedDeck,
       discardPile = Seq(discardedCard) ++ gameState.discardPile)
   }
 

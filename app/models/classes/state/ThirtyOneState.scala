@@ -38,30 +38,8 @@ case class ThirtyOneGameState(
       case (ps, Some(i)) => (i + 1) % ps.length
     }
 
-    // // TODO: test
-    // // yields an updated players list with the current player's cards reflecting specified updated cards
-    // def updatedHand(updatedHand: Seq[Card]): Seq[ThirtyOnePlayerState] = {
-    //   for (p <- players) yield { 
-    //     if (p == currentPlayer()) 
-    //       p.copy(hand = updatedHand) 
-    //     else 
-    //       p
-    //   }   
-    // }
-
-    // // TODO: test
-    // // yields an updated players list with the current player's suspected cards reflecting specified new and discarded cards
-    // def updatedSuspectedCards(newCards: Seq[Card] = Nil, discarded: Seq[Card] = Nil): Seq[ThirtyOnePlayerState] = {
-    //   for (p <- players) yield { 
-    //     if (p == currentPlayer()) 
-    //       p.copy(suspectedCards = p.suspectedCards.diff(discarded) ++ newCards) 
-    //     else 
-    //       p
-    //   }   
-    // }
-    // def updatedSuspectedCards(newCard: Card, discard: Card): Seq[ThirtyOnePlayerState] = updatedSuspectedCards(newCards = Seq(newCard), discarded = Seq(discard))
-
     // TODO: test
+    // yields an updated players list with the current player's hand and suspected cards reflecting specified newly drawn and discarded cards
     def updatedHandAndSuspectedCards(updatedHand: Seq[Card], discarded: Seq[Card], publiclyViewedNewCards: Seq[Card] = Nil): Seq[ThirtyOnePlayerState] = {
       for (p <- players) yield { 
         if (p == currentPlayer()) 
