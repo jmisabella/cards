@@ -98,6 +98,22 @@ class ThirtyOneHandEvaluationSpec extends AnyFlatSpec {
     assert(!preferred.isDefined)
   }
 
-  // TODO: test permutations and scores
+  it should "use permutations and scores to determine the best 3-card hand from 4 cards" in {
+    val cards: Seq[Card] = Seq(Card(Two, Hearts), Card(Queen, Diamonds), Card(Ace, Spades), Card(Five, Hearts))
+    val highestHand = module.permutationsAndScores(cards, 3).maxBy(_._2)._1
+    val highestScore = module.permutationsAndScores(cards, 3).maxBy(_._2)._2
+    assert(highestHand.contains(Card(Ace, Spades)))
+    assert(highestScore == 11)
+  }
 
+  it should "throw illegal state exception when attempting permutations and scores when n (5) is larger than the hand size (4)" in {
+    val cards: Seq[Card] = Seq(Card(Two, Hearts), Card(Queen, Diamonds), Card(Ace, Spades), Card(Five, Hearts))
+    try {
+      val highestHand = module.permutationsAndScores(cards, 5).maxBy(_._2)._1
+      val highestScore = module.permutationsAndScores(cards, 5).maxBy(_._2)._2
+      assert(false)
+    } catch {
+      case _: IllegalStateException => assert(true)
+    } 
+  }
 }
