@@ -22,7 +22,6 @@ case class ThirtyOneGameState(
   winningPlayerId: Option[String] = None,
   history: Seq[Action[ThirtyOneAction]] = Nil) {
 
-    // TODO: test
     def currentPlayer(): ThirtyOnePlayerState = (players, currentPlayerIndex) match {
       case (Nil, _) => throw new IllegalStateException(s"Cannot determine current player when no players exist")
       case (ps, None) => throw new IllegalStateException(s"Cannot determine current player when currentPlayerIndex is empty")
@@ -31,14 +30,12 @@ case class ThirtyOneGameState(
       case (ps, Some(i)) => ps(i)  
     }
 
-    // TODO: test
     def nextPlayerIndex(): Int = (players, currentPlayerIndex) match {
       case (Nil, _) => throw new IllegalStateException(s"Cannot determine next player when no players exist")
-      case (ps, None) => 0 // no previous index set, so start with first player
+      case (ps, None) => throw new IllegalStateException(s"Cannot determine next player when currentPlayerIndex is empty")
       case (ps, Some(i)) => (i + 1) % ps.length
     }
 
-    // TODO: test
     // yields an updated players list with the current player's hand and suspected cards reflecting specified newly drawn and discarded cards
     def updatedHandAndSuspectedCards(updatedHand: Seq[Card], discarded: Seq[Card], publiclyViewedNewCards: Seq[Card] = Nil): Seq[ThirtyOnePlayerState] = {
       for (p <- players) yield { 

@@ -98,4 +98,6 @@ class ThirtyOneHandEvaluationSpec extends AnyFlatSpec {
     assert(!preferred.isDefined)
   }
 
+  // TODO: test permutations and scores
+
 }
