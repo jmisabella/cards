@@ -18,21 +18,21 @@ trait ThirtyOneNonPlayer {
 
   // TODO: test
   def next[A <: Enumeration#Value](gameState: ThirtyOneGameState): ThirtyOneGameState = {
-    if (gameState.deck.length == 0) { // TODO: test when deck is empty
+    if (gameState.deck.length == 0) {
       throw new IllegalStateException(
         s"Cannot get next because deck is empty")
     }
-    if (gameState.discardPile.length == 0) { // TODO: test when discard is empty
+    if (gameState.discardPile.length == 0) {
       throw new IllegalStateException(
         s"Cannot get next because discard pile is empty")
     }
-    if (gameState.winningPlayerId.isDefined) { // TODO: test when winningPlayerId is defined
+    if (gameState.winningPlayerId.isDefined) {
       throw new IllegalStateException(
         s"Cannot get next because a winning player already exists: winning player id [${gameState.winningPlayerId.get}], game state [$gameState]")
     }
     val currentPlayer: ThirtyOnePlayerState = gameState.currentPlayer()
     val completed: Boolean = gameState.knockedPlayerId.getOrElse("") == currentPlayer.id || gameState.players.count(p => evaluation.eval(p.hand) == 32) > 0
-    if (completed) { // TODO: test each winning case
+    if (completed) {
       // round is completed, determine winner 
       val winningHand: Seq[Card] = gameState.players.map(_.hand).foldLeft(Nil: Seq[Card]) { (acc, a) => choose(acc, a) }
       val winner: String = gameState.players.filter(p => p.hand.sorted == winningHand.sorted).map(_.id).head

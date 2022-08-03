@@ -98,5 +98,8 @@ class DeckSpec extends AnyFlatSpec {
     }
   }
 
+  "Deck.emptyDeck" should "contain no cards" in {
+    assert(Deck.emptyDeck.cards == Nil)
+  }
 
 }

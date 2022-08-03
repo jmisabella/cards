@@ -62,4 +62,7 @@ object Deck {
       (for (i <- 0 until numberOfDecks) yield available).toList.flatten
       , RNG.RandomSeed(Random.nextInt((54 - excluded.length) * numberOfDecks + 1)))
   }
+
+  // useful for testing 
+  val emptyDeck: Deck = Deck(Deck(AllCards).cards)
 }
