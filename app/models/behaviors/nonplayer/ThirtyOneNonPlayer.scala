@@ -42,33 +42,14 @@ trait ThirtyOneNonPlayer {
     val currentHand: Seq[Card] = currentPlayer.hand
     val currentScore: Int = evaluation.eval(currentHand)
     val nextPlayer: ThirtyOnePlayerState = gameState.players(gameState.nextPlayerIndex())
-    // if knocking, should make sure that next player would not get a thirty one automatic win or a higher score from drawing from discard pile 
-    val nextPlayerDrawDiscardPotentialScore: Int = evaluation.permutationsAndScores(Seq(gameState.discardPile.head) ++ nextPlayer.suspectedCards, 3).maxBy(_._2)._2
-
-    // early knock logic
-    // TODO: test early knock logic
-    if (!gameState.knockedPlayerId.isDefined && gameState.history.length == 0 && currentScore > 17) {
-      // if, during the very first turn, hand is good enough then knock right away
-      return gameState.copy(
-        knockedPlayerId = Some(currentPlayer.id), 
-        currentPlayerIndex = Some(gameState.nextPlayerIndex()),
-        history = gameState.history ++ Seq(Action(currentPlayer.id, Knock)))
-    }
-    if (!gameState.knockedPlayerId.isDefined && gameState.history.length < gameState.players.length && 
-      currentScore > 21 && 
-      nextPlayerDrawDiscardPotentialScore != 32 && 
-      nextPlayerDrawDiscardPotentialScore < currentScore) {
-      // if, during the first round, hand is good enough then knock
-      return gameState.copy(
-        knockedPlayerId = Some(currentPlayer.id), 
-        currentPlayerIndex = Some(gameState.nextPlayerIndex()),
-        history = gameState.history ++ Seq(Action(currentPlayer.id, Knock)))
-    }
-
+    val suspected: Seq[Card] = nextPlayer.suspectedCards
+    
     // draw discard logic
-    // TODO: test draw discard logic
     val drawDiscardPermutationsAndScores: Seq[(Seq[Card], Int)] = evaluation.permutationsAndScores(cards = currentHand ++ Seq(gameState.discardPile.head), n = 3)
-    val drawDiscardPileHand: Seq[Card] = drawDiscardPermutationsAndScores.maxBy(_._2)._1
+    val drawDiscardPileHand: Seq[Card] = drawDiscardPermutationsAndScores.length match {
+      case 0 => Nil
+      case _ => drawDiscardPermutationsAndScores.maxBy(_._2)._1
+    }
     val drawDiscardScore: Int =  evaluation.eval(drawDiscardPileHand)
     val drawDiscardPileDiscardedCard: Card = (currentHand ++ Seq(gameState.discardPile.head)).diff(drawDiscardPileHand).head
     if (drawDiscardScore == 32) { // draw from discard if it leads to 31 (instant win)
@@ -80,7 +61,12 @@ trait ThirtyOneNonPlayer {
         players = gameState.updatedHandAndSuspectedCards(updatedHand = drawDiscardPileHand, discarded = Seq(drawDiscardPileDiscardedCard), publiclyViewedNewCards = Seq(gameState.discardPile.head)),
         discardPile = gameState.discardPile.tail)
     }
-    val drawDiscardNextPlayerPotentialScore: Int = evaluation.permutationsAndScores(Seq(drawDiscardPileDiscardedCard) ++ nextPlayer.suspectedCards, 3).maxBy(_._2)._2
+    val drawDiscardNextPlayerPermutations = evaluation.permutationsAndScores(Seq(drawDiscardPileDiscardedCard) ++ suspected, suspected.length)
+    val drawDiscardNextPlayerPotentialScore: Int = drawDiscardNextPlayerPermutations.length match {
+      case 0 => 0
+      case _ => drawDiscardNextPlayerPermutations.maxBy(_._2)._2
+    }
+    // TODO: test this specific draw discard logic, 2 possible scenarios
     if (drawDiscardNextPlayerPotentialScore < 32 && drawDiscardScore > currentScore && (drawDiscardScore - currentScore > 8 || drawDiscardScore >= 30)) {
       return gameState.copy(
         currentPlayerIndex = Some(gameState.nextPlayerIndex()),
@@ -90,7 +76,28 @@ trait ThirtyOneNonPlayer {
         discardPile = gameState.discardPile.tail)
     }
     
-    // knock logic 
+    // early knock logic
+    if (!gameState.knockedPlayerId.isDefined && gameState.history.length == 0 && currentScore > 17) {
+      // if, during the very first turn, hand is good enough then knock right away
+      return gameState.copy(
+        knockedPlayerId = Some(currentPlayer.id), 
+        currentPlayerIndex = Some(gameState.nextPlayerIndex()),
+        history = gameState.history ++ Seq(Action(currentPlayer.id, Knock)))
+    }
+    // if knocking, should make sure that next player would not get a thirty one automatic win or a higher score from drawing from discard pile
+    val nextPlayerDrawDiscardPotentialScore: Int = evaluation.permutationsAndScores(Seq(gameState.discardPile.head) ++ suspected, suspected.length).maxBy(_._2)._2
+    if (!gameState.knockedPlayerId.isDefined && gameState.history.length < gameState.players.length && 
+      currentScore > 21 && 
+      nextPlayerDrawDiscardPotentialScore != 32 && 
+      nextPlayerDrawDiscardPotentialScore < currentScore) {
+      // if, during the first round, hand is good enough then knock
+      return gameState.copy(
+        knockedPlayerId = Some(currentPlayer.id), 
+        currentPlayerIndex = Some(gameState.nextPlayerIndex()),
+        history = gameState.history ++ Seq(Action(currentPlayer.id, Knock)))
+    }
+    
+    // regular knock logic 
     // TODO: test knock logic 
     if (!gameState.knockedPlayerId.isDefined &&
       currentScore >= 30 && 
@@ -112,7 +119,7 @@ trait ThirtyOneNonPlayer {
       (currentHand ++ drawnCard)
         .map { c =>  
           c -> evaluation
-            .permutationsAndScores(Seq(c) ++ nextPlayer.suspectedCards, n = 3)
+            .permutationsAndScores(Seq(c) ++ suspected, n = suspected.length)
             .maxBy(_._2)
             ._2 
         }
@@ -120,7 +127,10 @@ trait ThirtyOneNonPlayer {
 
     val discardsToAvoid: Seq[Card] = nextPlayerPotentialScores.filter(_._2 >= 32).toSeq.map(_._1)
     val safePermutationsAndScores: Seq[(Seq[Card], Int)] = drawCardPermutationsAndScores.filter(_._1.intersect(discardsToAvoid).nonEmpty)
-    val drawHand: Seq[Card] = safePermutationsAndScores.maxBy(_._2)._1
+    val drawHand: Seq[Card] = safePermutationsAndScores.length match {
+      case 0 => Nil
+      case _ => safePermutationsAndScores.maxBy(_._2)._1
+    }
     val drawHandScore: Int = evaluation.eval(drawHand)
     val discardedCard: Card = (currentHand ++ drawnCard).diff(drawHand).head
     return gameState.copy(

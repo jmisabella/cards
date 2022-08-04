@@ -46,6 +46,6 @@ trait HandEvaluation {
       .combinations(n) // every permutation of n cards
       .map(cs => (cs, eval(cs)))
       .toSeq
-  } 
+  }
 
 }
