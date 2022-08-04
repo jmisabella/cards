@@ -16,7 +16,6 @@ trait ThirtyOneNonPlayer {
     case Some(cs) => cs
   }
 
-  // TODO: test
   def next[A <: Enumeration#Value](gameState: ThirtyOneGameState): ThirtyOneGameState = {
     if (gameState.deck.length == 0) {
       throw new IllegalStateException(
@@ -66,8 +65,7 @@ trait ThirtyOneNonPlayer {
       case 0 => 0
       case _ => drawDiscardNextPlayerPermutations.maxBy(_._2)._2
     }
-    // TODO: test this specific draw discard logic, 2 possible scenarios
-    if (drawDiscardNextPlayerPotentialScore < 32 && drawDiscardScore > currentScore && (drawDiscardScore - currentScore > 8 || drawDiscardScore >= 30)) {
+    if (drawDiscardNextPlayerPotentialScore < 32 && drawDiscardScore > currentScore && (drawDiscardScore - currentScore >= 7 || drawDiscardScore >= 30)) {
       return gameState.copy(
         currentPlayerIndex = Some(gameState.nextPlayerIndex()),
         history = gameState.history ++ 
@@ -98,7 +96,6 @@ trait ThirtyOneNonPlayer {
     }
     
     // regular knock logic 
-    // TODO: test knock logic 
     if (!gameState.knockedPlayerId.isDefined &&
       currentScore >= 30 && 
       nextPlayerDrawDiscardPotentialScore != 32 && 
