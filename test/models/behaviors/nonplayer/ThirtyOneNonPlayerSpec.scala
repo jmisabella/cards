@@ -140,7 +140,7 @@ class ThirtyOneNonPlayerSpec extends AnyFlatSpec {
       Seq(Card(Eight, Spades), Card(Nine, Spades), Card(Ten, Spades)))
     val discardPile = Seq(Card(Eight, Clubs)) // next player would not get 31 if picking this up
     val players = Seq(ThirtyOnePlayerState("player1", 3, hands(0)), ThirtyOnePlayerState("player2", 3, hands(1)), ThirtyOnePlayerState("player3", 3, hands(2))) 
-    val history = Seq(Action("player3", Draw, Seq(Card(Four, Diamonds))), Action("player3", Discard, Seq(Card(Four, Diamonds))))
+    val history = Seq(Action("player3", DrawFromStock, Seq(Card(Four, Diamonds))), Action("player3", Discard, Seq(Card(Four, Diamonds))))
     val initialState = ThirtyOneGameState(players = players, currentPlayerIndex = Some(0), discardPile = discardPile, history = history)
     assert(!initialState.knockedPlayerId.isDefined) 
     val nextState = module.next(initialState)
@@ -159,7 +159,7 @@ class ThirtyOneNonPlayerSpec extends AnyFlatSpec {
         ThirtyOnePlayerState("player1", 3, hands(0), suspectedCards = Seq(Card(Ten, Hearts), Card(Ace, Hearts), Card(Seven, Spades))),
         ThirtyOnePlayerState("player2", 3, hands(1)), 
         ThirtyOnePlayerState("player3", 3, hands(2))) 
-    val history = Seq(Action("player3", Draw, Seq(Card(Four, Diamonds))), Action("player3", Discard, Seq(Card(Four, Diamonds))))
+    val history = Seq(Action("player3", DrawFromStock, Seq(Card(Four, Diamonds))), Action("player3", Discard, Seq(Card(Four, Diamonds))))
     val initialState = ThirtyOneGameState(players = players, currentPlayerIndex = Some(2), discardPile = discardPile, history = history)
     assert(!initialState.knockedPlayerId.isDefined)
     assert(initialState.nextPlayerIndex() == 0) // next player is player1
@@ -180,13 +180,13 @@ class ThirtyOneNonPlayerSpec extends AnyFlatSpec {
         ThirtyOnePlayerState("player3", 3, hands(2))) 
     val history = 
       Seq(
-        Action("player1", Draw, Seq(Card(Four, Diamonds))), 
+        Action("player1", DrawFromStock, Seq(Card(Four, Diamonds))), 
         Action("player1", Discard, Seq(Card(Four, Diamonds))),
-        Action("player2", Draw, Seq(Card(Four, Diamonds))), 
+        Action("player2", DrawFromStock, Seq(Card(Four, Diamonds))), 
         Action("player2", Discard, Seq(Card(Four, Diamonds))),
-        Action("player3", Draw, Seq(Card(Four, Diamonds))), 
+        Action("player3", DrawFromStock, Seq(Card(Four, Diamonds))), 
         Action("player3", Discard, Seq(Card(Four, Diamonds))),
-        Action("player1", Draw, Seq(Card(Four, Diamonds))), 
+        Action("player1", DrawFromStock, Seq(Card(Four, Diamonds))), 
         Action("player1", Discard, Seq(Card(Four, Diamonds))))
     val initialState = ThirtyOneGameState(players = players, currentPlayerIndex = Some(0), discardPile = discardPile, history = history)
     assert(!initialState.knockedPlayerId.isDefined)
@@ -212,13 +212,13 @@ and next player's suspected cards would not lead to 31 from drawing discarded ca
         ThirtyOnePlayerState("player3", 3, hands(2))) 
     val history = 
       Seq(
-        Action("player1", Draw, Seq(Card(Four, Diamonds))), 
+        Action("player1", DrawFromStock, Seq(Card(Four, Diamonds))), 
         Action("player1", Discard, Seq(Card(Four, Diamonds))),
-        Action("player2", Draw, Seq(Card(Four, Diamonds))), 
+        Action("player2", DrawFromStock, Seq(Card(Four, Diamonds))), 
         Action("player2", Discard, Seq(Card(Four, Diamonds))),
-        Action("player3", Draw, Seq(Card(Four, Diamonds))), 
+        Action("player3", DrawFromStock, Seq(Card(Four, Diamonds))), 
         Action("player3", Discard, Seq(Card(Four, Diamonds))),
-        Action("player1", Draw, Seq(Card(Four, Diamonds))), 
+        Action("player1", DrawFromStock, Seq(Card(Four, Diamonds))), 
         Action("player1", Discard, Seq(Card(Four, Diamonds))))
     val initialState = ThirtyOneGameState(players = players, currentPlayerIndex = Some(0), discardPile = discardPile, history = history)
     assert(initialState.nextPlayerIndex() == 1) // next player is player 2
@@ -242,13 +242,13 @@ and next player's suspected cards would not lead to 31 from drawing discarded ca
         ThirtyOnePlayerState("player3", 3, hands(2))) 
     val history = 
       Seq(
-        Action("player1", Draw, Seq(Card(Four, Diamonds))), 
+        Action("player1", DrawFromStock, Seq(Card(Four, Diamonds))), 
         Action("player1", Discard, Seq(Card(Four, Diamonds))),
-        Action("player2", Draw, Seq(Card(Four, Diamonds))), 
+        Action("player2", DrawFromStock, Seq(Card(Four, Diamonds))), 
         Action("player2", Discard, Seq(Card(Four, Diamonds))),
-        Action("player3", Draw, Seq(Card(Four, Diamonds))), 
+        Action("player3", DrawFromStock, Seq(Card(Four, Diamonds))), 
         Action("player3", Discard, Seq(Card(Four, Diamonds))),
-        Action("player1", Draw, Seq(Card(Four, Diamonds))), 
+        Action("player1", DrawFromStock, Seq(Card(Four, Diamonds))), 
         Action("player1", Discard, Seq(Card(Four, Diamonds))))
     val initialState = ThirtyOneGameState(players = players, currentPlayerIndex = Some(0), discardPile = discardPile, history = history)
     assert(initialState.nextPlayerIndex() == 1) // next player is player 2
@@ -272,13 +272,13 @@ but next player's suspected cards would lead to 31 from drawing discarded cards"
         ThirtyOnePlayerState("player3", 3, hands(2))) 
     val history = 
       Seq(
-        Action("player1", Draw, Seq(Card(Four, Diamonds))), 
+        Action("player1", DrawFromStock, Seq(Card(Four, Diamonds))), 
         Action("player1", Discard, Seq(Card(Four, Diamonds))),
-        Action("player2", Draw, Seq(Card(Four, Diamonds))), 
+        Action("player2", DrawFromStock, Seq(Card(Four, Diamonds))), 
         Action("player2", Discard, Seq(Card(Four, Diamonds))),
-        Action("player3", Draw, Seq(Card(Four, Diamonds))), 
+        Action("player3", DrawFromStock, Seq(Card(Four, Diamonds))), 
         Action("player3", Discard, Seq(Card(Four, Diamonds))),
-        Action("player1", Draw, Seq(Card(Four, Diamonds))), 
+        Action("player1", DrawFromStock, Seq(Card(Four, Diamonds))), 
         Action("player1", Discard, Seq(Card(Four, Diamonds))))
     val initialState = ThirtyOneGameState(players = players, currentPlayerIndex = Some(0), discardPile = discardPile, history = history)
     assert(initialState.nextPlayerIndex() == 1) // next player is player 2
@@ -302,13 +302,13 @@ and next's potential score is less than current player's score""" in {
         ThirtyOnePlayerState("player3", 3, hands(2))) 
     val history = 
       Seq(
-        Action("player1", Draw, Seq(Card(Four, Diamonds))), 
+        Action("player1", DrawFromStock, Seq(Card(Four, Diamonds))), 
         Action("player1", Discard, Seq(Card(Four, Diamonds))),
-        Action("player2", Draw, Seq(Card(Four, Diamonds))), 
+        Action("player2", DrawFromStock, Seq(Card(Four, Diamonds))), 
         Action("player2", Discard, Seq(Card(Four, Diamonds))),
-        Action("player3", Draw, Seq(Card(Four, Diamonds))), 
+        Action("player3", DrawFromStock, Seq(Card(Four, Diamonds))), 
         Action("player3", Discard, Seq(Card(Four, Diamonds))),
-        Action("player1", Draw, Seq(Card(Four, Diamonds))), 
+        Action("player1", DrawFromStock, Seq(Card(Four, Diamonds))), 
         Action("player1", Discard, Seq(Card(Four, Diamonds))))
     val initialState = ThirtyOneGameState(players = players, currentPlayerIndex = Some(0), discardPile = discardPile, history = history)
     assert(initialState.nextPlayerIndex() == 1) // next player is player 2
@@ -334,13 +334,13 @@ but next's potential score is equal to current player's score""" in {
         ThirtyOnePlayerState("player3", 3, hands(2))) 
     val history = 
       Seq(
-        Action("player1", Draw, Seq(Card(Four, Diamonds))), 
+        Action("player1", DrawFromStock, Seq(Card(Four, Diamonds))), 
         Action("player1", Discard, Seq(Card(Four, Diamonds))),
-        Action("player2", Draw, Seq(Card(Four, Diamonds))), 
+        Action("player2", DrawFromStock, Seq(Card(Four, Diamonds))), 
         Action("player2", Discard, Seq(Card(Four, Diamonds))),
-        Action("player3", Draw, Seq(Card(Four, Diamonds))), 
+        Action("player3", DrawFromStock, Seq(Card(Four, Diamonds))), 
         Action("player3", Discard, Seq(Card(Four, Diamonds))),
-        Action("player1", Draw, Seq(Card(Four, Diamonds))), 
+        Action("player1", DrawFromStock, Seq(Card(Four, Diamonds))), 
         Action("player1", Discard, Seq(Card(Four, Diamonds))))
     val initialState = ThirtyOneGameState(players = players, currentPlayerIndex = Some(0), discardPile = discardPile, history = history)
     assert(initialState.nextPlayerIndex() == 1) // next player is player 2
@@ -365,13 +365,13 @@ and next's potential score is less than current player's score""" in {
         ThirtyOnePlayerState("player3", 3, hands(2))) 
     val history = 
       Seq(
-        Action("player1", Draw, Seq(Card(Four, Diamonds))), 
+        Action("player1", DrawFromStock, Seq(Card(Four, Diamonds))), 
         Action("player1", Discard, Seq(Card(Four, Diamonds))),
-        Action("player2", Draw, Seq(Card(Four, Diamonds))), 
+        Action("player2", DrawFromStock, Seq(Card(Four, Diamonds))), 
         Action("player2", Discard, Seq(Card(Four, Diamonds))),
-        Action("player3", Draw, Seq(Card(Four, Diamonds))), 
+        Action("player3", DrawFromStock, Seq(Card(Four, Diamonds))), 
         Action("player3", Discard, Seq(Card(Four, Diamonds))),
-        Action("player1", Draw, Seq(Card(Four, Diamonds))), 
+        Action("player1", DrawFromStock, Seq(Card(Four, Diamonds))), 
         Action("player1", Discard, Seq(Card(Four, Diamonds))))
     val initialState = ThirtyOneGameState(players = players, currentPlayerIndex = Some(0), discardPile = discardPile, history = history)
     assert(initialState.nextPlayerIndex() == 1) // next player is player 2

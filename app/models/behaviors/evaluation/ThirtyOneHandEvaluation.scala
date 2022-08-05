@@ -5,6 +5,7 @@ import cards.models.classes.Rank._
 import cards.models.behaviors.Commons
 import scala.annotation.tailrec
 
+// Game play follows West Lansing Cut Throat rules
 trait ThirtyOneHandEvaluation extends HandEvaluation {
   type C <: Commons
   val commons: C 

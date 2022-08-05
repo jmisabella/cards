@@ -6,17 +6,29 @@ import cards.models.classes.{ Card, Deck }
 import cards.models.classes.actions.{ Action, ThirtyOneAction }
 import cards.models.classes.actions.ThirtyOneAction._
 
-trait ThirtyOneNonPlayer {
+// Game play follows West Lansing Cut Throat rules
+trait ThirtyOneNonPlayer { 
   type EVAL <: ThirtyOneHandEvaluation 
   val evaluation: EVAL
 
-  private def choose(cs1: Seq[Card], cs2: Seq[Card]): Seq[Card] = evaluation.preference(cs1, cs2) match {
+  private def highestHand(cs1: Seq[Card], cs2: Seq[Card]): Seq[Card] = evaluation.preference(cs1, cs2) match {
     // TODO: test case (illegal state) when hands match 
     case None => throw new IllegalStateException(s"No rules defined for when hands perfectly match in ranks with suit groupings: hand 1 [${cs1.sorted}] hand 2 [${cs2.sorted}]")
-    case Some(cs) => cs
+    case Some(cs) => cs.sorted
   }
+  // in case of tie, both lowest hands pay
+  // TODO: test 
+  private def lowestHands(hands: Seq[Seq[Card]]): Seq[Seq[Card]] = {
+    val lowest: Int = hands.map(cs => evaluation.eval(cs)).sorted.head
+    hands.filter(cs => evaluation.eval(cs) == lowest).map(_.sorted)
+  } 
 
-  def next[A <: Enumeration#Value](gameState: ThirtyOneGameState): ThirtyOneGameState = {
+  def next(gameState: ThirtyOneGameState): ThirtyOneGameState = {
+    // TODO: test when more than 7 players
+    if (gameState.players.length > 7) {
+      throw new IllegalStateException(
+        s"Cannot get next because [${gameState.players.length}] players exceeds the seven player maximum")
+    } 
     if (gameState.deck.length == 0) {
       throw new IllegalStateException(
         s"Cannot get next because deck is empty")
@@ -25,6 +37,12 @@ trait ThirtyOneNonPlayer {
       throw new IllegalStateException(
         s"Cannot get next because discard pile is empty")
     }
+    // if (gameState.winningPlayerId.isDefined) {
+    //   // lowest hand plays 1 token; knocker pays double if knocker has lowest hand... 
+    //   val losers: Seq[ThirtyOnePlayerState] = gameState.players.filter(p => lowestHands(gameState.players.map(_.hand)).contains(p.hand.sorted))
+    //   val payments: Map[String, Int] = (for (p <- losers) yield if (gameState.knockedPlayerId.getOrElse("") == p.id) p.id -> 2 else p.id -> 1).toMap 
+    //   // TODO: finish implementing settle logic, update players' tokens and state's history, also remove broke losers from the game 
+    // }
     if (gameState.winningPlayerId.isDefined) {
       throw new IllegalStateException(
         s"Cannot get next because a winning player already exists: winning player id [${gameState.winningPlayerId.get}], game state [$gameState]")
@@ -33,7 +51,7 @@ trait ThirtyOneNonPlayer {
     val completed: Boolean = gameState.knockedPlayerId.getOrElse("") == currentPlayer.id || gameState.players.count(p => evaluation.eval(p.hand) == 32) > 0
     if (completed) {
       // round is completed, determine winner 
-      val winningHand: Seq[Card] = gameState.players.map(_.hand).foldLeft(Nil: Seq[Card]) { (acc, a) => choose(acc, a) }
+      val winningHand: Seq[Card] = gameState.players.map(_.hand).foldLeft(Nil: Seq[Card]) { (acc, a) => highestHand(acc, a) }
       val winner: String = gameState.players.filter(p => p.hand.sorted == winningHand.sorted).map(_.id).head
       return gameState.copy(winningPlayerId = Some(winner))
     }
@@ -107,7 +125,7 @@ trait ThirtyOneNonPlayer {
         history = gameState.history ++ Seq(Action(currentPlayer.id, Knock)))
     }
 
-    // draw logic
+    // draw logic: either draw from stock deck or draw from discard pile
     // TODO: test draw logic
     val (drawnCard, updatedDeck): (Seq[Card], Deck) = gameState.deck.deal()
     val drawCardPermutationsAndScores: Seq[(Seq[Card], Int)] = evaluation.permutationsAndScores(cards = currentHand ++ drawnCard, n = 3)
@@ -133,7 +151,7 @@ trait ThirtyOneNonPlayer {
     return gameState.copy(
       currentPlayerIndex = Some(gameState.nextPlayerIndex()),
       history = gameState.history ++ 
-        Seq(Action(currentPlayer.id, Draw, drawnCard), Action(currentPlayer.id, Discard, Seq(discardedCard))), 
+        Seq(Action(currentPlayer.id, DrawFromStock, drawnCard), Action(currentPlayer.id, Discard, Seq(discardedCard))), 
       players = gameState.updatedHandAndSuspectedCards(updatedHand = drawHand, discarded = Seq(discardedCard)),
       deck = updatedDeck,
       discardPile = Seq(discardedCard) ++ gameState.discardPile)

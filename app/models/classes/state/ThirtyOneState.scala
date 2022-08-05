@@ -8,7 +8,7 @@ import cards.models.classes.actions.ThirtyOneAction._
 
 case class ThirtyOnePlayerState(
   id: String, 
-  tokens: Int = 3,
+  tokens: Int = 4, // simulates the idea of player having 3 tokens and then 1 free "on-the-house" play
   hand: Seq[Card] = Nil,
   suspectedCards: Seq[Card] = Nil)
 

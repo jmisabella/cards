@@ -5,12 +5,10 @@ import cards.models.classes.actions.ThirtyOneAction._
 import cards.models.classes.actions.BlackJackAction._
 import play.api.libs.json. { Json, Format }
 
-case class Action[A <: Enumeration#Value](playerId: String, action: A, actionCards: Seq[Card] = Nil, actionTokens: Int = 0, before: Seq[Card] = Nil, after: Seq[Card] = Nil ) {
+case class Action[A <: Enumeration#Value](playerId: String, action: A, actionCards: Seq[Card] = Nil, actionTokens: Int = 0) {
   override def toString(): String = 
     (Json.obj(
       "playerId" -> playerId,
-      "before" -> before,
-      "after" -> after,
       "action" -> action.toString(),
       "actionCards" -> actionCards,
       "actionTokens" -> actionTokens
