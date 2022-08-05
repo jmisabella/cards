@@ -37,15 +37,17 @@ trait ThirtyOneNonPlayer {
       throw new IllegalStateException(
         s"Cannot get next because discard pile is empty")
     }
-    // if (gameState.winningPlayerId.isDefined) {
-    //   // lowest hand plays 1 token; knocker pays double if knocker has lowest hand... 
-    //   val losers: Seq[ThirtyOnePlayerState] = gameState.players.filter(p => lowestHands(gameState.players.map(_.hand)).contains(p.hand.sorted))
-    //   val payments: Map[String, Int] = (for (p <- losers) yield if (gameState.knockedPlayerId.getOrElse("") == p.id) p.id -> 2 else p.id -> 1).toMap 
-    //   // TODO: finish implementing settle logic, update players' tokens and state's history, also remove broke losers from the game 
-    // }
+    // TODO: test 
     if (gameState.winningPlayerId.isDefined) {
-      throw new IllegalStateException(
-        s"Cannot get next because a winning player already exists: winning player id [${gameState.winningPlayerId.get}], game state [$gameState]")
+      // lowest hand plays 1 token; knocker pays double if knocker has lowest hand... 
+      // update players' tokens and state's history, also remove losing (broke) players from the game
+      val losers: Seq[String] = gameState.players.filter(p => lowestHands(gameState.players.map(_.hand)).contains(p.hand.sorted)).map(_.id)
+      val loserDebts: Map[String, Int] = (for (p <- losers) yield if (gameState.knockedPlayerId.getOrElse("") == p) p -> 2 else p -> 1).toMap
+      val paymentHistory: Seq[Action[ThirtyOneAction]] = (for ((player, debt) <- loserDebts) yield Action(player, Pay, Nil, actionTokens = debt)).toSeq
+      val updatedPlayers: Seq[ThirtyOnePlayerState] = gameState.updatedTokens(loserDebts)
+      val removedPlayers: Seq[String] = updatedPlayers.filter(p => p.tokens <= 0).map(_.id)
+      val lostPlayerHistory: Seq[Action[ThirtyOneAction]] = removedPlayers.map(p => Action(p, Out))
+      return gameState.copy(history = gameState.history ++ paymentHistory ++ lostPlayerHistory, players = updatedPlayers.filter(p => !removedPlayers.contains(p.id)))
     }
     val currentPlayer: ThirtyOnePlayerState = gameState.currentPlayer()
     val completed: Boolean = gameState.knockedPlayerId.getOrElse("") == currentPlayer.id || gameState.players.count(p => evaluation.eval(p.hand) == 32) > 0

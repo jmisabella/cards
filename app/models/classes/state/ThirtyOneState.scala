@@ -45,4 +45,15 @@ case class ThirtyOneGameState(
           p
       }   
     }
+
+    // TODO: test
+    def updatedTokens(loserDebts: Map[String, Int]): Seq[ThirtyOnePlayerState] = {
+      for (p <- players) yield {
+        if (loserDebts.keySet.contains(p.id))
+          p.copy(tokens = p.tokens - loserDebts(p.id)) 
+        else 
+          p
+      }
+    }
+
 }
