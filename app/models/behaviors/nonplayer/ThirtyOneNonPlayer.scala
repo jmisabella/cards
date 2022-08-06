@@ -39,7 +39,7 @@ trait ThirtyOneNonPlayer {
     }
     // TODO: test 
     if (gameState.winningPlayerId.isDefined) {
-      // lowest hand plays 1 token; knocker pays double if knocker has lowest hand... 
+      // lowest hand pays 1 token; knocker pays double if knocker has lowest hand... 
       // update players' tokens and state's history, also remove losing (broke) players from the game
       val losers: Seq[String] = gameState.players.filter(p => lowestHands(gameState.players.map(_.hand)).contains(p.hand.sorted)).map(_.id)
       val loserDebts: Map[String, Int] = (for (p <- losers) yield if (gameState.knockedPlayerId.getOrElse("") == p) p -> 2 else p -> 1).toMap
@@ -47,8 +47,12 @@ trait ThirtyOneNonPlayer {
       val updatedPlayers: Seq[ThirtyOnePlayerState] = gameState.updatedTokens(loserDebts)
       val removedPlayers: Seq[String] = updatedPlayers.filter(p => p.tokens <= 0).map(_.id)
       val lostPlayerHistory: Seq[Action[ThirtyOneAction]] = removedPlayers.map(p => Action(p, Out))
-      return gameState.copy(history = gameState.history ++ paymentHistory ++ lostPlayerHistory, players = updatedPlayers.filter(p => !removedPlayers.contains(p.id)))
-    } 
+      return gameState.copy(
+        history = gameState.history ++ paymentHistory ++ lostPlayerHistory, 
+        players = updatedPlayers.filter(p => !removedPlayers.contains(p.id)),
+        knockedPlayerId = None,
+        winningPlayerId = None)
+    }
     val currentPlayer: ThirtyOnePlayerState = gameState.currentPlayer()
     val completed: Boolean = gameState.knockedPlayerId.getOrElse("") == currentPlayer.id || gameState.players.count(p => evaluation.eval(p.hand) == 32) > 0
     if (completed) {
