@@ -7,6 +7,7 @@ import cards.models.classes.Rank._
 import cards.models.classes.Suit._
 import cards.models.classes.PokerHandType._
 import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers._
 
 class PokerPredicatesSpec extends AnyFlatSpec {
 
@@ -25,7 +26,7 @@ class PokerPredicatesSpec extends AnyFlatSpec {
       Card(Ace, Clubs))
 
     val result = module.isRoyalFlush(cards)
-    assert(result)
+    result should be (true)
   }
 
   it should "observe when it's not a royal flush" in {
@@ -49,7 +50,7 @@ class PokerPredicatesSpec extends AnyFlatSpec {
       Card(Ace, Hearts))
 
     val result = module.isFlush(cards)
-    assert(result)
+    result should be (true)
   }
   
   it should "observe when it's a straight" in {
@@ -61,7 +62,7 @@ class PokerPredicatesSpec extends AnyFlatSpec {
       Card(Ace, Clubs))
 
     val result = module.isStraight(cards)
-    assert(result)
+    result should be (true)
   }
 
   it should "observe when it's a high card" in {
@@ -73,7 +74,7 @@ class PokerPredicatesSpec extends AnyFlatSpec {
       Card(Five, Clubs))
 
     val result = module.isHighCard(cards)
-    assert(result)
+    result should be (true)
   }
 
   it should "yield no high card when there is one pair" in {
@@ -100,8 +101,8 @@ class PokerPredicatesSpec extends AnyFlatSpec {
 
     assert(module.isHighCard(cards))
     val result: Option[Card] = module.highCard(cards)
-    assert(result.isDefined)
-    assert(result.get == Card(Ace, Hearts))
+    result shouldBe defined
+    result should contain (Card(Ace, Hearts))
   }
 
   it should "yield nothing for onePair when isOnePair is false" in {
@@ -112,9 +113,9 @@ class PokerPredicatesSpec extends AnyFlatSpec {
       Card(Ace, Hearts),
       Card(Five, Clubs))
 
-    assert(!module.isOnePair(cards))
+    module.isOnePair(cards) shouldBe (false) 
     val result: Option[Seq[Card]] = module.onePair(cards)
-    assert(!result.isDefined)
+    result should not be defined 
   }
   
   it should "yield 1 pair when onePair is true and there is exactly 1 pair" in {
