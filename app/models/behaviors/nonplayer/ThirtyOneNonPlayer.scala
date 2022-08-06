@@ -48,7 +48,7 @@ trait ThirtyOneNonPlayer {
       val removedPlayers: Seq[String] = updatedPlayers.filter(p => p.tokens <= 0).map(_.id)
       val lostPlayerHistory: Seq[Action[ThirtyOneAction]] = removedPlayers.map(p => Action(p, Out))
       return gameState.copy(history = gameState.history ++ paymentHistory ++ lostPlayerHistory, players = updatedPlayers.filter(p => !removedPlayers.contains(p.id)))
-    }
+    } 
     val currentPlayer: ThirtyOnePlayerState = gameState.currentPlayer()
     val completed: Boolean = gameState.knockedPlayerId.getOrElse("") == currentPlayer.id || gameState.players.count(p => evaluation.eval(p.hand) == 32) > 0
     if (completed) {
