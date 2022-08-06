@@ -87,27 +87,27 @@ class ThirtyOneStateSpec extends AnyFlatSpec {
       Seq(Card(Eight, Spades), Card(Nine, Spades), Card(Ten, Spades)))
     val players = Seq(ThirtyOnePlayerState("player1", 3, hands(0))) 
     val initialState = ThirtyOneGameState(players = players, currentPlayerIndex = Some(0))
-    assert(initialState.currentPlayer() == players(0))
-    assert(initialState.players(initialState.nextPlayerIndex()) == players(0))
-    assert(initialState.players(initialState.nextPlayerIndex()) == initialState.currentPlayer())
+    initialState.currentPlayer() should equal (players.head)
+    initialState.players(initialState.nextPlayerIndex()) should equal (players(0))
+    initialState.players(initialState.nextPlayerIndex()) should equal (initialState.currentPlayer())
     val nextState = initialState.copy(currentPlayerIndex = Some(initialState.nextPlayerIndex()))
-    assert(nextState.currentPlayer() == players(0))
-    assert(nextState.players(nextState.nextPlayerIndex()) == players(0))
-    assert(nextState.players(nextState.nextPlayerIndex()) == nextState.currentPlayer())
+    nextState.currentPlayer() should equal (players.head)
+    nextState.players(nextState.nextPlayerIndex()) should equal (players.head)
+    nextState.players(nextState.nextPlayerIndex()) should equal (nextState.currentPlayer())
   }
 
   it should "update hand with no changes to an empty player list and have it result in an empty list" in {
     val players: Seq[ThirtyOnePlayerState] = Nil
     val state = ThirtyOneGameState(players = players)
     val updatedPlayers = state.updatedHandAndSuspectedCards(Nil, Nil, Nil)
-    assert(updatedPlayers == Nil)
+    updatedPlayers shouldBe empty
   }
   
   it should "update hand with new cards to an empty player list and have it result in an empty list" in {
     val players: Seq[ThirtyOnePlayerState] = Nil
     val state = ThirtyOneGameState(players = players)
     val updatedPlayers = state.updatedHandAndSuspectedCards(Seq(Card(Seven, Diamonds), Card(Two, Hearts)), Nil, Nil)
-    assert(updatedPlayers == Nil)
+    updatedPlayers shouldBe empty
   }
 
   it should "update hand with discarded cards when discarded cards do NOT exist in the hand, resulting in no changes to the hand" in {
@@ -117,10 +117,10 @@ class ThirtyOneStateSpec extends AnyFlatSpec {
       Seq(Card(Eight, Spades), Card(Nine, Spades), Card(Ten, Spades)))
     val players = Seq(ThirtyOnePlayerState("player1", 3, hands(0)), ThirtyOnePlayerState("player2", 3, hands(1)), ThirtyOnePlayerState("player3", 3, hands(2))) 
     val state = ThirtyOneGameState(players = players, currentPlayerIndex = Some(0))
-    assert(state.currentPlayer() == players(0))
-    assert(state.currentPlayer().hand == hands(0))
+    state.currentPlayer() should equal (players(0))
+    state.currentPlayer().hand should equal (hands(0))
     val updatedPlayers = state.updatedHandAndSuspectedCards(hands(0), Seq(Card(Ace, Spades)), Nil)
-    assert(updatedPlayers == players)
+    updatedPlayers should equal (players)
   }
 
   it should "update hand and suspected cards when a new card is drawn from the discard pile" in {
@@ -130,13 +130,13 @@ class ThirtyOneStateSpec extends AnyFlatSpec {
       Seq(Card(Eight, Spades), Card(Nine, Spades), Card(Ten, Spades)))
     val players = Seq(ThirtyOnePlayerState("player1", 3, hands(0)), ThirtyOnePlayerState("player2", 3, hands(1)), ThirtyOnePlayerState("player3", 3, hands(2))) 
     val state = ThirtyOneGameState(players = players, currentPlayerIndex = Some(0))
-    assert(state.currentPlayer() == players(0))
-    assert(state.currentPlayer().hand == hands(0))
-    assert(state.currentPlayer().suspectedCards == Nil)
+    state.currentPlayer() should equal (players(0))
+    state.currentPlayer().hand should equal (hands(0))
+    state.currentPlayer().suspectedCards shouldBe empty
     val updatedPlayers = state.updatedHandAndSuspectedCards(hands(0) ++ Seq(Card(Ace, Spades)), Nil, Seq(Card(Ace, Spades)))
-    assert(updatedPlayers != players)
-    assert(updatedPlayers(0).hand == (hands(0) ++ Seq(Card(Ace, Spades))))
-    assert(updatedPlayers(0).suspectedCards == Seq(Card(Ace, Spades)))
+    updatedPlayers should not equal (players)
+    updatedPlayers(0).hand should equal (hands(0) ++ Seq(Card(Ace, Spades)))
+    updatedPlayers(0).suspectedCards should equal (Seq(Card(Ace, Spades)))
   }
 
 }

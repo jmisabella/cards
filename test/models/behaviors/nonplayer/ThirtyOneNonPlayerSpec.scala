@@ -10,6 +10,7 @@ import cards.models.classes.state.{ ThirtyOneGameState, ThirtyOnePlayerState }
 import cards.models.classes.actions.{ Action, ThirtyOneAction }
 import cards.models.classes.actions.ThirtyOneAction._
 import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers._
 
 class ThirtyOneNonPlayerSpec extends AnyFlatSpec {
   private[nonplayer] case object _commons extends Commons
