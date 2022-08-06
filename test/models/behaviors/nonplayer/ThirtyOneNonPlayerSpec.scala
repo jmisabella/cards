@@ -211,12 +211,12 @@ and next player's suspected cards would not lead to 31 from drawing discarded ca
         Action("player1", DrawFromStock, Seq(Card(Four, Diamonds))), 
         Action("player1", Discard, Seq(Card(Four, Diamonds))))
     val initialState = ThirtyOneGameState(players = players, currentPlayerIndex = Some(0), discardPile = discardPile, history = history)
-    assert(initialState.nextPlayerIndex() == 1) // next player is player 2
+    initialState.nextPlayerIndex() should equal (1) // next player is player 2
     val nextState = module.next(initialState)
-    assert(!nextState.knockedPlayerId.isDefined) // player hadn't knocked in last round
-    assert(nextState.history.length >= 2)
-    assert(nextState.history.reverse.head == Action("player1", Discard, Seq(Card(Ten, Clubs)))) // shows after current player had drawn from discard, she'd discarded the clubs card
-    assert(nextState.history.reverse.tail.head == Action("player1", DrawFromDiscard, Seq(Card(Seven, Hearts)))) // shows current player had drawn from the discard pile
+    nextState.knockedPlayerId should not be defined // player hadn't knocked in last round
+    nextState.history.length should be >= (2)
+    nextState.history.reverse.head should equal (Action("player1", Discard, Seq(Card(Ten, Clubs)))) // shows after current player had drawn from discard, she'd discarded the clubs card
+    nextState.history.reverse.tail.head should equal (Action("player1", DrawFromDiscard, Seq(Card(Seven, Hearts)))) // shows current player had drawn from the discard pile
   }
   
   it should """not draw from discard pile when it would increase current player's score by 6 or less""" in { 
@@ -241,11 +241,11 @@ and next player's suspected cards would not lead to 31 from drawing discarded ca
         Action("player1", DrawFromStock, Seq(Card(Four, Diamonds))), 
         Action("player1", Discard, Seq(Card(Four, Diamonds))))
     val initialState = ThirtyOneGameState(players = players, currentPlayerIndex = Some(0), discardPile = discardPile, history = history)
-    assert(initialState.nextPlayerIndex() == 1) // next player is player 2
+    initialState.nextPlayerIndex() should equal (1) // next player is player 2
     val nextState = module.next(initialState)
-    assert(!nextState.knockedPlayerId.isDefined) // player hadn't knocked in last round
-    assert(nextState.history.length >= 2)
-    assert(nextState.history.reverse.tail.head != Action("player1", DrawFromDiscard, Seq(Card(Seven, Hearts)))) // shows current player didn't draw from the discard pile
+    nextState.knockedPlayerId should not be defined // player hadn't knocked in last round
+    nextState.history.length should be >= (2)
+    nextState.history.reverse.tail.head should not equal (Action("player1", DrawFromDiscard, Seq(Card(Seven, Hearts)))) // shows current player didn't draw from the discard pile
   }
 
   it should """not draw from discard pile when it would increase current player's score by 7 or more, 
@@ -271,11 +271,11 @@ but next player's suspected cards would lead to 31 from drawing discarded cards"
         Action("player1", DrawFromStock, Seq(Card(Four, Diamonds))), 
         Action("player1", Discard, Seq(Card(Four, Diamonds))))
     val initialState = ThirtyOneGameState(players = players, currentPlayerIndex = Some(0), discardPile = discardPile, history = history)
-    assert(initialState.nextPlayerIndex() == 1) // next player is player 2
+    initialState.nextPlayerIndex() should equal (1) // next player is player 2
     val nextState = module.next(initialState)
-    assert(!nextState.knockedPlayerId.isDefined) // player hadn't knocked in last round
-    assert(nextState.history.length >= 2)
-    assert(nextState.history.reverse.tail.head != Action("player1", DrawFromDiscard, Seq(Card(Seven, Hearts)))) // shows current player didn't draw from the discard pile
+    nextState.knockedPlayerId should not be defined // player hadn't knocked in last round
+    nextState.history.length should be >= (2)
+    nextState.history.reverse.tail.head should not equal (Action("player1", DrawFromDiscard, Seq(Card(Seven, Hearts)))) // shows current player didn't draw from the discard pile
   }
 
   it should """knock if current score is greater than or equal to 30 and next player wouldn't get 31 from drawing the current player discarded card, 
@@ -301,13 +301,13 @@ and next's potential score is less than current player's score""" in {
         Action("player1", DrawFromStock, Seq(Card(Four, Diamonds))), 
         Action("player1", Discard, Seq(Card(Four, Diamonds))))
     val initialState = ThirtyOneGameState(players = players, currentPlayerIndex = Some(0), discardPile = discardPile, history = history)
-    assert(initialState.nextPlayerIndex() == 1) // next player is player 2
-    assert(!initialState.knockedPlayerId.isDefined) // no one's knocked yet
+    initialState.nextPlayerIndex() should equal (1) // next player is player 2
+    initialState.knockedPlayerId should not be defined // no one's knocked yet
     val nextState = module.next(initialState)
-    assert(nextState.knockedPlayerId.isDefined) // player knocked
-    assert(nextState.knockedPlayerId.get == "player1") // player hadn't knocked in last round
-    assert(nextState.history.length >= 2)
-    assert(nextState.history.reverse.head == Action("player1", Knock)) // shows current player knocked and it was recorded to history
+    nextState.knockedPlayerId shouldBe defined // player knocked
+    nextState.knockedPlayerId should contain ("player1") // player hadn't knocked in last round
+    nextState.history.length shouldBe >= (2)
+    nextState.history.reverse.head should equal (Action("player1", Knock)) // shows current player knocked and it was recorded to history
   }
 
   it should """not knock if current score is greater than or equal to 30 and next player wouldn't get 31 from drawing the current player discarded card, 
@@ -333,12 +333,12 @@ but next's potential score is equal to current player's score""" in {
         Action("player1", DrawFromStock, Seq(Card(Four, Diamonds))), 
         Action("player1", Discard, Seq(Card(Four, Diamonds))))
     val initialState = ThirtyOneGameState(players = players, currentPlayerIndex = Some(0), discardPile = discardPile, history = history)
-    assert(initialState.nextPlayerIndex() == 1) // next player is player 2
-    assert(!initialState.knockedPlayerId.isDefined) // no one's knocked yet
+    initialState.nextPlayerIndex() should equal (1) // next player is player 2
+    initialState.knockedPlayerId should not be defined // no one's knocked yet
     val nextState = module.next(initialState)
-    assert(!nextState.knockedPlayerId.isDefined) // player didn't knock 
-    assert(nextState.history.length >= 2)
-    assert(nextState.history.reverse.head != Action("player1", Knock)) // shows current player didn't knock in the last turn
+    nextState.knockedPlayerId should not be defined // player didn't knock 
+    nextState.history.length should be >= (2)
+    nextState.history.reverse.head should not equal (Action("player1", Knock)) // shows current player didn't knock in the last turn
   }
 
   it should """(3-of-a-kind version, giving score of 30.5) knock if current score is greater than or equal to 30 and next player wouldn't get 31 from drawing the current player discarded card, 
@@ -364,13 +364,13 @@ and next's potential score is less than current player's score""" in {
         Action("player1", DrawFromStock, Seq(Card(Four, Diamonds))), 
         Action("player1", Discard, Seq(Card(Four, Diamonds))))
     val initialState = ThirtyOneGameState(players = players, currentPlayerIndex = Some(0), discardPile = discardPile, history = history)
-    assert(initialState.nextPlayerIndex() == 1) // next player is player 2
-    assert(!initialState.knockedPlayerId.isDefined) // no one's knocked yet
+    initialState.nextPlayerIndex() should equal (1) // next player is player 2
+    initialState.knockedPlayerId should not be defined // no one's knocked yet
     val nextState = module.next(initialState)
-    assert(nextState.knockedPlayerId.isDefined) // player knocked
-    assert(nextState.knockedPlayerId.get == "player1") // player hadn't knocked in last round
-    assert(nextState.history.length >= 2)
-    assert(nextState.history.reverse.head == Action("player1", Knock)) // shows current player knocked and it was recorded to history
+    nextState.knockedPlayerId shouldBe defined // player knocked
+    nextState.knockedPlayerId should contain ("player1") // player hadn't knocked in last round
+    nextState.history.length shouldBe >= (2)
+    nextState.history.reverse.head should equal (Action("player1", Knock)) // shows current player knocked and it was recorded to history
   }
 
 
