@@ -24,58 +24,38 @@ class ThirtyOneNonPlayerSpec extends AnyFlatSpec {
   }
 
   "ThirtyOneNonPlayer" should "throw IllegalStateException when calling next() from game state which does not yet have any player states" in {
-    try {
-      val gameState = ThirtyOneGameState(Nil)
-      val result = module.next(gameState) 
-      assert(false)
-    } catch {
-      case e: IllegalStateException => assert(true)
-    }
+    val gameState = ThirtyOneGameState(Nil)
+    an [IllegalStateException] should be thrownBy module.next(gameState) 
   }
 
   it should "throw illegal state exception when calling next() from game state which has an empty deck" in {
-    try {
-      val hands = Seq(
-        Seq(Card(Two, Clubs), Card(Three, Clubs), Card(Four, Clubs)), 
-        Seq(Card(Five, Hearts), Card(Six, Hearts), Card(Seven, Hearts)), 
-        Seq(Card(Eight, Spades), Card(Nine, Spades), Card(Ten, Spades)))
-      val players = Seq(ThirtyOnePlayerState("player1", 3, hands(0)), ThirtyOnePlayerState("player2", 3, hands(1)), ThirtyOnePlayerState("player3", 3, hands(2))) 
-      val state = ThirtyOneGameState(players = players, currentPlayerIndex = Some(0), deck = Deck.emptyDeck) 
-      val nextState = module.next(state)
-      assert(false)
-    } catch {
-      case e: IllegalStateException => assert(true)
-    }
+    val hands = Seq(
+      Seq(Card(Two, Clubs), Card(Three, Clubs), Card(Four, Clubs)), 
+      Seq(Card(Five, Hearts), Card(Six, Hearts), Card(Seven, Hearts)), 
+      Seq(Card(Eight, Spades), Card(Nine, Spades), Card(Ten, Spades)))
+    val players = Seq(ThirtyOnePlayerState("player1", 3, hands(0)), ThirtyOnePlayerState("player2", 3, hands(1)), ThirtyOnePlayerState("player3", 3, hands(2))) 
+    val state = ThirtyOneGameState(players = players, currentPlayerIndex = Some(0), deck = Deck.emptyDeck) 
+    an [IllegalStateException] should be thrownBy module.next(state)
   }
 
   it should "throw illegal state exception when calling next() from game state which has an empty discard pile" in {
-    try {
-      val hands = Seq(
-        Seq(Card(Two, Clubs), Card(Three, Clubs), Card(Four, Clubs)), 
-        Seq(Card(Five, Hearts), Card(Six, Hearts), Card(Seven, Hearts)), 
-        Seq(Card(Eight, Spades), Card(Nine, Spades), Card(Ten, Spades)))
-      val players = Seq(ThirtyOnePlayerState("player1", 3, hands(0)), ThirtyOnePlayerState("player2", 3, hands(1)), ThirtyOnePlayerState("player3", 3, hands(2))) 
-      val state = ThirtyOneGameState(players = players, currentPlayerIndex = Some(0), discardPile = Nil) 
-      val nextState = module.next(state)
-      assert(false)
-    } catch {
-      case e: IllegalStateException => assert(true)
-    }
+    val hands = Seq(
+      Seq(Card(Two, Clubs), Card(Three, Clubs), Card(Four, Clubs)), 
+      Seq(Card(Five, Hearts), Card(Six, Hearts), Card(Seven, Hearts)), 
+      Seq(Card(Eight, Spades), Card(Nine, Spades), Card(Ten, Spades)))
+    val players = Seq(ThirtyOnePlayerState("player1", 3, hands(0)), ThirtyOnePlayerState("player2", 3, hands(1)), ThirtyOnePlayerState("player3", 3, hands(2))) 
+    val state = ThirtyOneGameState(players = players, currentPlayerIndex = Some(0), discardPile = Nil) 
+    an [IllegalStateException] should be thrownBy module.next(state)
   }
 
   it should "throw illegal state exception when calling next() from game state which already has a declared winner" in {
-    try {
-      val hands = Seq(
-        Seq(Card(Two, Clubs), Card(Three, Clubs), Card(Four, Clubs)), 
-        Seq(Card(Five, Hearts), Card(Six, Hearts), Card(Seven, Hearts)), 
-        Seq(Card(Eight, Spades), Card(Nine, Spades), Card(Ten, Spades)))
-      val players = Seq(ThirtyOnePlayerState("player1", 3, hands(0)), ThirtyOnePlayerState("player2", 3, hands(1)), ThirtyOnePlayerState("player3", 3, hands(2))) 
-      val state = ThirtyOneGameState(players = players, currentPlayerIndex = Some(0), winningPlayerId = Some(players.reverse.head.id))
-      val nextState = module.next(state)
-      assert(false)
-    } catch {
-      case e: IllegalStateException => assert(true)
-    }
+    val hands = Seq(
+      Seq(Card(Two, Clubs), Card(Three, Clubs), Card(Four, Clubs)), 
+      Seq(Card(Five, Hearts), Card(Six, Hearts), Card(Seven, Hearts)), 
+      Seq(Card(Eight, Spades), Card(Nine, Spades), Card(Ten, Spades)))
+    val players = Seq(ThirtyOnePlayerState("player1", 3, hands(0)), ThirtyOnePlayerState("player2", 3, hands(1)), ThirtyOnePlayerState("player3", 3, hands(2))) 
+    val state = ThirtyOneGameState(players = players, currentPlayerIndex = Some(0), winningPlayerId = Some(players.reverse.head.id))
+    an [IllegalStateException] should be thrownBy module.next(state)
   }
 
   it should "declare a winner who is not the current player has 31" in {
@@ -87,9 +67,11 @@ class ThirtyOneNonPlayerSpec extends AnyFlatSpec {
     val players = Seq(ThirtyOnePlayerState("player1", 3, hands(0)), ThirtyOnePlayerState("player2", 3, hands(1)), ThirtyOnePlayerState("player3", 3, hands(2))) 
     val initialState = ThirtyOneGameState(players = players, currentPlayerIndex = Some(0), discardPile = discardPile)
     val nextState = module.next(initialState)
-    assert(nextState.players == initialState.players) // no change in players
-    assert(nextState.winningPlayerId.isDefined)
-    assert(nextState.winningPlayerId.get == players.reverse.head.id) // player3 was the winner with 31, was not the current player
+    info("no change in players")
+    nextState.players should equal (initialState.players)
+    nextState.winningPlayerId shouldBe defined
+    info("player3 was the winner with 31, was not the current player")
+    nextState.winningPlayerId.get should equal (players.reverse.head.id)
   }
 
   it should "declare a winner who is the current player has 31" in {
@@ -101,9 +83,11 @@ class ThirtyOneNonPlayerSpec extends AnyFlatSpec {
     val players = Seq(ThirtyOnePlayerState("player1", 3, hands(0)), ThirtyOnePlayerState("player2", 3, hands(1)), ThirtyOnePlayerState("player3", 3, hands(2))) 
     val initialState = ThirtyOneGameState(players = players, currentPlayerIndex = Some(0), discardPile = discardPile)
     val nextState = module.next(initialState)
-    assert(nextState.players == initialState.players) // no change in players
-    assert(nextState.winningPlayerId.isDefined)
-    assert(nextState.winningPlayerId.get == players.head.id) // player1 (the current player) was the winner with 31
+    info("no change in players")
+    nextState.players should equal (initialState.players)
+    nextState.winningPlayerId shouldBe defined
+    info("player1 (the current player) was the winner with 31")
+    nextState.winningPlayerId.get should equal (players.head.id)
   }
 
   it should "declare a winner when knocked player is the current player" in {
@@ -114,10 +98,12 @@ class ThirtyOneNonPlayerSpec extends AnyFlatSpec {
     val discardPile = Seq(Card(Jack, Clubs))
     val players = Seq(ThirtyOnePlayerState("player1", 3, hands(0)), ThirtyOnePlayerState("player2", 3, hands(1)), ThirtyOnePlayerState("player3", 3, hands(2))) 
     val initialState = ThirtyOneGameState(players = players, currentPlayerIndex = Some(0), discardPile = discardPile, knockedPlayerId = Some(players.head.id))
-    assert(!initialState.winningPlayerId.isDefined) 
+    initialState.winningPlayerId should not be defined
+    initialState.winningPlayerId shouldBe empty
     val nextState = module.next(initialState)
-    assert(nextState.winningPlayerId.isDefined) 
-    assert(nextState.winningPlayerId.get == players.reverse.head.id) // player3 was the winner 
+    nextState.winningPlayerId shouldBe defined
+    info("player3 was the winner")
+    nextState.winningPlayerId.get should equal (players.reverse.head.id)
   }
 
   it should "knock if it's the very first turn and current player's score is greater than 17" in {
@@ -128,10 +114,12 @@ class ThirtyOneNonPlayerSpec extends AnyFlatSpec {
     val discardPile = Seq(Card(Nine, Clubs))
     val players = Seq(ThirtyOnePlayerState("player1", 3, hands(0)), ThirtyOnePlayerState("player2", 3, hands(1)), ThirtyOnePlayerState("player3", 3, hands(2))) 
     val initialState = ThirtyOneGameState(players = players, currentPlayerIndex = Some(0), discardPile = discardPile)
-    assert(!initialState.knockedPlayerId.isDefined) 
+    initialState.knockedPlayerId should not be defined
+    initialState.knockedPlayerId shouldBe empty
     val nextState = module.next(initialState)
-    assert(nextState.knockedPlayerId.isDefined) 
-    assert(nextState.knockedPlayerId.get == players.head.id) // player1 knocked
+    nextState.knockedPlayerId shouldBe defined
+    info("player1 knocked") 
+    nextState.knockedPlayerId.get should equal (players.head.id) // player1 knocked
   }
 
   it should "knock if it's first round and current player's score is greater than 21 and next player cannot pick up 31 from discard pile" in {
@@ -143,10 +131,11 @@ class ThirtyOneNonPlayerSpec extends AnyFlatSpec {
     val players = Seq(ThirtyOnePlayerState("player1", 3, hands(0)), ThirtyOnePlayerState("player2", 3, hands(1)), ThirtyOnePlayerState("player3", 3, hands(2))) 
     val history = Seq(Action("player3", DrawFromStock, Seq(Card(Four, Diamonds))), Action("player3", Discard, Seq(Card(Four, Diamonds))))
     val initialState = ThirtyOneGameState(players = players, currentPlayerIndex = Some(0), discardPile = discardPile, history = history)
-    assert(!initialState.knockedPlayerId.isDefined) 
+    initialState.knockedPlayerId should not be defined
     val nextState = module.next(initialState)
-    assert(nextState.knockedPlayerId.isDefined) 
-    assert(nextState.knockedPlayerId.get == players.head.id) // player1 knocked
+    nextState.knockedPlayerId shouldBe defined
+    info("player1 knocked") 
+    nextState.knockedPlayerId.get should equal (players.head.id)
   }
 
   it should "not knock if it's first round and current player's score is greater than 21 and next player can pick up 31 from discard pile" in {
@@ -162,10 +151,10 @@ class ThirtyOneNonPlayerSpec extends AnyFlatSpec {
         ThirtyOnePlayerState("player3", 3, hands(2))) 
     val history = Seq(Action("player3", DrawFromStock, Seq(Card(Four, Diamonds))), Action("player3", Discard, Seq(Card(Four, Diamonds))))
     val initialState = ThirtyOneGameState(players = players, currentPlayerIndex = Some(2), discardPile = discardPile, history = history)
-    assert(!initialState.knockedPlayerId.isDefined)
-    assert(initialState.nextPlayerIndex() == 0) // next player is player1
+    initialState.knockedPlayerId should not be defined
+    initialState.nextPlayerIndex() should equal (0) // next player is player1
     val nextState = module.next(initialState)
-    assert(!nextState.knockedPlayerId.isDefined) 
+    nextState.knockedPlayerId should not be defined
   }
 
   it should "draw from discard pile if it leads to current player getting a 31 (instant win), even if discarded card leads to next player potentially getting 31" in {
@@ -190,13 +179,13 @@ class ThirtyOneNonPlayerSpec extends AnyFlatSpec {
         Action("player1", DrawFromStock, Seq(Card(Four, Diamonds))), 
         Action("player1", Discard, Seq(Card(Four, Diamonds))))
     val initialState = ThirtyOneGameState(players = players, currentPlayerIndex = Some(0), discardPile = discardPile, history = history)
-    assert(!initialState.knockedPlayerId.isDefined)
-    assert(initialState.nextPlayerIndex() == 1) // next player is player 2
+    initialState.knockedPlayerId should not be defined
+    initialState.nextPlayerIndex() should equal (1) // next player is player 2
     val nextState = module.next(initialState)
-    assert(!nextState.knockedPlayerId.isDefined) // player hadn't knocked in last round
-    assert(nextState.history.length >= 2)
-    assert(nextState.history.reverse.head == Action("player1", Discard, Seq(Card(Jack, Clubs)))) // shows after current player had drawn from discard, she'd discarded the clubs card
-    assert(nextState.history.reverse.tail.head == Action("player1", DrawFromDiscard, Seq(Card(Jack, Hearts)))) // shows current player had drawn from the discard pile
+    nextState.knockedPlayerId should not be defined // player hadn't knocked in last round
+    nextState.history.length shouldBe >= (2)
+    nextState.history.reverse.head should equal (Action("player1", Discard, Seq(Card(Jack, Clubs)))) // shows after current player had drawn from discard, she'd discarded the clubs card
+    nextState.history.reverse.tail.head should equal (Action("player1", DrawFromDiscard, Seq(Card(Jack, Hearts)))) // shows current player had drawn from the discard pile
   }
 
   it should """draw from discard pile when it would increase current player's score by 7 or more, 
