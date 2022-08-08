@@ -17,7 +17,6 @@ trait ThirtyOneNonPlayer {
     case Some(cs) => cs.sorted
   }
   // in case of tie, both lowest hands pay
-  // TODO: test 
   private def lowestHands(hands: Seq[Seq[Card]]): Seq[Seq[Card]] = {
     val lowest: Int = hands.map(cs => evaluation.eval(cs)).sorted.head
     hands.filter(cs => evaluation.eval(cs) == lowest).map(_.sorted)
@@ -37,13 +36,11 @@ trait ThirtyOneNonPlayer {
       throw new IllegalStateException(
         s"Cannot get next because discard pile is empty")
     }
-    // TODO: test 
     if (gameState.winningPlayerId.isDefined) {
       // lowest hand pays 1 token; knocker pays double if knocker has lowest hand... 
       // update players' tokens and state's history, also remove losing (broke) players from the game
       val losers: Seq[String] = gameState.players.filter(p => lowestHands(gameState.players.map(_.hand)).contains(p.hand.sorted)).map(_.id)
       val loserDebts: Map[String, Int] = (for (p <- losers) yield if (gameState.knockedPlayerId.getOrElse("") == p) p -> 2 else p -> 1).toMap
-      println("LOSER DEBTS: " + loserDebts) 
       val paymentHistory: Seq[Action[ThirtyOneAction]] = (for ((player, debt) <- loserDebts) yield Action(player, Pay, Nil, actionTokens = debt)).toSeq
       val updatedPlayers: Seq[ThirtyOnePlayerState] = gameState.updatedTokens(loserDebts)
       val removedPlayers: Seq[String] = updatedPlayers.filter(p => p.tokens <= 0).map(_.id)
