@@ -46,7 +46,6 @@ case class ThirtyOneGameState(
       }   
     }
 
-    // TODO: test
     def updatedTokens(loserDebts: Map[String, Int]): Seq[ThirtyOnePlayerState] = {
       for (p <- players) yield {
         if (loserDebts.keySet.contains(p.id))

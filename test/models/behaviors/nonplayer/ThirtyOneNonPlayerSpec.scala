@@ -425,6 +425,7 @@ and next's potential score is less than current player's score""" in {
     Then("the winner and knocked flags would both be disabled and the lowest player would have pay 1 token") 
     paymentSettled.history.reverse.head should equal (Action("player2", Pay, Nil, 1)) 
     paymentSettled.players.filter(_.id == "player2").head.tokens should equal (2) 
+    paymentSettled.winningPlayerId shouldBe empty
   }
 
 
@@ -432,8 +433,8 @@ and next's potential score is less than current player's score""" in {
     Given("a game state where a winner's been declared and there's two tied hands with lowest scores (nobody's knocked)") 
     val hands = Seq(
       Seq(Card(Seven, Hearts), Card(Seven, Spades), Card(Seven, Diamonds)), // highest hand (3-of-a-kind is 30.5 score)
-      Seq(Card(Queen, Clubs), Card(Jack, Clubs), Card(Seven, Spades)), // score of 20, the lowest score
-      Seq(Card(Eight, Spades), Card(Nine, Spades), Card(Eight, Spades)))  // score of 25
+      Seq(Card(Queen, Clubs), Card(Jack, Clubs), Card(Seven, Spades)), // score of 20, tied for the lowest score
+      Seq(Card(Eight, Spades), Card(Nine, Spades), Card(Three, Spades)))  // score of 20, tied for the lowest score
     val discardPile = Seq(Card(Ten, Clubs))
     val players = 
       Seq(
@@ -443,30 +444,126 @@ and next's potential score is less than current player's score""" in {
     val initialState = ThirtyOneGameState(players = players, currentPlayerIndex = Some(0), discardPile = discardPile, winningPlayerId = Some("player2"))
     initialState.knockedPlayerId should not be defined // nobody's knocked in this scenario
 
-    pending
+    When("calling next on the state")
+    val paymentSettled = module.next(initialState)
+
+    Then("both players with tied lowest hands pay 1 token each")
+    paymentSettled.history.length shouldBe >= (2)
+    info("last 2 history actions should be player2 and player3 both paying 1 token")
+    paymentSettled.history.reverse.head should (equal (Action("player2", Pay, Nil, 1)) or equal (Action("player3", Pay, Nil, 1)))
+    paymentSettled.history.reverse.tail.head should (equal (Action("player2", Pay, Nil, 1)) or equal (Action("player3", Pay, Nil, 1)))
   }
 
   it should "make the knocker pay 2 tokens when their hand is the lowest and a winner's been declared" in {
+    Given("a game state where a winner's been declared and the single lowest score is the knocker's, who must pay double") 
+    val hands = Seq(
+      Seq(Card(Seven, Hearts), Card(Seven, Spades), Card(Seven, Diamonds)), // highest hand (3-of-a-kind is 30.5 score)
+      Seq(Card(Queen, Clubs), Card(Jack, Clubs), Card(Seven, Spades)), // score of 20
+      Seq(Card(Eight, Spades), Card(Four, Spades), Card(Three, Spades)))  // score of 15, lowest score
+    val discardPile = Seq(Card(Ten, Clubs))
+    val players = 
+      Seq(
+        ThirtyOnePlayerState("player1", 3, hands(0)), 
+        ThirtyOnePlayerState("player2", 3, hands(1)),
+        ThirtyOnePlayerState("player3", 3, hands(2))) 
+    val initialState = ThirtyOneGameState(players = players, currentPlayerIndex = Some(0), discardPile = discardPile, knockedPlayerId = Some("player3"), winningPlayerId = Some("player1"))
+    initialState.knockedPlayerId shouldBe defined // player3 had knocked
 
-    pending
+    When("calling next on the state")
+    val paymentSettled = module.next(initialState)
+    
+    Then("the lone loser who is also the knocker must pay double (2) tokens")
+    paymentSettled.history.reverse.head should equal (Action("player3", Pay, Nil, 2)) 
+    paymentSettled.players.filter(_.id == "player3").head.tokens should equal (1) 
   }
 
   it should "make the knocker pay 2 tokens and the other player whose hand ties as lowest pay 1 token" in {
+    Given("a game state where a winner's been declared and there's a tie for lowest score, with one of the losers the kocker who pay's double") 
+    val hands = Seq(
+      Seq(Card(Seven, Hearts), Card(Seven, Spades), Card(Seven, Diamonds)), // highest hand (3-of-a-kind is 30.5 score)
+      Seq(Card(Queen, Clubs), Card(Jack, Clubs), Card(Seven, Spades)), // score of 20, tied at lowest score, but didn't knock so pays 1 token
+      Seq(Card(Ten, Spades), Card(King, Spades), Card(Three, Hearts)))  // score of 20, tied at lowest score, but knocked so pays double
+    val discardPile = Seq(Card(Four, Clubs))
+    val players = 
+      Seq(
+        ThirtyOnePlayerState("player1", 3, hands(0)), 
+        ThirtyOnePlayerState("player2", 3, hands(1)),
+        ThirtyOnePlayerState("player3", 3, hands(2))) 
+    val initialState = ThirtyOneGameState(players = players, currentPlayerIndex = Some(0), discardPile = discardPile, knockedPlayerId = Some("player3"), winningPlayerId = Some("player1"))
+    initialState.knockedPlayerId shouldBe defined // player3 had knocked
 
-    pending
+    When("calling next on the state")
+    val paymentSettled = module.next(initialState)
+    
+    Then("loser who is the knocker must pay double (2) tokens, and  the other tied loser pays 1 token")
+    paymentSettled.history.reverse.head should (equal (Action("player2", Pay, Nil, 1)) or equal (Action("player3", Pay, Nil, 2)) )
+    paymentSettled.history.reverse.tail.head should (equal (Action("player2", Pay, Nil, 1)) or equal (Action("player3", Pay, Nil, 2)) )
+    info("player1 didn't pay so should have all 3 tokens")
+    paymentSettled.players.filter(_.id == "player1").head.tokens should equal (3)
+    info("player2 payed 1 so should have 2 tokens remaining")
+    paymentSettled.players.filter(_.id == "player2").head.tokens should equal (2)
+    info("player3 payed 2 so should have only 1 token remaining")
+    paymentSettled.players.filter(_.id == "player3").head.tokens should equal (1)
   }
 
   it should "make a player who runs out of tokens leave the game" in {
+    Given("a game state where a winner's been declared and there's only 1 hand which is the lowest and this player only has 1 remaining token") 
+    val hands = Seq(
+      Seq(Card(Seven, Hearts), Card(Seven, Spades), Card(Seven, Diamonds)), // highest hand (3-of-a-kind is 30.5 score)
+      Seq(Card(Queen, Clubs), Card(Jack, Clubs), Card(Seven, Spades)), // score of 20, the lowest score
+      Seq(Card(Eight, Spades), Card(Nine, Spades), Card(Eight, Spades)))  // score of 25
+    val discardPile = Seq(Card(Ten, Clubs))
+    val players = 
+      Seq(
+        ThirtyOnePlayerState("player1", 1, hands(0)), 
+        ThirtyOnePlayerState("player2", 1, hands(1)),
+        ThirtyOnePlayerState("player3", 1, hands(2))) 
+    val initialState = ThirtyOneGameState(players = players, currentPlayerIndex = Some(0), discardPile = discardPile, winningPlayerId = Some("player2"))
+    initialState.knockedPlayerId should not be defined // nobody's knocked in this scenario
 
-    pending
+    When("calling next on the state")
+    val paymentSettled = module.next(initialState)
+
+    Then("both players with tied lowest hands pay 1 token each")
+    paymentSettled.history.length shouldBe >= (2)
+    info("last 2 history actions should be player2 paying 1 token and player2 losing out")
+    
+    paymentSettled.history.reverse.head should equal (Action("player2", Out, Nil))
+    paymentSettled.history.reverse.tail.head should equal (Action("player2", Pay, Nil, 1))
+    paymentSettled.players.map(_.id) should not contain "player2" 
+    paymentSettled.players.map(_.id) contains "player1" 
+    paymentSettled.players.map(_.id) contains "player3" 
   }
 
   it should "make multiple players who run out of tokens leave the game" in {
+    Given("a game state where a winner's been declared and there's 2 hands which tie for the lowest and all players only have 1 remaining token") 
+    val hands = Seq(
+      Seq(Card(Seven, Hearts), Card(Seven, Spades), Card(Seven, Diamonds)), // highest hand (3-of-a-kind is 30.5 score)
+      Seq(Card(Queen, Clubs), Card(Jack, Clubs), Card(Seven, Spades)), // score of 20, tied for lowest score
+      Seq(Card(Eight, Spades), Card(Nine, Spades), Card(Three, Spades)))  // score of 20, tied for lowest score
+    val discardPile = Seq(Card(Ten, Clubs))
+    val players = 
+      Seq(
+        ThirtyOnePlayerState("player1", 1, hands(0)), 
+        ThirtyOnePlayerState("player2", 1, hands(1)),
+        ThirtyOnePlayerState("player3", 1, hands(2))) 
+    val initialState = ThirtyOneGameState(players = players, currentPlayerIndex = Some(0), discardPile = discardPile, winningPlayerId = Some("player2"))
+    initialState.knockedPlayerId should not be defined // nobody's knocked in this scenario
 
-    pending
+    When("calling next on the state")
+    val paymentSettled = module.next(initialState)
+
+    Then("both players with tied lowest hands pay 1 token each")
+    paymentSettled.history.length shouldBe >= (4)
+    info("last 2 history actions should be player2 paying 1 token and player2 losing out")
+    
+    paymentSettled.history.reverse.head should (equal (Action("player2", Out, Nil)) or equal (Action("player3", Out, Nil)) )
+    paymentSettled.history.reverse.tail.head should (equal (Action("player2", Out, Nil)) or equal (Action("player3", Out, Nil)) )
+    paymentSettled.history.reverse.tail.tail.head should (equal (Action("player2", Pay, Nil, 1)) or equal (Action("player3", Pay, Nil, 1)) )
+    paymentSettled.history.reverse.tail.tail.tail.head should (equal (Action("player2", Pay, Nil, 1)) or equal (Action("olayer3", Pay, Nil, 1)) )
+    paymentSettled.players.map(_.id) should not contain "player2" 
+    paymentSettled.players.map(_.id) contains "player1" 
+    paymentSettled.players.map(_.id) should not contain "player3" 
   }
-
-
-
 
 }
