@@ -597,4 +597,9 @@ and next's potential score is less than current player's score""" in {
 
     pending
   }
+
+  it should "have the discarded card always be one of the previous player's cards unless they've knocked" in {
+
+    pending
+  }
 }

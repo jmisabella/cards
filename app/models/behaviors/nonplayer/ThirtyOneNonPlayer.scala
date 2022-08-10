@@ -12,7 +12,6 @@ trait ThirtyOneNonPlayer {
   val evaluation: EVAL
 
   private def highestHand(cs1: Seq[Card], cs2: Seq[Card]): Seq[Card] = evaluation.preference(cs1, cs2) match {
-    // TODO: test case (illegal state) when hands match 
     case None => throw new IllegalStateException(s"No rules defined for when hands perfectly match in ranks with suit groupings: hand 1 [${cs1.sorted}] hand 2 [${cs2.sorted}]")
     case Some(cs) => cs.sorted
   }
