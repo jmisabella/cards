@@ -21,13 +21,18 @@ trait ThirtyOneNonPlayer {
     val lowest: Int = hands.map(cs => evaluation.eval(cs)).sorted.head
     hands.filter(cs => evaluation.eval(cs) == lowest).map(_.sorted)
   } 
+  private def suspectedSuitChange(playerId: String, state: ThirtyOneGameState): Boolean = {
+    // discard history 
+    val h: Seq[Action[ThirtyOneAction]] = state.history.filter(a => a.playerId == playerId && a.action == Discard && a.actionCards != Nil)
+    h.length > 1 && Seq(h.reverse.head, h.reverse.tail.head).map(_.actionCards.head.suit).distinct.length == 1
+  }
+  private def suspectedSuitChange(playerId: String, lastDiscard: Card, state: ThirtyOneGameState): Boolean = {
+    // discard history 
+    val h: Seq[Action[ThirtyOneAction]] = state.history.filter(a => a.playerId == playerId && a.action == Discard && a.actionCards != Nil)
+    h.length > 1 && (Seq(h.reverse.head).map(_.actionCards.head.suit) ++ Seq(lastDiscard.suit)).distinct.length == 1
+  }
 
   def next(gameState: ThirtyOneGameState): ThirtyOneGameState = {
-    // TODO: test when more than 7 players
-    if (gameState.players.length > 7) {
-      throw new IllegalStateException(
-        s"Cannot get next because [${gameState.players.length}] players exceeds the seven player maximum")
-    } 
     if (gameState.deck.length == 0) {
       throw new IllegalStateException(
         s"Cannot get next because deck is empty")
@@ -37,9 +42,15 @@ trait ThirtyOneNonPlayer {
         s"Cannot get next because discard pile is empty")
     }
     if (gameState.winningPlayerId.isDefined) {
-      // lowest hand pays 1 token; knocker pays double if knocker has lowest hand... 
-      // update players' tokens and state's history, also remove losing (broke) players from the game
-      val losers: Seq[String] = gameState.players.filter(p => lowestHands(gameState.players.map(_.hand)).contains(p.hand.sorted)).map(_.id)
+      // if score of 31 is reached and nobody's knocked yet, then all other non-31 players should pay 1 token
+      // otherwise the lowest hand(s) pays 1 token; knocker pays double if knocker has lowest hand... 
+      // any losers with no remaining tokens are removed from the game
+      val losers: Seq[String] = (gameState.knockedPlayerId, gameState.players.count(p => evaluation.eval(p.hand) >= 32) > 0) match {
+        // nobody's knocked and a player got 31 (blitz), which means that all other players must pay 1 token 
+        case (None, true) => gameState.players.filter(p => evaluation.eval(p.hand) < 32).map(_.id)
+        // else nobody's blitzed with a 31, so lowest hand(s) must pay; debt is 1 unless the loser knocked 
+        case (_, _) => gameState.players.filter(p => lowestHands(gameState.players.map(_.hand)).contains(p.hand.sorted)).map(_.id)
+      }
       val loserDebts: Map[String, Int] = (for (p <- losers) yield if (gameState.knockedPlayerId.getOrElse("") == p) p -> 2 else p -> 1).toMap
       val paymentHistory: Seq[Action[ThirtyOneAction]] = (for ((player, debt) <- loserDebts) yield Action(player, Pay, Nil, actionTokens = debt)).toSeq
       val updatedPlayers: Seq[ThirtyOnePlayerState] = gameState.updatedTokens(loserDebts)
@@ -79,8 +90,12 @@ trait ThirtyOneNonPlayer {
         currentPlayerIndex = Some(gameState.nextPlayerIndex()),
         history = gameState.history ++ 
           Seq(Action(currentPlayer.id, DrawFromDiscard, Seq(gameState.discardPile.head)), Action(currentPlayer.id, Discard, Seq(drawDiscardPileDiscardedCard))), 
-        players = gameState.updatedHandAndSuspectedCards(updatedHand = drawDiscardPileHand, discarded = Seq(drawDiscardPileDiscardedCard), publiclyViewedNewCards = Seq(gameState.discardPile.head)),
-        discardPile = gameState.discardPile.tail)
+        players = gameState.updatedHandAndSuspectedCards(
+          updatedHand = drawDiscardPileHand, 
+          discarded = Seq(drawDiscardPileDiscardedCard),
+          suspectedSuitChange = suspectedSuitChange(currentPlayer.id, drawDiscardPileDiscardedCard, gameState),
+          publiclyViewedNewCards = Seq(gameState.discardPile.head)),
+        discardPile = Seq(drawDiscardPileDiscardedCard) ++ gameState.discardPile.tail)
     }
     val drawDiscardNextPlayerPermutations = evaluation.permutationsAndScores(Seq(drawDiscardPileDiscardedCard) ++ suspected, suspected.length)
     val drawDiscardNextPlayerPotentialScore: Int = drawDiscardNextPlayerPermutations.length match {
@@ -92,8 +107,12 @@ trait ThirtyOneNonPlayer {
         currentPlayerIndex = Some(gameState.nextPlayerIndex()),
         history = gameState.history ++ 
           Seq(Action(currentPlayer.id, DrawFromDiscard, Seq(gameState.discardPile.head)), Action(currentPlayer.id, Discard, Seq(drawDiscardPileDiscardedCard))), 
-        players = gameState.updatedHandAndSuspectedCards(updatedHand = drawDiscardPileHand, discarded = Seq(drawDiscardPileDiscardedCard), publiclyViewedNewCards = Seq(gameState.discardPile.head)),
-        discardPile = gameState.discardPile.tail)
+        players = gameState.updatedHandAndSuspectedCards(
+          updatedHand = drawDiscardPileHand, 
+          discarded = Seq(drawDiscardPileDiscardedCard), 
+          suspectedSuitChange = suspectedSuitChange(currentPlayer.id, drawDiscardPileDiscardedCard, gameState),
+          publiclyViewedNewCards = Seq(gameState.discardPile.head)),
+        discardPile = Seq(drawDiscardPileDiscardedCard) ++ gameState.discardPile.tail)
     }
     
     // early knock logic
@@ -105,9 +124,16 @@ trait ThirtyOneNonPlayer {
         history = gameState.history ++ Seq(Action(currentPlayer.id, Knock)))
     }
     // if knocking, should make sure that next player would not get a thirty one automatic win or a higher score from drawing from discard pile
+    val otherPlayersSuspectedOfSuitChange: Boolean = gameState.players.filter(_.id != currentPlayer.id).count(_.suspectedSuitChange) > 0
+    val acceptableScoreToKnock: Int = otherPlayersSuspectedOfSuitChange match {
+      case true => 15 // if any of the other players is suspected of changing suits, then we're more confident of not having lowest score
+      case false => 22 
+    }
     val nextPlayerDrawDiscardPotentialScore: Int = evaluation.permutationsAndScores(Seq(gameState.discardPile.head) ++ suspected, suspected.length).maxBy(_._2)._2
-    if (!gameState.knockedPlayerId.isDefined && gameState.history.length < gameState.players.length && 
-      currentScore > 21 && 
+    if (!gameState.knockedPlayerId.isDefined &&
+      // either it's first round or at least 1 other player is suspected of changing suits
+      (gameState.history.length < gameState.players.length || otherPlayersSuspectedOfSuitChange) && 
+      currentScore >= acceptableScoreToKnock && 
       nextPlayerDrawDiscardPotentialScore != 32 && 
       nextPlayerDrawDiscardPotentialScore < currentScore) {
       // if, during the first round, hand is good enough then knock
@@ -130,7 +156,6 @@ trait ThirtyOneNonPlayer {
     }
 
     // draw logic: either draw from stock deck or draw from discard pile
-    // TODO: test draw logic
     val (drawnCard, updatedDeck): (Seq[Card], Deck) = gameState.deck.deal()
     val drawCardPermutationsAndScores: Seq[(Seq[Card], Int)] = evaluation.permutationsAndScores(cards = currentHand ++ drawnCard, n = 3)
     // determine if next player would have a better or even winning hand if he or she picks up any of this player's discarded cards
@@ -156,7 +181,10 @@ trait ThirtyOneNonPlayer {
       currentPlayerIndex = Some(gameState.nextPlayerIndex()),
       history = gameState.history ++ 
         Seq(Action(currentPlayer.id, DrawFromStock, drawnCard), Action(currentPlayer.id, Discard, Seq(discardedCard))), 
-      players = gameState.updatedHandAndSuspectedCards(updatedHand = drawHand, discarded = Seq(discardedCard)),
+      players = gameState.updatedHandAndSuspectedCards(
+        updatedHand = drawHand, 
+        suspectedSuitChange = suspectedSuitChange(currentPlayer.id, discardedCard, gameState),
+        discarded = Seq(discardedCard)),
       deck = updatedDeck,
       discardPile = Seq(discardedCard) ++ gameState.discardPile)
   }

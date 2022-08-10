@@ -248,6 +248,7 @@ and next player's suspected cards would not lead to 31 from drawing discarded ca
     nextState.knockedPlayerId should not be defined // player hadn't knocked in last round
     nextState.history.length should be >= (2)
     nextState.history.reverse.tail.head should not equal (Action("player1", DrawFromDiscard, Seq(Card(Seven, Hearts)))) // shows current player didn't draw from the discard pile
+    nextState.history.reverse.tail.head.action should equal (DrawFromStock)
   }
 
   it should """not draw from discard pile when it would increase current player's score by 7 or more, 
@@ -343,6 +344,31 @@ but next's potential score is equal to current player's score""" in {
     nextState.history.reverse.head should not equal (Action("player1", Knock)) // shows current player didn't knock in the last turn
   }
 
+  it should """(blitz) make player who got a 31 before anyone's knocked the winner, with all other players paying 1 token""" in {
+    Given("a game state where a winner's been declared and a player has 31, but no player has knocked") 
+    val hands = Seq(
+      Seq(Card(Seven, Hearts), Card(Seven, Spades), Card(Seven, Diamonds)), // 3-of-a-kind is 30.5 score but is not 31, so would have to pay since no knocker
+      Seq(Card(Queen, Clubs), Card(Jack, Clubs), Card(Ace, Clubs)), // score of 31, the winner
+      Seq(Card(Eight, Spades), Card(Nine, Spades), Card(Eight, Spades)))  // current player: another non-31 hand must also pay 1 token 
+    val discardPile = Seq(Card(Ten, Clubs))
+    val players = 
+      Seq(
+        ThirtyOnePlayerState("player1", 3, hands(0)), 
+        ThirtyOnePlayerState("player2", 3, hands(1)),
+        ThirtyOnePlayerState("player3", 3, hands(2))) 
+    val initialState = ThirtyOneGameState(players = players, currentPlayerIndex = Some(2), discardPile = discardPile, winningPlayerId = Some("player2"))
+    initialState.knockedPlayerId should not be defined // nobody's knocked in this scenario
+    
+    When("calling next on the state")
+    val paymentSettled = module.next(initialState)
+    
+    Then("the winner flag would be disabled and all players other than the winner (who blitzed with 31) pay 1") 
+    paymentSettled.history.reverse.head should (equal (Action("player1", Pay, Nil, 1)) or equal (Action("player3", Pay, Nil, 1)))
+    paymentSettled.history.reverse.tail.head should (equal (Action("player1", Pay, Nil, 1)) or equal (Action("player3", Pay, Nil, 1)))
+    paymentSettled.history.count(a => a.playerId == "player2" && a.action == Pay) equals (0)
+    paymentSettled.winningPlayerId shouldBe empty
+  }
+
   it should """(3-of-a-kind version, giving score of 30.5) knock if current score is greater than or equal to 30 and next player wouldn't get 31 from drawing the current player discarded card, 
 and next's potential score is less than current player's score""" in {
     val hands = Seq(
@@ -396,6 +422,7 @@ and next's potential score is less than current player's score""" in {
     Then("the winner flag would be disabled and the lowest player would have pay 1 token") 
     println("HERE: " + paymentSettled.history.reverse.head) 
     paymentSettled.history.reverse.head should equal (Action("player2", Pay, Nil, 1)) 
+    paymentSettled.winningPlayerId shouldBe empty
   }
 
   it should "make the lowest player pay 1 token when a winner's been declared (a different player's knocked)" in {
@@ -560,10 +587,14 @@ and next's potential score is less than current player's score""" in {
     paymentSettled.history.reverse.head should (equal (Action("player2", Out, Nil)) or equal (Action("player3", Out, Nil)) )
     paymentSettled.history.reverse.tail.head should (equal (Action("player2", Out, Nil)) or equal (Action("player3", Out, Nil)) )
     paymentSettled.history.reverse.tail.tail.head should (equal (Action("player2", Pay, Nil, 1)) or equal (Action("player3", Pay, Nil, 1)) )
-    paymentSettled.history.reverse.tail.tail.tail.head should (equal (Action("player2", Pay, Nil, 1)) or equal (Action("olayer3", Pay, Nil, 1)) )
+    paymentSettled.history.reverse.tail.tail.tail.head should (equal (Action("player2", Pay, Nil, 1)) or equal (Action("player3", Pay, Nil, 1)) )
     paymentSettled.players.map(_.id) should not contain "player2" 
     paymentSettled.players.map(_.id) contains "player1" 
     paymentSettled.players.map(_.id) should not contain "player3" 
   }
 
+  it should "have a consistent sized discard pile throughout rounds, since each turn player draws/discards 1 card or knocks" in {
+
+    pending
+  }
 }

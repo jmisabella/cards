@@ -99,14 +99,14 @@ class ThirtyOneStateSpec extends AnyFlatSpec {
   it should "update hand with no changes to an empty player list and have it result in an empty list" in {
     val players: Seq[ThirtyOnePlayerState] = Nil
     val state = ThirtyOneGameState(players = players)
-    val updatedPlayers = state.updatedHandAndSuspectedCards(Nil, Nil, Nil)
+    val updatedPlayers = state.updatedHandAndSuspectedCards(Nil, Nil, false, Nil)
     updatedPlayers shouldBe empty
   }
   
   it should "update hand with new cards to an empty player list and have it result in an empty list" in {
     val players: Seq[ThirtyOnePlayerState] = Nil
     val state = ThirtyOneGameState(players = players)
-    val updatedPlayers = state.updatedHandAndSuspectedCards(Seq(Card(Seven, Diamonds), Card(Two, Hearts)), Nil, Nil)
+    val updatedPlayers = state.updatedHandAndSuspectedCards(Seq(Card(Seven, Diamonds), Card(Two, Hearts)), Nil, false, Nil)
     updatedPlayers shouldBe empty
   }
 
@@ -119,7 +119,7 @@ class ThirtyOneStateSpec extends AnyFlatSpec {
     val state = ThirtyOneGameState(players = players, currentPlayerIndex = Some(0))
     state.currentPlayer() should equal (players(0))
     state.currentPlayer().hand should equal (hands(0))
-    val updatedPlayers = state.updatedHandAndSuspectedCards(hands(0), Seq(Card(Ace, Spades)), Nil)
+    val updatedPlayers = state.updatedHandAndSuspectedCards(hands(0), Seq(Card(Ace, Spades)), false, Nil)
     updatedPlayers should equal (players)
   }
 
@@ -133,10 +133,37 @@ class ThirtyOneStateSpec extends AnyFlatSpec {
     state.currentPlayer() should equal (players(0))
     state.currentPlayer().hand should equal (hands(0))
     state.currentPlayer().suspectedCards shouldBe empty
-    val updatedPlayers = state.updatedHandAndSuspectedCards(hands(0) ++ Seq(Card(Ace, Spades)), Nil, Seq(Card(Ace, Spades)))
+    val updatedPlayers = state.updatedHandAndSuspectedCards(hands(0) ++ Seq(Card(Ace, Spades)), Nil, false, Seq(Card(Ace, Spades)))
     updatedPlayers should not equal (players)
     updatedPlayers(0).hand should equal (hands(0) ++ Seq(Card(Ace, Spades)))
     updatedPlayers(0).suspectedCards should equal (Seq(Card(Ace, Spades)))
+  }
+
+  it should "not allow more than 7 players in a single game" in {
+    val players = Seq(
+      ThirtyOnePlayerState("player1", 3, Nil), 
+      ThirtyOnePlayerState("player2", 3, Nil), 
+      ThirtyOnePlayerState("player3", 3, Nil),
+      ThirtyOnePlayerState("player4", 3, Nil),
+      ThirtyOnePlayerState("player5", 3, Nil),
+      ThirtyOnePlayerState("player6", 3, Nil),
+      ThirtyOnePlayerState("player7", 3, Nil),
+      ThirtyOnePlayerState("player8", 3, Nil))
+      
+    an [AssertionError] should be thrownBy ThirtyOneGameState(players = players) 
+  }
+
+  it should "allow 7 players in a single game" in {
+    val players = Seq(
+      ThirtyOnePlayerState("player1", 3, Nil), 
+      ThirtyOnePlayerState("player2", 3, Nil), 
+      ThirtyOnePlayerState("player3", 3, Nil),
+      ThirtyOnePlayerState("player4", 3, Nil),
+      ThirtyOnePlayerState("player5", 3, Nil),
+      ThirtyOnePlayerState("player6", 3, Nil),
+      ThirtyOnePlayerState("player7", 3, Nil))
+
+    val state = ThirtyOneGameState(players = players) 
   }
 
 }
