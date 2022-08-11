@@ -36,4 +36,16 @@ trait HandEvaluation {
       case (_, _) => None // scores match, no preference
     }
   }
+
+  // Given a collection of cards and n cards per hand, yield possible hand permutations and evaluated scores
+  def permutationsAndScores(cards: Seq[Card], n: Int): Seq[(Seq[Card], Int)] = {
+    if (n > cards.length)
+      throw new IllegalStateException(s"Cannot get permutations when n is [$n] which exceeds list length [${cards.length}]")
+    
+    cards 
+      .combinations(n) // every permutation of n cards
+      .map(cs => (cs, eval(cs)))
+      .toSeq
+  }
+
 }

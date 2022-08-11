@@ -18,4 +18,3 @@ trait ThirtyOneActionSerialization extends Serialization[Action[ThirtyOneAction]
 
   override def json(items: Seq[Action[ThirtyOneAction]]): String = Actions(items).toString()
 }
-
