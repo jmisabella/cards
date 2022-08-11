@@ -593,13 +593,40 @@ and next's potential score is less than current player's score""" in {
     paymentSettled.players.map(_.id) should not contain "player3" 
   }
 
-  it should "have a consistent sized discard pile throughout rounds, since each turn player draws/discards 1 card or knocks" in {
-
-    pending
-  }
-
   it should "have the discarded card always be one of the previous player's cards unless they've knocked" in {
+    Given("A game state in which current player would draw from discard pile because doing so would increase hand by 7 and discarded card would not lead to next player getting a 31") 
+    val hands = Seq(
+      Seq(Card(Ten, Hearts), Card(Five, Hearts), Card(Ten, Clubs)), // current player, if discarding club card (ten) it would not lead to next suspected getting 31
+      Seq(Card(Queen, Clubs), Card(Jack, Clubs), Card(Seven, Spades)), // next player
+      Seq(Card(Eight, Spades), Card(Nine, Spades), Card(Ten, Spades))) 
+    val discardPile = Seq(Card(Seven, Hearts)) // drawing this card would make current player 7 higher than current score
+    val players = 
+      Seq(
+        ThirtyOnePlayerState("player1", 3, hands(0)), 
+        ThirtyOnePlayerState("player2", 3, hands(1), suspectedCards = Seq(Card(Queen, Clubs), Card(Jack, Clubs), Card(Seven, Spades))),
+        ThirtyOnePlayerState("player3", 3, hands(2))) 
+    val history = 
+      Seq(
+        Action("player1", DrawFromStock, Seq(Card(Four, Diamonds))), 
+        Action("player1", Discard, Seq(Card(Four, Diamonds))),
+        Action("player2", DrawFromStock, Seq(Card(Four, Diamonds))), 
+        Action("player2", Discard, Seq(Card(Four, Diamonds))),
+        Action("player3", DrawFromStock, Seq(Card(Four, Diamonds))), 
+        Action("player3", Discard, Seq(Card(Four, Diamonds))),
+        Action("player1", DrawFromStock, Seq(Card(Four, Diamonds))), 
+        Action("player1", Discard, Seq(Card(Four, Diamonds))))
+    val initialState = ThirtyOneGameState(players = players, currentPlayerIndex = Some(0), discardPile = discardPile, history = history)
+    initialState.nextPlayerIndex() should equal (1) // next player is player 2
 
-    pending
+    When("calling for next state")
+    val nextState = module.next(initialState)
+
+    Then("top card of discard pile should be Ten of Clubs and the discard pile's size should remain unchanged")
+    nextState.knockedPlayerId should not be defined // player hadn't knocked in last round
+    nextState.history.length should be >= (2)
+    nextState.history.reverse.head should equal (Action("player1", Discard, Seq(Card(Ten, Clubs)))) // shows after current player had drawn from discard, she'd discarded the clubs card
+    nextState.history.reverse.tail.head should equal (Action("player1", DrawFromDiscard, Seq(Card(Seven, Hearts)))) // shows current player had drawn from the discard pile
+    nextState.discardPile.length should equal (initialState.discardPile.length)
+    nextState.discardPile.head should equal (Card(Ten, Clubs))
   }
 }
