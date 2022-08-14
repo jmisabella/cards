@@ -19,3 +19,5 @@ server.pid
 .metals/metals.log
 
 .metals/metals.mv.db
+
+*.log

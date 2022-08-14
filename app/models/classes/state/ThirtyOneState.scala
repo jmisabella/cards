@@ -23,7 +23,7 @@ case class ThirtyOneGameState(
   winningPlayerId: Option[String] = None,
   history: Seq[Action[ThirtyOneAction]] = Nil) {
 
-    assume(players.length <= 7, s"Cannot have more than 7 players in the game of Thirty-One. There are currently [${players.length}] players")
+    require(players.length <= 7, s"Cannot have more than 7 players in the game of Thirty-One. There are currently [${players.length}] players")
 
     def currentPlayer(): ThirtyOnePlayerState = (players, currentPlayerIndex) match {
       case (Nil, _) => throw new IllegalStateException(s"Cannot determine current player when no players exist")
