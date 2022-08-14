@@ -5,7 +5,7 @@ import cards.models.classes.{ Card, Rank, Suit }
 import cards.models.classes.Rank._
 import cards.models.classes.Suit._
 
-trait BlackJackPredicates {
+trait BlackjackPredicates {
   type CB <: Commons
   val commons: CB 
 

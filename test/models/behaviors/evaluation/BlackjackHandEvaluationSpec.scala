@@ -1,7 +1,7 @@
 package cards.models.behaviors.evaluation
 
 import cards.models.behaviors.Commons
-import cards.models.behaviors.evaluation.BlackJackHandEvaluation
+import cards.models.behaviors.evaluation.BlackjackHandEvaluation
 import cards.models.classes.{ Card, Rank, Suit }
 import cards.models.classes.Rank._
 import cards.models.classes.Suit._
@@ -10,7 +10,7 @@ import org.scalatest.matchers.should.Matchers._
 
 class BlackJackHandEvaluationSpec extends AnyFlatSpec {
   private[evaluation] case object _commons extends Commons
-  case object module extends BlackJackHandEvaluation {
+  case object module extends BlackjackHandEvaluation {
     override type C = Commons
     override val commons = _commons
   }

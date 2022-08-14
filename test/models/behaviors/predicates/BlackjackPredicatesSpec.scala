@@ -1,7 +1,7 @@
 package cards.models.behaviors.predicates
 
 import cards.models.behaviors.Commons
-import cards.models.behaviors.predicates.BlackJackPredicates
+import cards.models.behaviors.predicates.BlackjackPredicates
 import cards.models.classes.{ Card, Rank, Suit }
 import cards.models.classes.Rank._
 import cards.models.classes.Suit._
@@ -10,7 +10,7 @@ import org.scalatest.matchers.should.Matchers._
 
 class BlackJackPredicatesSpec extends AnyFlatSpec {
   private[predicates] case object _commons extends Commons
-  case object module extends BlackJackPredicates {
+  case object module extends BlackjackPredicates {
     override type CB = Commons
     override val commons = _commons
   }
