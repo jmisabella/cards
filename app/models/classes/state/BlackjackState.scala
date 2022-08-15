@@ -9,8 +9,10 @@ import cards.models.classes.options.ResplitLimit._
 import cards.models.classes.actions.{ Action, BlackjackAction }
 import cards.models.classes.actions.BlackjackAction._
 
+// TODO: need to also track player bets
 case class BlackjackPlayerState(id: String, bank: Int, hands: Seq[Seq[Card]] = Nil)
 
+// TODO: need to also track player bets
 // dealer's hand's head is the face-up card, all other cards are face down
 case class BlackjackGameState(
   options: BlackjackOptions, 
