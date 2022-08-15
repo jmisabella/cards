@@ -23,5 +23,3 @@ case class BlackjackGameState(
   winningPlayerId: Option[String] = None,
   history: Seq[Action[BlackjackAction]])
 
-
-
