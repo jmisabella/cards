@@ -12,11 +12,10 @@ import cards.models.classes.actions.BlackjackAction._
 // handsAndBets: sequence of tuples, where each tuple's _1 is the actual hand, and the tuple's _2 is bets placed on the hand (map with player id as key and bet placed as value)
 case class BlackjackPlayerState(id: String, bank: Int = 0, handsAndBets: Seq[(Seq[Card], Map[String, Int])] = Nil) {
   val hands: Seq[Seq[Card]] = handsAndBets.map(_._1)
-  // TODO: test 
-  def playerBets(playerId: String): Seq[(Seq[Card], Int)] = { 
-    for (x <- handsAndBets if (x._2.keys.toSeq.contains(playerId))) yield {
+  def playerBet(playerId: String): Option[(Seq[Card], Int)] = { 
+    (for (x <- handsAndBets if (x._2.keys.toSeq.contains(playerId))) yield {
       (x._1, x._2.filter(_._1 == playerId).values.head)
-    }
+    }).headOption
   }
 }
 
@@ -27,10 +26,20 @@ object BlackjackPlayerState {
 
 // dealer's hand's head is the face-up card, all other cards are face down
 case class BlackjackGameState(
-  options: BlackjackOptions, 
-  dealerHand: Seq[Card] = Nil, 
-  players: Seq[BlackjackPlayerState] = Nil, 
-  pot: Int = 0, 
+  options: BlackjackOptions,
+  dealerHand: Seq[Card] = Nil,
+  players: Seq[BlackjackPlayerState] = Nil,
+  pot: Int = 0,
   currentPlayerIndex: Option[Int] = None,
   winningPlayerId: Option[String] = None,
-  history: Seq[Action[BlackjackAction]])
+  history: Seq[Action[BlackjackAction]]) {
+
+    // TODO: test
+    def playerBets(playerId: String): Seq[(Seq[Card], Int)] = {
+      for {
+        player <- players;
+        bet <- player.playerBet(playerId)
+      } yield bet
+    }
+
+}
