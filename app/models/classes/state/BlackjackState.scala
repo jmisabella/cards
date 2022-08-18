@@ -26,20 +26,18 @@ object BlackjackPlayerState {
 
 // dealer's hand's head is the face-up card, all other cards are face down
 case class BlackjackGameState(
-  options: BlackjackOptions,
+  options: BlackjackOptions = BlackjackOptions(),
   dealerHand: Seq[Card] = Nil,
   players: Seq[BlackjackPlayerState] = Nil,
   pot: Int = 0,
   currentPlayerIndex: Option[Int] = None,
   winningPlayerId: Option[String] = None,
-  history: Seq[Action[BlackjackAction]]) {
+  history: Seq[Action[BlackjackAction]] = Nil) {
 
-    // TODO: test
     def playerBets(playerId: String): Seq[(Seq[Card], Int)] = {
       for {
         player <- players;
         bet <- player.playerBet(playerId)
       } yield bet
     }
-
 }
