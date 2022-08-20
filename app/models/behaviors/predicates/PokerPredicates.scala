@@ -1,9 +1,9 @@
 package cards.models.behaviors.predicates
 
 import cards.models.behaviors.Commons
-import cards.models.classes.{ Card, PokerHandType }
+import cards.models.classes.{ Card, PokerHandCategorization }
 import cards.models.classes.Rank._
-import cards.models.classes.PokerHandType._
+import cards.models.classes.PokerHandCategorization._
 
 trait PokerPredicates {
   type CB <: Commons
@@ -87,7 +87,7 @@ trait PokerPredicates {
   
   def royalFlush(cards: Seq[Card]): Option[Seq[Card]] = filterByPredicate(cards, isRoyalFlush) (cs => cs)
 
-  def handType(cards: Seq[Card]): Option[PokerHandType] = {
+  def handType(cards: Seq[Card]): Option[PokerHandCategorization] = {
     (isHighCard(cards), isOnePair(cards), isTwoPair(cards), isThreeOfAKind(cards), isStraight(cards), isFlush(cards), isFullHouse(cards), isFourOfAKind(cards), 
       isStraightFlush(cards), isRoyalFlush(cards)) match {
         case (_, _, _, _, _, _, _, _, _, true) => Some(RoyalFlush)
