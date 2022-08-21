@@ -13,9 +13,11 @@ import cards.models.classes.actions.BlackjackAction._
 case class BlackjackPlayerState(id: String, bank: Int = 0, handsAndBets: Seq[(Seq[Card], Map[String, Int])] = Nil) {
   val hands: Seq[Seq[Card]] = handsAndBets.map(_._1)
   def playerBet(playerId: String): Option[(Seq[Card], Int)] = { 
-    (for (x <- handsAndBets if (x._2.keys.toSeq.contains(playerId))) yield {
-      (x._1, x._2.filter(_._1 == playerId).values.head)
-    }).headOption
+    (for {
+      x <- handsAndBets
+      if (x._2.keys.toSeq.contains(playerId))
+    } yield (x._1, x._2.filter(_._1 == playerId).values.head)
+    ).headOption
   }
 }
 
@@ -29,9 +31,7 @@ case class BlackjackGameState(
   options: BlackjackOptions = BlackjackOptions(),
   dealerHand: Seq[Card] = Nil,
   players: Seq[BlackjackPlayerState] = Nil,
-  pot: Int = 0,
   currentPlayerIndex: Option[Int] = None,
-  winningPlayerId: Option[String] = None,
   history: Seq[Action[BlackjackAction]] = Nil) {
 
     def playerBets(playerId: String): Seq[(Seq[Card], Int)] = {
