@@ -27,7 +27,7 @@ class BlackJackPredicatesSpec extends AnyFlatSpec {
     result should be (false)
   }
 
-  it should "not allow split for a 2-card hand with cards of different rank" in {
+  it should "not allow split for a 2-card hand with cards of different rank whose values are both lower than 10" in {
     val cards: Seq[Card] = Seq(Card(Seven, Hearts), Card(Nine, Spades))
     val result: Boolean = module.canSplit(cards)
     result should be (false)
@@ -38,28 +38,34 @@ class BlackJackPredicatesSpec extends AnyFlatSpec {
     val result: Boolean = module.canSplit(cards)
     result should be (true)
   }
-  
+
+  it should "allow split for a 2-card hand consisting of a Ten and a Queen" in {
+    val cards: Seq[Card] = Seq(Card(Ten, Clubs), Card(Queen, Hearts))
+    val result: Boolean = module.canSplit(cards)
+    result should be (true)
+  }
+
   it should "not allow split for a 3-card hand with 2 cards of matching rank and one additional card" in {
     val cards: Seq[Card] = Seq(Card(Jack, Clubs), Card(Jack, Hearts), Card(Two, Clubs))
     val result: Boolean = module.canSplit(cards)
     result should be (false)
   }
 
-  it should "not allow players insurance if dealer's face-up cards are an empty list" in {
-    val dealerFaceUpCards: Seq[Card] = Nil
-    val result: Boolean = module.eligibleForInstance(dealerFaceUpCards)
+  it should "not allow players insurance if dealer's hand is an empty list" in {
+    val dealerCards: Seq[Card] = Nil
+    val result: Boolean = module.eligibleForInstance(dealerCards)
     result should be (false)
   }
   
-  it should "not allow players insurance if dealer's face-up cards have more than 1 card (an ace and one additional card)" in {
-    val dealerFaceUpCards: Seq[Card] = Seq(Card(Ace, Spades), Card(King, Spades)) 
-    val result: Boolean = module.eligibleForInstance(dealerFaceUpCards)
+  it should "not allow players insurance if dealer's hand has more than 1 card" in {
+    val dealerCards: Seq[Card] = Seq(Card(Ace, Spades), Card(Seven, Hearts), Card(Three, Spades)) 
+    val result: Boolean = module.eligibleForInstance(dealerCards)
     result should be (false)
   }
 
-  it should "allow players insurance if dealer's face-up has only 1 card, an ace" in {
-    val dealerFaceUpCards: Seq[Card] = Seq(Card(Ace, Hearts)) 
-    val result: Boolean = module.eligibleForInstance(dealerFaceUpCards)
+  it should "allow players insurance if dealer's hand has exactly 2 cards and its face-up card (first card) is an Ace" in {
+    val dealerCards: Seq[Card] = Seq(Card(Ace, Hearts), Card(Two, Clubs))
+    val result: Boolean = module.eligibleForInstance(dealerCards)
     result should be (true)
   }
 

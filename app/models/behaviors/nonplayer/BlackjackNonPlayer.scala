@@ -14,4 +14,9 @@ trait BlackjackNonPlayer {
   val evaluation: EVAL
   val predicates: PREDICATES
 
+  def next(gameState: BlackjackGameState): BlackjackGameState = {
+
+    ???
+  }
+
 }

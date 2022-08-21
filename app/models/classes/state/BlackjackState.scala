@@ -1,6 +1,9 @@
 package cards.models.classes.state
 
-import cards.models.classes.Card
+import cards.models.classes.state.{ PlayerState, GameState }
+import cards.models.classes.{ Card, Rank, Suit, Deck }
+import cards.models.classes.Rank._
+import cards.models.classes.Suit._
 import cards.models.classes.options.BlackjackOptions
 import cards.models.classes.options.BlackjackPayout._
 import cards.models.classes.options.Surrender._
@@ -10,7 +13,7 @@ import cards.models.classes.actions.{ Action, BlackjackAction }
 import cards.models.classes.actions.BlackjackAction._
 
 // handsAndBets: sequence of tuples, where each tuple's _1 is the actual hand, and the tuple's _2 is bets placed on the hand (map with player id as key and bet placed as value)
-case class BlackjackPlayerState(id: String, bank: Int = 0, handsAndBets: Seq[(Seq[Card], Map[String, Int])] = Nil) {
+case class BlackjackPlayerState(id: String, bank: Int = 0, handsAndBets: Seq[(Seq[Card], Map[String, Int])] = Nil) extends PlayerState {
   val hands: Seq[Seq[Card]] = handsAndBets.map(_._1)
   def playerBet(playerId: String): Option[(Seq[Card], Int)] = { 
     (for {
@@ -28,11 +31,13 @@ object BlackjackPlayerState {
 
 // dealer's hand's head is the face-up card, all other cards are face down
 case class BlackjackGameState(
+  override val players: Seq[BlackjackPlayerState] = Nil,
+  override val currentPlayerIndex: Option[Int] = None,
+  override val history: Seq[Action[BlackjackAction]] = Nil,
+  override val deck: Deck = Deck(Seq(Card(LeftBower, Joker), Card(RightBower, Joker)), 1),
+  currentHand: Option[Seq[Card]] = None,
   options: BlackjackOptions = BlackjackOptions(),
-  dealerHand: Seq[Card] = Nil,
-  players: Seq[BlackjackPlayerState] = Nil,
-  currentPlayerIndex: Option[Int] = None,
-  history: Seq[Action[BlackjackAction]] = Nil) {
+  dealerHand: Seq[Card] = Nil) extends GameState[BlackjackPlayerState, BlackjackAction] {
 
     def playerBets(playerId: String): Seq[(Seq[Card], Int)] = {
       for {
