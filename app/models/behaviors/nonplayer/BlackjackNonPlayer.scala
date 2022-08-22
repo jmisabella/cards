@@ -15,6 +15,19 @@ trait BlackjackNonPlayer {
   val predicates: PREDICATES
 
   def next(gameState: BlackjackGameState): BlackjackGameState = {
+    // TODO: test 
+    if (gameState.deck.length == 0) {
+      throw new IllegalStateException(
+        s"Cannot get next because deck is empty")
+    }
+
+    // TODO: test 
+    if (gameState.players.length == 0) {
+      throw new IllegalStateException(
+        s"Cannot get next because there are no players")
+    }
+
+
 
     ???
   }

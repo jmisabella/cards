@@ -1,7 +1,7 @@
 package cards.models.classes.state
 
 import cards.models.classes.state.{ PlayerState, GameState }
-import cards.models.classes.{ Card, Rank, Suit, Deck }
+import cards.models.classes.{ Card, Rank, Suit, Deck, HandBet }
 import cards.models.classes.Rank._
 import cards.models.classes.Suit._
 import cards.models.classes.options.BlackjackOptions
@@ -12,20 +12,19 @@ import cards.models.classes.options.ResplitLimit._
 import cards.models.classes.actions.{ Action, BlackjackAction }
 import cards.models.classes.actions.BlackjackAction._
 
-// handsAndBets: sequence of tuples, where each tuple's _1 is the actual hand, and the tuple's _2 is bets placed on the hand (map with player id as key and bet placed as value)
-case class BlackjackPlayerState(id: String, bank: Int = 0, handsAndBets: Seq[(Seq[Card], Map[String, Int])] = Nil) extends PlayerState {
-  val hands: Seq[Seq[Card]] = handsAndBets.map(_._1)
+case class BlackjackPlayerState(id: String, bank: Int = 0, handsAndBets: Seq[HandBet] = Nil) extends PlayerState {
+  val hands: Seq[Seq[Card]] = handsAndBets.map(_.hand)
   def playerBet(playerId: String): Option[(Seq[Card], Int)] = { 
     (for {
       x <- handsAndBets
-      if (x._2.keys.toSeq.contains(playerId))
-    } yield (x._1, x._2.filter(_._1 == playerId).values.head)
+      if (x.bets.keys.toSeq.contains(playerId))
+    } yield (x.hand, x.bets.filter(_._1 == playerId).values.head)
     ).headOption
   }
 }
 
 object BlackjackPlayerState {
-  def apply(hands: Seq[Seq[Card]], id: String, bank: Int): BlackjackPlayerState = BlackjackPlayerState(id, bank, hands.map(h => (h, Map(): Map[String, Int]))) 
+  def apply(hands: Seq[Seq[Card]], id: String, bank: Int): BlackjackPlayerState = BlackjackPlayerState(id, bank, hands.map(h => HandBet(h)))
   def apply(id: String, hand: Seq[Card], bank: Int): BlackjackPlayerState = BlackjackPlayerState(Seq(hand), id, bank) 
 }
 
@@ -37,7 +36,9 @@ case class BlackjackGameState(
   override val deck: Deck = Deck(Seq(Card(LeftBower, Joker), Card(RightBower, Joker)), 1),
   currentHand: Option[Seq[Card]] = None,
   options: BlackjackOptions = BlackjackOptions(),
-  dealerHand: Seq[Card] = Nil) extends GameState[BlackjackPlayerState, BlackjackAction] {
+  dealerHand: Seq[Card] = Nil,
+  minimumBet: Int = 1,
+  maximumBet: Int = 999999) extends GameState[BlackjackPlayerState, BlackjackAction] {
 
     def playerBets(playerId: String): Seq[(Seq[Card], Int)] = {
       for {

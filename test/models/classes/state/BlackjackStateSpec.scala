@@ -2,7 +2,7 @@ package cards.models.classes.state
 
 import cards.models.classes.state.{ BlackjackGameState, BlackjackPlayerState }
 import cards.models.classes.options.BlackjackOptions
-import cards.models.classes.{ Card, Rank, Suit, Deck }
+import cards.models.classes.{ Card, Rank, Suit, Deck, HandBet }
 import cards.models.classes.Rank._
 import cards.models.classes.Suit._
 import org.scalatest.flatspec.AnyFlatSpec
@@ -12,7 +12,7 @@ import org.scalatest.GivenWhenThen
 class BlackjackStateSpec extends AnyFlatSpec with GivenWhenThen {
   "BlackjackPlayerState" should "yield all bets a given player has placed on a specific Blackjack player's hand" in {
     Given("a player state who has placed bet on his own hand and who also has 2 other players who have placed bets on his hand")
-    val player = BlackjackPlayerState("Jeffrey", 50, Seq( (Seq(Card(Ten, Clubs), Card(Jack, Hearts)), Map("Jeffrey" -> 5, "Brandon" -> 10, "Alice" -> 15))))
+    val player = BlackjackPlayerState("Jeffrey", 50, Seq( HandBet(Seq(Card(Ten, Clubs), Card(Jack, Hearts)), Map("Jeffrey" -> 5, "Brandon" -> 10, "Alice" -> 15))))
 
     When("retrieving player bets for Jeffrey, Alice, Brandon, and a non-existent Dracula")
     val jeffreyBet: Option[(Seq[Card], Int)] = player.playerBet("Jeffrey")
@@ -36,19 +36,19 @@ class BlackjackStateSpec extends AnyFlatSpec with GivenWhenThen {
       "Jeffrey", 
       25, 
       Seq( 
-        (Seq(Card(Eight, Hearts), Card(Jack, Diamonds)), 
+        HandBet(Seq(Card(Eight, Hearts), Card(Jack, Diamonds)), 
         Map("Jeffrey" -> 15, "Alice" -> 10))))
     val player2 = BlackjackPlayerState(
       "Alice", 
       50, 
       Seq( 
-        (Seq(Card(Ten, Clubs), Card(Ace, Spades)), 
+        HandBet(Seq(Card(Ten, Clubs), Card(Ace, Spades)), 
         Map("Jeffrey" -> 5, "Brandon" -> 10, "Alice" -> 15))))
     val player3 = BlackjackPlayerState(
       "Brandon", 
       40, 
       Seq( 
-        (Seq(Card(Ten, Spades), Card(Seven, Hearts), Card(Ace, Clubs)), 
+        HandBet(Seq(Card(Ten, Spades), Card(Seven, Hearts), Card(Ace, Clubs)), 
         Map("Brandon" -> 20, "Alice" -> 25))))
     val gameState = BlackjackGameState(options = BlackjackOptions(), dealerHand = Nil, players = Seq(player1, player2, player3))
 
