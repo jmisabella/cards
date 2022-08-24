@@ -5,6 +5,7 @@ import cards.models.behaviors.predicates.BlackjackPredicates
 import cards.models.classes.{ Card, Rank, Suit }
 import cards.models.classes.Rank._
 import cards.models.classes.Suit._
+import cards.models.classes.options.BlackjackOptions
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 
@@ -39,9 +40,21 @@ class BlackJackPredicatesSpec extends AnyFlatSpec {
     result should be (true)
   }
 
-  it should "allow split for a 2-card hand consisting of a Ten and a Queen" in {
+  it should "by default allow split for a 2-card hand consisting of a Ten and a Queen" in {
     val cards: Seq[Card] = Seq(Card(Ten, Clubs), Card(Queen, Hearts))
     val result: Boolean = module.canSplit(cards)
+    result should be (true)
+  }
+  
+  it should ",with the splitOnRankMatchOnly option specified, not allow split for a 2-card hand consisting of a Ten and a Queen" in {
+    val cards: Seq[Card] = Seq(Card(Ten, Clubs), Card(Queen, Hearts))
+    val result: Boolean = module.canSplit(cards, BlackjackOptions(splitOnRankMatchOnly = true))
+    result should be (false)
+  }
+  
+  it should ",with the splitOnRankMatchOnly option specified, allow split for a 2-card hand consisting of two Tens" in {
+    val cards: Seq[Card] = Seq(Card(Ten, Clubs), Card(Ten, Hearts))
+    val result: Boolean = module.canSplit(cards, BlackjackOptions(splitOnRankMatchOnly = true))
     result should be (true)
   }
 

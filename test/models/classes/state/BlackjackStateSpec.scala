@@ -75,4 +75,129 @@ class BlackjackStateSpec extends AnyFlatSpec with GivenWhenThen {
     brandonBets should contain ((Seq(Card(Ten, Spades), Card(Seven, Hearts), Card(Ace, Clubs)), 20))
     brandonBets should contain ((Seq(Card(Ten, Clubs), Card(Ace, Spades)), 10))
   }
+
+  it should "not settle on a game in which no hands have been dealt and no bets made" in {
+    Given("a game state with 3 existing players who do not yet have any hands")
+    val player1 = BlackjackPlayerState("Jeffrey", 50, Nil)
+    val player2 = BlackjackPlayerState("Alice", 50, Nil)
+    val player3 = BlackjackPlayerState("Brandon", 50, Nil)
+    val gameState = BlackjackGameState(options = BlackjackOptions(), dealerHand = Nil, players = Seq(player1, player2, player3))
+
+    When("checking whether it's time to settle bets")
+    val settleBets: Boolean = gameState.isTimeToSettle()
+
+    Then("it's determined that it's not yet time to settle any bets")
+    settleBets should equal (false)
+  }
+
+  it should "settle when all hands have either won or lost" in {
+    Given("a game state with 3 existing players (Jeffrey, Alice, Brandon) who each have 1 or more hands, all of which have either won or lost")
+    val player1 = BlackjackPlayerState(
+      "Jeffrey", 
+      25, 
+      Seq( 
+        HandBet(Seq(Card(Eight, Hearts), Card(Jack, Diamonds)), 
+        bets = Map("Jeffrey" -> 15, "Alice" -> 10), 
+        handWins = Some(false))))
+    val player2 = BlackjackPlayerState(
+      "Alice", 
+      50, 
+      Seq( 
+        HandBet(Seq(Card(Ten, Clubs), Card(Ace, Spades)), 
+        bets = Map("Jeffrey" -> 5, "Brandon" -> 10, "Alice" -> 15),
+        handWins = Some(true))))
+    val player3 = BlackjackPlayerState(
+      "Brandon", 
+      40, 
+      Seq( 
+        HandBet(Seq(Card(Ten, Spades), Card(Seven, Hearts), Card(Ace, Clubs)), 
+        bets = Map("Brandon" -> 20, "Alice" -> 25),
+        handWins = Some(false))))
+    val dealerCards: Seq[Card] = Seq(Card(Ten, Diamonds), Card(Nine, Spades))
+    val gameState = BlackjackGameState(options = BlackjackOptions(), dealerHand = dealerCards, players = Seq(player1, player2, player3))
+
+    When("checking whether it's time to settle bets")
+    val settleBets: Boolean = gameState.isTimeToSettle()
+
+    Then("it's determined that all bets should be settled")
+    settleBets should equal (true)
+  }
+
+  it should "not settle when NOT all hands have either won or lost" in {
+    Given("a game state with 3 existing players (Jeffrey, Alice, Brandon) who each have 1 or more hands, and all but one of the hands has completed")
+    val player1 = BlackjackPlayerState(
+      "Jeffrey", 
+      25, 
+      Seq( 
+        HandBet(Seq(Card(Eight, Hearts), Card(Jack, Diamonds), Card(Five, Diamonds)), 
+        bets = Map("Jeffrey" -> 15, "Alice" -> 10), 
+        handWins = Some(false))))
+    val player2 = BlackjackPlayerState(
+      "Alice", 
+      50, 
+      Seq( 
+        HandBet(Seq(Card(Ten, Clubs), Card(Ace, Spades)), 
+        bets = Map("Jeffrey" -> 5, "Brandon" -> 10, "Alice" -> 15),
+        handWins = Some(true))))
+    val player3 = BlackjackPlayerState(
+      "Brandon", 
+      40, 
+      Seq( 
+        HandBet(Seq(Card(Ten, Spades), Card(Three, Hearts), Card(Two, Clubs)), 
+        bets = Map("Brandon" -> 20, "Alice" -> 25),
+        handWins = None)))
+    val dealerCards: Seq[Card] = Seq(Card(Ten, Diamonds), Card(Nine, Spades))
+    val gameState = BlackjackGameState(options = BlackjackOptions(), dealerHand = dealerCards, players = Seq(player1, player2, player3))
+
+    When("checking whether it's time to settle bets")
+    val settleBets: Boolean = gameState.isTimeToSettle()
+
+    Then("it's determined that it's not yet time to settle any bets")
+    settleBets should equal (false)
+  }
+
+  it should "not settle when no hands have either won or lost" in {
+    Given("a game state with 3 existing players (Jeffrey, Alice, Brandon) who each have 1 or more hands, none of which have completed play")
+    val player1 = BlackjackPlayerState(
+      "Jeffrey", 
+      25, 
+      Seq( 
+        HandBet(Seq(Card(Four, Hearts), Card(Jack, Diamonds)), 
+        bets = Map("Jeffrey" -> 15, "Alice" -> 10), 
+        handWins = None)))
+    val player2 = BlackjackPlayerState(
+      "Alice", 
+      50, 
+      Seq( 
+        HandBet(Seq(Card(Two, Clubs), Card(Ace, Spades)), 
+        bets = Map("Jeffrey" -> 5, "Brandon" -> 10, "Alice" -> 15),
+        handWins = None)))
+    val player3 = BlackjackPlayerState(
+      "Brandon", 
+      40, 
+      Seq( 
+        HandBet(Seq(Card(Three, Spades), Card(Seven, Hearts)), 
+        bets = Map("Brandon" -> 20, "Alice" -> 25),
+        handWins = None)))
+    val dealerCards: Seq[Card] = Seq(Card(Ten, Diamonds), Card(Nine, Spades))
+    val gameState = BlackjackGameState(options = BlackjackOptions(), dealerHand = dealerCards, players = Seq(player1, player2, player3))
+
+    When("checking whether it's time to settle bets")
+    val settleBets: Boolean = gameState.isTimeToSettle()
+
+    Then("it's determined that it's not yet time to settle any bets")
+    settleBets should equal (false)
+  }
+
+  it should "not settle on a game with no players" in {
+    Given("a game state without any players")
+    val gameState = BlackjackGameState(options = BlackjackOptions(), dealerHand = Nil, players = Nil)
+
+    When("checking whether it's time to settle bets")
+    val settleBets: Boolean = gameState.isTimeToSettle()
+
+    Then("it's determined that it's not yet time to settle any bets")
+    settleBets should equal (false)
+  }
+
 }

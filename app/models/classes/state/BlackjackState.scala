@@ -42,8 +42,16 @@ case class BlackjackGameState(
 
     def playerBets(playerId: String): Seq[(Seq[Card], Int)] = {
       for {
-        player <- players;
+        player <- players
         bet <- player.playerBet(playerId)
       } yield bet
     }
+
+    def isTimeToSettle(): Boolean = {
+      val handCount: Int = players.map(p => p.handsAndBets.map(_.hand)).length
+      players != Nil && players.flatMap(p => p.handsAndBets.filter(h => h.handWins.isDefined)).length == handCount
+      // players.flatMap(p => p.handsAndBets.filter(h => h.handWins == Some(true))).length == handCount
+    }
+
+
 }
