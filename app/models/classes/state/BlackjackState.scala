@@ -52,6 +52,7 @@ case class BlackjackGameState(
       players != Nil && players.flatMap(p => p.handsAndBets.filter(h => h.handWins.isDefined)).length == handCount
     }
 
+    // TODO: test 
     def settleBets(): BlackjackGameState = isTimeToSettle() match {
       case false => this
       case true => {
@@ -63,13 +64,26 @@ case class BlackjackGameState(
 
         val winningWagers: Map[String, Int] = winningOrLosingWagers(players, true)
         val losingWagers: Map[String, Int] = winningOrLosingWagers(players, false)
+        val wagers: Map[String, Int] = 
+          (winningWagers.toSeq ++ losingWagers.toSeq.map(tup => (tup._1, -tup._2)))
+            .groupBy(_._1)
+            .map(tup => (tup._1, tup._2.foldLeft(0)((acc, x) => x._2 + acc)))
 
-        // TODO: update players' pots to reflect gains/losses and also remove each player's HandBets
-        // TODO: update history to add each wager (win or loss) and amount
-       
-        ???
+        val nextHistory: Seq[Action[BlackjackAction]] = this.history ++ wagers.toSeq.map(tup => {
+          val action: BlackjackAction = if (tup._2 < 0) Lose else Win
+          val amount: Int = tup._2.abs
+          Action(tup._1, action, Nil, amount) 
+        }).toSeq
+
+        val updatedPlayers: Seq[BlackjackPlayerState] = players.map { p => 
+          val updatedBank: Int = wagers.keySet.contains(p.id) match {
+            case false => p.bank
+            case true => p.bank + wagers(p.id)
+          }
+          BlackjackPlayerState(p.id, updatedBank, Nil)
+        }  
+        this.copy(players = updatedPlayers, history = nextHistory, dealerHand = Nil)
       } 
-      
     }
 
 }
