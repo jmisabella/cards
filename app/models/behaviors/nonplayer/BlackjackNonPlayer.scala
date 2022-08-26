@@ -27,8 +27,6 @@ trait BlackjackNonPlayer {
         s"Cannot get next because there are no players")
     }
 
-
-
     ???
   }
 

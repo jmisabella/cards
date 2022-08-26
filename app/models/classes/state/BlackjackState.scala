@@ -52,7 +52,6 @@ case class BlackjackGameState(
       players != Nil && players.flatMap(p => p.handsAndBets.filter(h => h.handWins.isDefined)).length == handCount
     }
 
-    // TODO: test 
     def settleBets(): BlackjackGameState = isTimeToSettle() match {
       case false => this
       case true => {
@@ -82,7 +81,7 @@ case class BlackjackGameState(
           }
           BlackjackPlayerState(p.id, updatedBank, Nil)
         }  
-        this.copy(players = updatedPlayers, history = nextHistory, dealerHand = Nil)
+        copy(players = updatedPlayers, history = nextHistory, dealerHand = Nil)
       } 
     }
 

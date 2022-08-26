@@ -88,6 +88,14 @@ class BlackjackStateSpec extends AnyFlatSpec with GivenWhenThen {
 
     Then("it's determined that it's not yet time to settle any bets")
     settleBets should equal (false)
+
+    When("settling bets")
+    val settledBetsSate: BlackjackGameState = gameState.settleBets()
+
+    Then("players bets would go unchanged: Jeffrey, Alice, and Brandon all at 50")
+    settledBetsSate.players(0) should equal (player1) // no change
+    settledBetsSate.players(1) should equal (player2) // no change
+    settledBetsSate.players(2) should equal (player3) // no change
   }
 
   it should "settle when all hands have either won or lost" in {
@@ -121,7 +129,25 @@ class BlackjackStateSpec extends AnyFlatSpec with GivenWhenThen {
 
     Then("it's determined that all bets should be settled")
     settleBets should equal (true)
+  
+    When("settling bets")
+    val settledBets: BlackjackGameState = gameState.settleBets()
+    import scala.language.postfixOps
+    Then("Jeffrey won 5 and lost 15 from an initial bank of 25 for a total of 15")
+    val expectedJeffreyBank: Int = 25 + 5 - 15
+    settledBets.players.filter(_.id == "Jeffrey").head.bank should equal (expectedJeffreyBank)
+    settledBets.players.filter(_.id == "Jeffrey").head.bank should equal (15)
+    Then("Alice won 15 and lost 35 from an initial bank of 50 for a total of 30")
+    val expectedAliceBank: Int = 50 + 15 - 25 - 10
+    settledBets.players.filter(_.id == "Alice").head.bank should equal (expectedAliceBank)
+    settledBets.players.filter(_.id == "Alice").head.bank should equal (30)
+    Then("Brandon won 10 and lost 20 from an initial bank of 40 for a total of 30")
+    val expectedBrandonBank: Int = 40 + 10 - 20
+    settledBets.players.filter(_.id == "Brandon").head.bank should equal (expectedBrandonBank)
+    settledBets.players.filter(_.id == "Brandon").head.bank should equal (30)
+
   }
+
 
   it should "not settle when NOT all hands have either won or lost" in {
     Given("a game state with 3 existing players (Jeffrey, Alice, Brandon) who each have 1 or more hands, and all but one of the hands has completed")
@@ -150,10 +176,15 @@ class BlackjackStateSpec extends AnyFlatSpec with GivenWhenThen {
     val gameState = BlackjackGameState(options = BlackjackOptions(), dealerHand = dealerCards, players = Seq(player1, player2, player3))
 
     When("checking whether it's time to settle bets")
-    val settleBets: Boolean = gameState.isTimeToSettle()
+    val timeToSettleBets: Boolean = gameState.isTimeToSettle()
 
     Then("it's determined that it's not yet time to settle any bets")
-    settleBets should equal (false)
+    timeToSettleBets should equal (false)
+  
+    When("attempting to settle bets")
+    val updatedState: BlackjackGameState = gameState.settleBets()
+    Then("game state should be unchanged, with no bets settled")
+    updatedState should equal (gameState)
   }
 
   it should "not settle when no hands have either won or lost" in {
@@ -183,10 +214,15 @@ class BlackjackStateSpec extends AnyFlatSpec with GivenWhenThen {
     val gameState = BlackjackGameState(options = BlackjackOptions(), dealerHand = dealerCards, players = Seq(player1, player2, player3))
 
     When("checking whether it's time to settle bets")
-    val settleBets: Boolean = gameState.isTimeToSettle()
+    val timeToSettleBets: Boolean = gameState.isTimeToSettle()
 
     Then("it's determined that it's not yet time to settle any bets")
-    settleBets should equal (false)
+    timeToSettleBets should equal (false)
+    
+    When("attempting to settle bets")
+    val updatedState: BlackjackGameState = gameState.settleBets()
+    Then("game state should be unchanged, with no bets settled")
+    updatedState should equal (gameState)
   }
 
   it should "not settle on a game with no players" in {
@@ -194,10 +230,15 @@ class BlackjackStateSpec extends AnyFlatSpec with GivenWhenThen {
     val gameState = BlackjackGameState(options = BlackjackOptions(), dealerHand = Nil, players = Nil)
 
     When("checking whether it's time to settle bets")
-    val settleBets: Boolean = gameState.isTimeToSettle()
+    val timeToSettleBets: Boolean = gameState.isTimeToSettle()
 
     Then("it's determined that it's not yet time to settle any bets")
-    settleBets should equal (false)
+    timeToSettleBets should equal (false)
+    
+    When("attempting to settle bets")
+    val updatedState: BlackjackGameState = gameState.settleBets()
+    Then("game state should be unchanged, with no bets settled")
+    updatedState should equal (gameState)
   }
 
 }
