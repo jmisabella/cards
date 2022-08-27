@@ -7,7 +7,6 @@ import cards.models.classes.{ Card, Deck }
 import cards.models.classes.actions.{ Action, BlackjackAction }
 import cards.models.classes.actions.BlackjackAction._
 
-// Game play follows West Lansing Cut Throat rules
 trait BlackjackNonPlayer { 
   type EVAL <: BlackjackHandEvaluation 
   type PREDICATES <: BlackjackPredicates
@@ -15,18 +14,19 @@ trait BlackjackNonPlayer {
   val predicates: PREDICATES
 
   def next(gameState: BlackjackGameState): BlackjackGameState = {
-    // TODO: test 
     if (gameState.deck.length == 0) {
       throw new IllegalStateException(
         s"Cannot get next because deck is empty")
     }
-
-    // TODO: test 
     if (gameState.players.length == 0) {
       throw new IllegalStateException(
         s"Cannot get next because there are no players")
     }
-
+    // TODO: test 
+    if (gameState.isTimeToSettle()) {
+      return gameState.settleBets()
+    }
+    // TODO: need game state to have knowledge of current player's current hand (to iterate through hands)...
     ???
   }
 
