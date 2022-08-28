@@ -8,8 +8,9 @@ import cards.models.classes.Suit._
 import cards.models.classes.options.BlackjackOptions
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
+import org.scalatest.GivenWhenThen
 
-class BlackJackPredicatesSpec extends AnyFlatSpec {
+class BlackJackPredicatesSpec extends AnyFlatSpec with GivenWhenThen {
   private[predicates] case object _commons extends Commons
   case object module extends BlackjackPredicates {
     override type CB = Commons
@@ -80,6 +81,25 @@ class BlackJackPredicatesSpec extends AnyFlatSpec {
     val dealerCards: Seq[Card] = Seq(Card(Ace, Hearts), Card(Two, Clubs))
     val result: Boolean = module.eligibleForInstance(dealerCards)
     result should be (true)
+  }
+
+  it should "pay blackjack 3-to-2 by default (when not specified as an option)" in {
+    Given("a game state with no options specified and with 1 player who's bet 2 on her hand and who's won with a Blackjack")
+
+    When("settling bets")
+
+    Then("the player should be paid 3-to-2")
+    pending
+  }
+
+  it should "pay blackjack 6-to-5 when specified to do so in blackjack options" in {
+
+    pending
+  }
+
+  it should "pay blackjack 1-to-1 when specified to do so in blackjack options" in {
+
+    pending
   }
 
 }

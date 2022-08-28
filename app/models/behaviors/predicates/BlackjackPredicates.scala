@@ -13,6 +13,7 @@ trait BlackjackPredicates {
   // Only players can split on first play (only 2 cards) when both cards have same value
   // Tens, Jacks, Queens, and Kings are all considered the same value, meaning that player can split on Ten and Queen, etc... 
   // Dealers cannot split, but this function doesn't check for this
+  // TODO: need to check blackjack options regarding resplitLimit and resplitOnSplitAces
   def canSplit(cards: Seq[Card], options: BlackjackOptions = BlackjackOptions()): Boolean = options.splitOnRankMatchOnly match {
     case true => cards.length == 2 && commons.countRank(cards).values.toSeq.contains(2)
     case false => {
