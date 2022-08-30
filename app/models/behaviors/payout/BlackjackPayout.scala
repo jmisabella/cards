@@ -62,19 +62,13 @@ trait BlackjackPayout {
   def settleBets(game: BlackjackGameState): BlackjackGameState = isTimeToSettle(game) match {
     case false => game
     case true => {
-      // def winningOrLosingWagers(players: Seq[BlackjackPlayerState], win: Boolean): Map[String, Int] = { 
-      //   val (adjustedWinningHandPayouts, adjustedInsurancePayouts): (Seq[BlackjackPlayerState], Hand) = adjustBetPayouts(players, game.dealerHand, game.options)
-      //   (adjustedWinningHandPayouts.flatMap(_.handsAndBets) ++ Seq(adjustedInsurancePayouts))
-      //     .flatMap(_.bets)
-      //     .groupBy(_._1)
-      //     .map(tup => (tup._1, tup._2.foldLeft(0)((acc, x) => x._2 + acc))) 
-      // }
-      def winningOrLosingWagers(players: Seq[BlackjackPlayerState], win: Boolean): Map[String, Int] = adjustBetPayouts(players, game.dealerHand, game.options)._1
-        .flatMap(_.handsAndBets.filter(_.wins == Some(win)))
-        .flatMap(_.bets)
-        .groupBy(_._1)
-        .map(tup => (tup._1, tup._2.foldLeft(0)((acc, x) => x._2 + acc))) 
-
+      def winningOrLosingWagers(players: Seq[BlackjackPlayerState], win: Boolean): Map[String, Int] = {
+        val (adjustedWinningHandPayouts, adjustedInsurancePayouts): (Seq[BlackjackPlayerState], Hand) = adjustBetPayouts(players, game.dealerHand, game.options)
+        (adjustedWinningHandPayouts.flatMap(_.handsAndBets.filter(_.wins == Some(win))) ++ Seq(adjustedInsurancePayouts).filter(_.wins == Some(win)))
+          .flatMap(_.bets)
+          .groupBy(_._1)
+          .map(tup => (tup._1, tup._2.foldLeft(0)((acc, x) => x._2 + acc))) 
+      }
       val winningWagers: Map[String, Int] = winningOrLosingWagers(game.players, true)
       val losingWagers: Map[String, Int] = winningOrLosingWagers(game.players, false)
       val wagers: Map[String, Int] = 

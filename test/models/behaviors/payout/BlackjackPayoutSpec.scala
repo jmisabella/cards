@@ -322,8 +322,8 @@ class BlackjackPayoutSpec extends AnyFlatSpec with GivenWhenThen {
         Hand(Seq(Card(Two, Hearts), Card(Jack, Diamonds)), 
         bets = Map("Jeffrey" -> 1), // bet 2 on his hand 
         wins = Some(false))))
-    val dealerCards: Seq[Card] = Seq(Card(Ace, Diamonds), Card(Ten, Spades))
-    val gameState = BlackjackGameState(dealerHand = Hand(dealerCards), players = Seq(player1), insurance = Map("Jeffrey" -> 1))
+    val dealerCards: Hand = Hand(Seq(Card(Ace, Diamonds), Card(Ten, Spades)), Map("Jeffrey" -> 1), Some(true))
+    val gameState = BlackjackGameState(dealerHand = dealerCards, players = Seq(player1))
     When("settling bets")
     isTimeToSettle(gameState) shouldBe (true)
     val settledBets = settleBets(gameState)  
