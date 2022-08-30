@@ -44,7 +44,7 @@ class BlackjackNonPlayerSpec extends AnyFlatSpec with GivenWhenThen {
 
   "BlackjackNonPlayer" should "throw an illegal state exception when proceeding to next state from a game state without any players" in {
     Given("a blackjack game state without any players")
-    val gameState = BlackjackGameState(options = BlackjackOptions(), dealerHand = Nil, players = Nil)
+    val gameState = BlackjackGameState(options = BlackjackOptions(), dealerHand = Hand(), players = Nil)
     When("proceeding to the next state")
     Then("an illegal state exception should be thrown")
     an [IllegalStateException] shouldBe thrownBy (module.next(gameState)) 
@@ -74,7 +74,7 @@ class BlackjackNonPlayerSpec extends AnyFlatSpec with GivenWhenThen {
         bets = Map("Brandon" -> 20, "Alice" -> 25),
         wins = None)))
     val dealerCards: Seq[Card] = Seq(Card(Ten, Diamonds), Card(Nine, Spades))
-    val gameState = BlackjackGameState(options = BlackjackOptions(), deck = Deck.emptyDeck, dealerHand = dealerCards, players = Seq(player1, player2, player3))
+    val gameState = BlackjackGameState(options = BlackjackOptions(), deck = Deck.emptyDeck, dealerHand = Hand(dealerCards), players = Seq(player1, player2, player3))
     When("proceeding to the next state")
     Then("an illegal state exception should be thrown")
     an [IllegalStateException] shouldBe thrownBy (module.next(gameState)) 
