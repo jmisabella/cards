@@ -11,4 +11,4 @@ import cards.models.classes.Suit._
 
 // bets: bets placed on the hand (map with player id as key and bet placed as value)
 // wins: whether hand wins: when specified, true indicating hand won and false indicating a loss, bets could then be settled
-case class Hand(hand: Seq[Card], bets: Map[String, Int] = Map(), wins: Option[Boolean] = None)
+case class Hand(hand: Seq[Card] = Nil, bets: Map[String, Int] = Map(), wins: Option[Boolean] = None)

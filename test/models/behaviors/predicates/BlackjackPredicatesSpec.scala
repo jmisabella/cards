@@ -83,23 +83,5 @@ class BlackJackPredicatesSpec extends AnyFlatSpec with GivenWhenThen {
     result should be (true)
   }
 
-  it should "pay blackjack 3-to-2 by default (when not specified as an option)" in {
-    Given("a game state with no options specified and with 1 player who's bet 2 on her hand and who's won with a Blackjack")
-
-    When("settling bets")
-
-    Then("the player should be paid 3-to-2")
-    pending
-  }
-
-  it should "pay blackjack 6-to-5 when specified to do so in blackjack options" in {
-
-    pending
-  }
-
-  it should "pay blackjack 1-to-1 when specified to do so in blackjack options" in {
-
-    pending
-  }
 
 }

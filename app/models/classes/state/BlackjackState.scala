@@ -38,7 +38,9 @@ case class BlackjackGameState(
   override val deck: Deck = Deck(Seq(Card(LeftBower, Joker), Card(RightBower, Joker)), 1),
   currentHand: Option[Seq[Card]] = None,
   options: BlackjackOptions = BlackjackOptions(),
-  dealerHand: Seq[Card] = Nil,
+  // dealerHand: Seq[Card] = Nil,
+  dealerHand: Hand = Hand(), // bets are only placed on dealer's hand when purchasing insurance
+  insurance: Map[String, Int] = Map(), 
   minimumBet: Int = 1,
   maximumBet: Int = 999999) extends GameState[BlackjackPlayerState, BlackjackAction] {
 
