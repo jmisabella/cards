@@ -45,7 +45,5 @@ case class BlackjackGameState(
 
     def currentHand(): Seq[Card] = current(currentPlayer().hands, currentHandIndex)
     def nextHandIndex(): Int = nextIndex(currentPlayer().hands, currentHandIndex)
-    // TODO: test 
-    def isLastHand(): Boolean = currentHandIndex == Some(currentPlayer().hands.length)
-
+    def isLastHand(): Boolean = currentHandIndex == Some(currentPlayer().hands.length - 1)
 }

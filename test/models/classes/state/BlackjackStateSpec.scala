@@ -20,7 +20,7 @@ class BlackjackStateSpec extends AnyFlatSpec with GivenWhenThen {
   }
 
   it should "throw unexpected state exception when calling current hand when no players have any hands" in {
-    Given("a blackjack game state 2 players, Patrick and Avery, who don't have any hands")
+    Given("a blackjack game state with 2 players, Patrick and Avery, who don't have any hands")
     val player1 = BlackjackPlayerState("Patrick Stewart", 20, Nil)
     val player2 = BlackjackPlayerState("Avery Brooks", 20, Nil)
     val state: BlackjackGameState = BlackjackGameState(players = Seq(player1, player2), dealerHand = Hand(), currentPlayerIndex = Some(0))
@@ -33,6 +33,106 @@ class BlackjackStateSpec extends AnyFlatSpec with GivenWhenThen {
     an [IllegalStateException] shouldBe thrownBy (state.currentHand())
   }
 
+  it should "retrieve current player's only hand" in {
+    Given("a blackjack game state with 2 players, Patrick and Avery, each who have a single hand, and Avery's hand being specified as the current hand")
+    val player1 = BlackjackPlayerState("Patrick Stewart", 20, Seq(Hand(Seq(Card(Seven, Hearts), Card(Ten, Diamonds)))))
+    val player2 = BlackjackPlayerState("Avery Brooks", 20, Seq(Hand(Seq(Card(Four, Spades), Card(Seven, Clubs)))))
+    val dealerHand = Hand(Seq(Card(Three, Hearts), Card(Eight, Clubs)))
+    val state: BlackjackGameState = 
+      BlackjackGameState(
+        players = Seq(player1, player2), 
+        dealerHand = dealerHand, 
+        currentPlayerIndex = Some(1),
+        currentHandIndex = Some(0))
+    When("retrieving the current player")
+    val currentPlayer = state.currentPlayer()
+    Then("Avery should be retrieved")
+    currentPlayer should equal (player2)
+    When("retrieving current hand")
+    val currentHand = state.currentHand()
+    Then("Avery's cards should be retrieved")
+    currentHand should equal (player2.hands.head)
+  }
+
+  it should "retrieve next hand index for a player who has 2 hands, from 1st hand to 2nd hand" in {
+    Given("a blackjack game state with 1 player who has 2 hands, with first hand being current hand")
+    val player = 
+      BlackjackPlayerState(
+        "Avery", 
+        20, 
+        Seq(Hand(Seq(Card(Seven, Hearts), Card(Ten, Diamonds))), Hand(Seq(Card(Three, Clubs), Card(Nine, Clubs)))))
+    val dealerHand = Hand(Seq(Card(Three, Hearts), Card(Eight, Clubs)))
+    val state: BlackjackGameState = 
+      BlackjackGameState(
+        players = Seq(player), 
+        dealerHand = dealerHand, 
+        currentPlayerIndex = Some(0),
+        currentHandIndex = Some(0))
+    When("retrieving next hand index")
+    val nextHandIndex: Int = state.nextHandIndex()
+    Then("1 should be retrieved as the next hand index")
+    nextHandIndex should equal (1)
+  }
+
+  it should "consider the hand to be the last hand for a player who has 2 hands and the 2nd hand being the current hand" in {
+    Given("a blackjack game state with 1 player who has 2 hands, with 2nd hand being current hand")
+    val player = 
+      BlackjackPlayerState(
+        "Avery", 
+        20, 
+        Seq(Hand(Seq(Card(Seven, Hearts), Card(Ten, Diamonds))), Hand(Seq(Card(Three, Clubs), Card(Nine, Clubs)))))
+    val dealerHand = Hand(Seq(Card(Three, Hearts), Card(Eight, Clubs)))
+    val state: BlackjackGameState = 
+      BlackjackGameState(
+        players = Seq(player), 
+        dealerHand = dealerHand, 
+        currentPlayerIndex = Some(0),
+        currentHandIndex = Some(1))
+    When("checking whether current hand is player's last hand")
+    val isLastHand: Boolean = state.isLastHand()
+    Then("isLastHand should be true")
+    isLastHand shouldBe (true)
+  }
+
+  it should "not consider the hand to be the last hand for a player who has 2 hands and the 1st hand being the current hand" in {
+    Given("a blackjack game state with 1 player who has 2 hands, with 2nd hand being current hand")
+    val player = 
+      BlackjackPlayerState(
+        "Avery", 
+        20, 
+        Seq(Hand(Seq(Card(Seven, Hearts), Card(Ten, Diamonds))), Hand(Seq(Card(Three, Clubs), Card(Nine, Clubs)))))
+    val dealerHand = Hand(Seq(Card(Three, Hearts), Card(Eight, Clubs)))
+    val state: BlackjackGameState = 
+      BlackjackGameState(
+        players = Seq(player), 
+        dealerHand = dealerHand, 
+        currentPlayerIndex = Some(0),
+        currentHandIndex = Some(0))
+    When("checking whether current hand is player's last hand")
+    val isLastHand: Boolean = state.isLastHand()
+    Then("isLastHand should be false")
+    isLastHand shouldBe (false)
+  }
+
+  it should "consider the hand to be the last hand for a player who has 1 hand" in {
+    Given("a blackjack game state with 1 player who has 1 hand")
+    val player = 
+      BlackjackPlayerState(
+        "Avery", 
+        20, 
+        Seq(Hand(Seq(Card(Seven, Hearts), Card(Ten, Diamonds)))))
+    val dealerHand = Hand(Seq(Card(Three, Hearts), Card(Eight, Clubs)))
+    val state: BlackjackGameState = 
+      BlackjackGameState(
+        players = Seq(player), 
+        dealerHand = dealerHand, 
+        currentPlayerIndex = Some(0),
+        currentHandIndex = Some(0))
+    When("checking whether current hand is player's last hand")
+    val isLastHand: Boolean = state.isLastHand()
+    Then("isLastHand should be true")
+    isLastHand shouldBe (true)
+  }
 
 
 }
