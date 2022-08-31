@@ -36,69 +36,16 @@ case class BlackjackGameState(
   override val currentPlayerIndex: Option[Int] = None,
   override val history: Seq[Action[BlackjackAction]] = Nil,
   override val deck: Deck = Deck(Seq(Card(LeftBower, Joker), Card(RightBower, Joker)), 1),
-  currentHand: Option[Seq[Card]] = None,
+  currentHandIndex: Option[Int] = None, 
   options: BlackjackOptions = BlackjackOptions(),
-  // dealerHand: Seq[Card] = Nil,
   dealerHand: Hand = Hand(), // bets are only placed on dealer's hand when purchasing insurance
   insurance: Map[String, Int] = Map(), 
   minimumBet: Int = 1,
   maximumBet: Int = 999999) extends GameState[BlackjackPlayerState, BlackjackAction] {
 
-    // def playerBets(playerId: String): Seq[(Seq[Card], Int)] = {
-    //   for {
-    //     player <- players
-    //     bet <- player.playerBet(playerId)
-    //   } yield bet
-    // }
-
-    // def isTimeToSettle(): Boolean = {
-    //   val handCount: Int = players.map(p => p.handsAndBets.map(_.hand)).length
-    //   players != Nil && players.flatMap(p => p.handsAndBets.filter(h => h.wins.isDefined)).length == handCount
-    // }
-
-    // private def adjustedPayoutsForBlackjack(unadjustedPayouts: Seq[Hand], options: BlackjackOptions): Seq[Hand] = options.payout match {
-    //   case OneToOne => unadjustedPayouts // no adjustment
-    //   case p => {
-    //     unadjustedPayouts.map(h => (h.hand, h.wins) match {
-    //       case
-    //       case (_, None) => h
-    //       case (_, Some(false)) => h
-    //     })
-    //     ???
-    //   } 
-    // }
-
-    // def settleBets(): BlackjackGameState = isTimeToSettle() match {
-    //   case false => this
-    //   case true => {
-    //     def winningOrLosingWagers(players: Seq[BlackjackPlayerState], win: Boolean): Map[String, Int] = players
-    //       .flatMap(_.handsAndBets.filter(_.wins == Some(win)))
-    //       .flatMap(_.bets)
-    //       .groupBy(_._1)
-    //       .map(tup => (tup._1, tup._2.foldLeft(0)((acc, x) => x._2 + acc))) 
-
-    //     val winningWagers: Map[String, Int] = winningOrLosingWagers(players, true)
-    //     val losingWagers: Map[String, Int] = winningOrLosingWagers(players, false)
-    //     val wagers: Map[String, Int] = 
-    //       (winningWagers.toSeq ++ losingWagers.toSeq.map(tup => (tup._1, -tup._2)))
-    //         .groupBy(_._1)
-    //         .map(tup => (tup._1, tup._2.foldLeft(0)((acc, x) => x._2 + acc)))
-
-    //     val nextHistory: Seq[Action[BlackjackAction]] = this.history ++ wagers.toSeq.map(tup => {
-    //       val action: BlackjackAction = if (tup._2 < 0) Lose else Win
-    //       val amount: Int = tup._2.abs
-    //       Action(tup._1, action, Nil, amount) 
-    //     }).toSeq
-
-    //     val updatedPlayers: Seq[BlackjackPlayerState] = players.map { p => 
-    //       val updatedBank: Int = wagers.keySet.contains(p.id) match {
-    //         case false => p.bank
-    //         case true => p.bank + wagers(p.id)
-    //       }
-    //       BlackjackPlayerState(p.id, updatedBank, Nil)
-    //     }  
-    //     copy(players = updatedPlayers, history = nextHistory, dealerHand = Nil)
-    //   } 
-    // }
+    def currentHand(): Seq[Card] = current(currentPlayer().hands, currentHandIndex)
+    def nextHandIndex(): Int = nextIndex(currentPlayer().hands, currentHandIndex)
+    // TODO: test 
+    def isLastHand(): Boolean = currentHandIndex == Some(currentPlayer().hands.length)
 
 }

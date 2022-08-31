@@ -11,19 +11,21 @@ trait GameState[A <: PlayerState, B <: Enumeration#Value] {
   val currentPlayerIndex: Option[Int]
   val history: Seq[Action[B]]
   val deck: Deck
+    
+    def currentPlayer(): A = current(players, currentPlayerIndex)
+    def nextPlayerIndex(): Int = nextIndex(players, currentPlayerIndex)
 
-    def currentPlayer(): A = (players, currentPlayerIndex) match {
-      case (Nil, _) => throw new IllegalStateException(s"Cannot determine current player when no players exist")
-      case (ps, None) => throw new IllegalStateException(s"Cannot determine current player when currentPlayerIndex is empty")
-      case (ps, Some(i)) if (i >= ps.length) => 
-        throw new IllegalStateException(s"Cannot determine current player because currentPlayerIndex [$i] is outside of range of players list length [${players.length}]")
-      case (ps, Some(i)) => ps(i)  
+    protected def current[X](list: Seq[X], currentIndex: Option[Int]): X = (list, currentIndex) match {
+      case (Nil, _) => throw new IllegalStateException(s"Cannot determine current element when no elements exist")
+      case (xs, None) => throw new IllegalStateException(s"Cannot determine current element when currentIndex is empty")
+      case (xs, Some(i)) if (i >= xs.length) => 
+        throw new IllegalStateException(s"Cannot determine current element because currentIndex [$i] is outside of range list length [${list.length}]")
+      case (xs, Some(i)) => xs(i)  
     }
 
-    def nextPlayerIndex(): Int = (players, currentPlayerIndex) match {
-      case (Nil, _) => throw new IllegalStateException(s"Cannot determine next player when no players exist")
-      case (ps, None) => throw new IllegalStateException(s"Cannot determine next player when currentPlayerIndex is empty")
-      case (ps, Some(i)) => (i + 1) % ps.length
-    }
-
+    protected def nextIndex[X](list: Seq[X], currentIndex: Option[Int]): Int = (list, currentIndex) match {
+      case (Nil, _) => throw new IllegalStateException(s"Cannot determine next index when no elements exist")
+      case (xs, None) => throw new IllegalStateException(s"Cannot determine next index when currentIndex is empty")
+      case (xs, Some(i)) => (i + 1) % xs.length
+    } 
 }
