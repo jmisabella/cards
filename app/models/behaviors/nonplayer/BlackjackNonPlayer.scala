@@ -25,12 +25,10 @@ trait BlackjackNonPlayer {
       throw new IllegalStateException(
         s"Cannot get next because there are no players")
     }
-    // TODO: test 
     if (payout.isTimeToSettle(gameState)) {
       return payout.settleBets(gameState)
     }
 
-    // TODO: need game state to have knowledge of current player's current hand (to iterate through hands)...
     ???
   }
 

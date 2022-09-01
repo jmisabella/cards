@@ -38,7 +38,7 @@ case class BlackjackGameState(
   override val deck: Deck = Deck(Seq(Card(LeftBower, Joker), Card(RightBower, Joker)), 1),
   currentHandIndex: Option[Int] = None, 
   options: BlackjackOptions = BlackjackOptions(),
-  dealerHand: Hand = Hand(), // bets are only placed on dealer's hand when purchasing insurance
+  dealerHand: Hand = Hand.empty, // bets are only placed on dealer's hand when purchasing insurance
   insurance: Map[String, Int] = Map(), 
   minimumBet: Int = 1,
   maximumBet: Int = 999999) extends GameState[BlackjackPlayerState, BlackjackAction] {
@@ -46,4 +46,14 @@ case class BlackjackGameState(
     def currentHand(): Seq[Card] = current(currentPlayer().hands, currentHandIndex)
     def nextHandIndex(): Int = nextIndex(currentPlayer().hands, currentHandIndex)
     def isLastHand(): Boolean = currentHandIndex == Some(currentPlayer().hands.length - 1)
+
+    // true indicates a win, false indicates a loss; order is in the original order played, so most recent is last item
+    def winningHistory(playerId: String): Seq[Boolean] = {
+      history
+        .filter ( a => a.playerId == playerId && Seq(Win, Lose).contains(a.action))
+        .map ( a => a.action match {
+          case Win => true
+          case Lose => false
+        })
+    }
 }

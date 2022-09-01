@@ -330,4 +330,20 @@ class BlackjackPayoutSpec extends AnyFlatSpec with GivenWhenThen {
     Then("player should win 2 for insurance but lose 1 for his losing hand, for a new bank total of 21")
     settledBets.players.head.bank should equal (21) 
   }
+
+  it should "know it's time to take bets when no players have any cards" in {
+    Given("a game with 2 players, neither of whom have any cards")
+    val player1 = BlackjackPlayerState(
+      "Jeffrey", 
+      25, 
+      Nil)
+    val player2 = BlackjackPlayerState(
+      "Alice", 
+      50, 
+      Nil)
+    val gameState = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1, player2))
+    When("checking whether it's time to take bets")
+    Then("it's determined that yes, it is in fact time to take bets")
+    isTimeToPlaceBets(gameState) shouldBe (true)
+  }
 }

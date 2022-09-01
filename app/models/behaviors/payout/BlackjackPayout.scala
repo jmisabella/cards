@@ -37,6 +37,10 @@ trait BlackjackPayout {
     game.players != Nil && game.players.flatMap(p => p.handsAndBets.filter(h => h.wins.isDefined)).length == handCount
   }
 
+  def isTimeToPlaceBets(game: BlackjackGameState): Boolean = {
+    game.players.count(_.hands == Nil) == game.players.length
+  }
+
   // adjusted payouts, for when player wins with blackjack or when dealer wins with a natural blackjack and player purchased insurance 
   //  1). for winning hands only: whether hand was a blackjack and which payout is in options (adjust to ratio for payout option)
   //  2). for dealer's natural blackjack win only: whether insurance was purchased, need to adjust it to pay 2-to-1 

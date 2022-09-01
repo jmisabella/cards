@@ -134,5 +134,18 @@ class BlackjackStateSpec extends AnyFlatSpec with GivenWhenThen {
     isLastHand shouldBe (true)
   }
 
+  it should "have knowledge when a player's last 2 outcomes were wins" in {
 
+    pending 
+  }
+
+  it should "have knowledge when a player doesn't yet have any outcomes in her history" in {
+
+    pending 
+  }
+
+  it should "have knowledge when a player's complete outcome history is win, lose, lose" in {
+
+    pending
+  }
 }
