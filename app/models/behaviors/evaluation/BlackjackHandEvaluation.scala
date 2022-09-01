@@ -5,7 +5,7 @@ import cards.models.classes.Rank._
 import cards.models.behaviors.Commons
 import scala.annotation.tailrec
 
-trait BlackJackHandEvaluation extends HandEvaluation {
+trait BlackjackHandEvaluation extends HandEvaluation {
   type C <: Commons
   val commons: C 
 

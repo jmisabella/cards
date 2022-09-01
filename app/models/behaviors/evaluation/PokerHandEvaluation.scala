@@ -12,7 +12,7 @@ trait PokerHandEvaluation extends HandEvaluation {
   
   override def eval(cards: Seq[Card]): Int = {
     // cards in poker hand are valued by the same order defined for our Rank enumeration
-    def evaluateCard(card: Card): Int = card.rank.id + 2 // first Rank id is 0 which belongs to Rank Two, so add 2 to the Rank's id
+    def evaluateCard(card: Card): Int = card.rank.id + 2 // first Rank id is 0 which belongs to Rank Two, so add 2 to the Rank's id to make them match numbers
 
     def evaluateCards(cards: Seq[Card]): Int = cards.foldLeft(0)((acc, c) => acc + evaluateCard(c))
 

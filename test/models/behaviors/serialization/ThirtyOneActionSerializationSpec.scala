@@ -11,7 +11,6 @@ import org.scalatest.matchers.should.Matchers._
 
 class ThirtyOneActionSerializationSpec extends AnyFlatSpec {
   case object module extends ThirtyOneActionSerialization
-
   private val right = Symbol("right")
   private val left = Symbol("left")
 

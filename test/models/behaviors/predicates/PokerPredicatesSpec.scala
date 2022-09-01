@@ -2,10 +2,10 @@ package cards.models.behaviors.predicates
 
 import cards.models.behaviors.Commons
 import cards.models.behaviors.predicates.PokerPredicates
-import cards.models.classes.{ Card, Rank, Suit, PokerHandType }
+import cards.models.classes.{ Card, Rank, Suit, PokerHandCategorization }
 import cards.models.classes.Rank._
 import cards.models.classes.Suit._
-import cards.models.classes.PokerHandType._
+import cards.models.classes.PokerHandCategorization._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 
@@ -561,14 +561,14 @@ class PokerPredicatesSpec extends AnyFlatSpec {
 
   it should "not yield a hand type on an empty hand" in {
     val cards: Seq[Card] = Nil
-    val result: Option[PokerHandType] = module.handType(cards)
+    val result: Option[PokerHandCategorization] = module.handType(cards)
     assert(result.isEmpty)
     assert(!result.isDefined)
   }
 
   it should "yield HighCard hand type on a single card hand" in {
     val cards: Seq[Card] = Seq(Card(Queen, Hearts))
-    val result: Option[PokerHandType] = module.handType(cards)
+    val result: Option[PokerHandCategorization] = module.handType(cards)
     assert(!result.isEmpty)
     assert(result.isDefined)
     assert(result.get == HighCard)
@@ -576,7 +576,7 @@ class PokerPredicatesSpec extends AnyFlatSpec {
 
   it should "yield HighCard hand type on a 2 card hand with no matching ranks or suits" in {
     val cards: Seq[Card] = Seq(Card(Queen, Hearts), Card(Three, Spades))
-    val result: Option[PokerHandType] = module.handType(cards)
+    val result: Option[PokerHandCategorization] = module.handType(cards)
     assert(!result.isEmpty)
     assert(result.isDefined)
     assert(result.get == HighCard)
@@ -584,7 +584,7 @@ class PokerPredicatesSpec extends AnyFlatSpec {
 
   it should "yield Flush hand type on a 2 card hand with different ranks but matching suits" in {
     val cards: Seq[Card] = Seq(Card(Queen, Spades), Card(Three, Spades))
-    val result: Option[PokerHandType] = module.handType(cards)
+    val result: Option[PokerHandCategorization] = module.handType(cards)
     assert(!result.isEmpty)
     assert(result.isDefined)
     assert(result.get == Flush)
@@ -592,7 +592,7 @@ class PokerPredicatesSpec extends AnyFlatSpec {
 
   it should "yield Straight hand type on 3 consecutive cards of different suits" in {
     val cards: Seq[Card] = Seq(Card(Queen, Spades), Card(King, Hearts), Card(Ace, Spades))
-    val result: Option[PokerHandType] = module.handType(cards)
+    val result: Option[PokerHandCategorization] = module.handType(cards)
     assert(!result.isEmpty)
     assert(result.isDefined)
     assert(result.get == Straight)
@@ -600,7 +600,7 @@ class PokerPredicatesSpec extends AnyFlatSpec {
 
   it should "yield StraightFlush hand type on 5 consecutive cards all belonging to the same suit, and the cards are not the highest" in {
     val cards: Seq[Card] = Seq(Card(Seven, Spades), Card(Eight, Spades), Card(Nine, Spades), Card(Ten, Spades), Card(Jack, Spades))
-    val result: Option[PokerHandType] = module.handType(cards)
+    val result: Option[PokerHandCategorization] = module.handType(cards)
     assert(!result.isEmpty)
     assert(result.isDefined)
     assert(result.get == StraightFlush)
@@ -608,7 +608,7 @@ class PokerPredicatesSpec extends AnyFlatSpec {
 
   it should "yield RoyalStraightFlush hand type on 5 consecutive cards all belonging to the same suit, and the cards are highest" in {
     val cards: Seq[Card] = Seq(Card(Ten, Spades), Card(Jack, Spades), Card(Queen, Spades), Card(King, Spades), Card(Ace, Spades))
-    val result: Option[PokerHandType] = module.handType(cards)
+    val result: Option[PokerHandCategorization] = module.handType(cards)
     assert(!result.isEmpty)
     assert(result.isDefined)
     assert(result.get == RoyalFlush)
@@ -616,7 +616,7 @@ class PokerPredicatesSpec extends AnyFlatSpec {
 
   it should "yield ThreeOfAKind hand type on 5 cards in which 3 of the cards match in rank" in {
     val cards: Seq[Card] = Seq(Card(Jack, Clubs), Card(Jack, Spades), Card(Jack, Hearts), Card(King, Spades), Card(Two, Hearts))
-    val result: Option[PokerHandType] = module.handType(cards)
+    val result: Option[PokerHandCategorization] = module.handType(cards)
     assert(!result.isEmpty)
     assert(result.isDefined)
     assert(result.get == ThreeOfAKind)

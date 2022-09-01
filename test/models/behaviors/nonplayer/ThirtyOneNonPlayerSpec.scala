@@ -15,7 +15,7 @@ import org.scalatest.matchers.should.Matchers._
 import org.scalatest.GivenWhenThen
 
 class ThirtyOneNonPlayerSpec extends AnyFlatSpec with GivenWhenThen {
-  private[nonplayer] case object _commons extends Commons
+  private [nonplayer] case object _commons extends Commons
   private [nonplayer] case object _evaluation extends ThirtyOneHandEvaluation {
     override type C = Commons
     override val commons = _commons

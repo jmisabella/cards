@@ -3,8 +3,8 @@ package cards.models.behaviors.evaluation
 import cards.models.behaviors.Commons
 import cards.models.behaviors.evaluation.PokerHandEvaluation
 import cards.models.behaviors.predicates.PokerPredicates
-import cards.models.classes.{ Card, Rank, Suit, PokerHandType }
-import cards.models.classes.PokerHandType._
+import cards.models.classes.{ Card, Rank, Suit, PokerHandCategorization }
+import cards.models.classes.PokerHandCategorization._
 import cards.models.classes.Rank._
 import cards.models.classes.Suit._
 import org.scalatest.flatspec.AnyFlatSpec

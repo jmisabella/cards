@@ -150,7 +150,7 @@ class ThirtyOneStateSpec extends AnyFlatSpec {
       ThirtyOnePlayerState("player7", 3, Nil),
       ThirtyOnePlayerState("player8", 3, Nil))
       
-    an [AssertionError] should be thrownBy ThirtyOneGameState(players = players) 
+    an [IllegalArgumentException] should be thrownBy ThirtyOneGameState(players = players) 
   }
 
   it should "allow 7 players in a single game" in {

@@ -2,22 +2,31 @@ package cards.models.classes.actions
 
 import cards.models.classes.Card
 import cards.models.classes.actions.ThirtyOneAction._
-import cards.models.classes.actions.BlackJackAction._
+import cards.models.classes.actions.BlackjackAction._
 import play.api.libs.json. { Json, Format }
 
-case class Action[A <: Enumeration#Value](playerId: String, action: A, actionCards: Seq[Card] = Nil, actionTokens: Int = 0) {
-  override def toString(): String = 
-    (Json.obj(
-      "playerId" -> playerId,
-      "action" -> action.toString(),
-      "actionCards" -> actionCards,
-      "actionTokens" -> actionTokens
-    )).toString()
+case class Action[A <: Enumeration#Value](
+  playerId: String, 
+  action: A, 
+  actionCards: Seq[Card] = Nil, 
+  actionTokens: Int = 0, 
+  beforeCards: Seq[Card] = Nil, 
+  afterCards: Seq[Card] = Nil) {
+  
+    override def toString(): String = 
+      (Json.obj(
+        "playerId" -> playerId,
+        "action" -> action.toString(),
+        "actionCards" -> actionCards,
+        "actionTokens" -> actionTokens,
+        "beforeCards" -> beforeCards,
+        "afterCards" -> afterCards
+      )).toString()
 }
 
 object Action {
   implicit val format1: Format[Action[ThirtyOneAction]] = Json.format[Action[ThirtyOneAction]]
-  implicit val format2: Format[Action[BlackJackAction]] = Json.format[Action[BlackJackAction]]
+  implicit val format2: Format[Action[BlackjackAction]] = Json.format[Action[BlackjackAction]]
 }
 
 case class Actions[A <: Enumeration#Value](actions: Seq[Action[A]]) {
@@ -26,5 +35,5 @@ case class Actions[A <: Enumeration#Value](actions: Seq[Action[A]]) {
 
 object Actions {
   implicit val format1: Format[Actions[ThirtyOneAction]] = Json.format[Actions[ThirtyOneAction]]
-  implicit val format2: Format[Actions[BlackJackAction]] = Json.format[Actions[BlackJackAction]]
+  implicit val format2: Format[Actions[BlackjackAction]] = Json.format[Actions[BlackjackAction]]
 }

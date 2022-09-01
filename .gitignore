@@ -14,8 +14,10 @@ server.pid
 *.eml
 /dist/
 .cache
+.bloop
+/project/.bloop/*
 .metals/metals.lock.db
-
 .metals/metals.log
-
 .metals/metals.mv.db
+.metals/metals.trace.db
+*.log
