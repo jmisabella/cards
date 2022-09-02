@@ -5,6 +5,8 @@ import cards.models.classes.{ Card, Rank, Suit, Deck }
 import cards.models.classes.Rank._
 import cards.models.classes.Suit._
 import cards.models.classes.hand.Hand
+import cards.models.classes.actions.Action
+import cards.models.classes.actions.BlackjackAction._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 import org.scalatest.GivenWhenThen
@@ -135,17 +137,69 @@ class BlackjackStateSpec extends AnyFlatSpec with GivenWhenThen {
   }
 
   it should "have knowledge when a player's last 2 outcomes were wins" in {
-
-    pending 
+    val player = 
+      BlackjackPlayerState(
+        "Jeffrey", 
+        20, 
+        Seq(Hand(Seq(Card(Three, Clubs), Card(Ten, Diamonds)))))
+    val dealerHand = Hand(Seq(Card(Three, Hearts), Card(Eight, Clubs)))
+    val history = Seq(
+      Action("Jeffrey", Win), 
+      Action(
+        playerId = "Jeffrey", 
+        action = Hit, 
+        actionCards = Seq(Card(Two, Hearts)), 
+        beforeCards = Seq(Card(Three, Clubs), Card(Ten, Diamonds)), 
+        afterCards = Seq(Card(Three, Clubs), Card(Ten, Diamonds), Card(Two, Hearts))),
+      Action(
+        playerId = "Jeffrey", 
+        action = Stand, 
+        actionCards = Nil,
+        beforeCards = Seq(Card(Three, Clubs), Card(Ten, Diamonds), Card(Two, Hearts)),
+        afterCards = Seq(Card(Three, Clubs), Card(Ten, Diamonds), Card(Two, Hearts))),
+      Action(
+        playerId = "DEALER",
+        action = Stand,
+        actionCards = Nil,
+        beforeCards = dealerHand.hand,
+        afterCards = dealerHand.hand
+      ),
+      Action("Jeffrey", Win))  
+    val state: BlackjackGameState = 
+      BlackjackGameState(
+        players = Seq(player), 
+        dealerHand = dealerHand,
+        history = history,
+        currentPlayerIndex = Some(0),
+        currentHandIndex = Some(0))
+    When("getting winning history for the player Jeffrey")
+    val winningHistory = state.winningHistory("Jeffrey")
+    Then("winning history would show exactly 2 wins for Jeffrey") 
+    winningHistory should have length (2)
+    winningHistory should equal (Seq(true, true))
   }
 
   it should "have knowledge when a player doesn't yet have any outcomes in her history" in {
-
-    pending 
+    Given("game with single player who has 2 cards but has an empty history") 
+    val player = 
+      BlackjackPlayerState(
+        "Alice", 
+        20, 
+        Seq(Hand(Seq(Card(Three, Clubs), Card(Ten, Diamonds)))))
+    val dealerHand = Hand(Seq(Card(Three, Hearts), Card(Eight, Clubs)))
+    val history: Seq[Action[BlackjackAction]] = Nil
+    val state: BlackjackGameState = 
+      BlackjackGameState(
+        players = Seq(player), 
+        dealerHand = dealerHand,
+        history = history,
+        currentPlayerIndex = Some(0),
+        currentHandIndex = Some(0))
+    When("getting winning history for the player Alice")
+    val winningHistory = state.winningHistory("Alice")
+    Then("winning history would be empty Alice") 
+    winningHistory should have length (0)
+    winningHistory should equal (Nil)
   }
 
-  it should "have knowledge when a player's complete outcome history is win, lose, lose" in {
-
-    pending
-  }
 }
