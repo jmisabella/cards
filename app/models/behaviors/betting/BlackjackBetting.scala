@@ -1,4 +1,4 @@
-package cards.models.behaviors.payout
+package cards.models.behaviors.betting
 
 import cards.models.classes.{ Card, Rank, Suit, Deck }
 import cards.models.classes.hand.Hand
@@ -13,7 +13,7 @@ import cards.models.classes.actions.BlackjackAction._
 import cards.models.classes.state.{ BlackjackPlayerState, BlackjackGameState }
 import cards.models.behaviors.evaluation.BlackjackHandEvaluation
 
-trait BlackjackPayout {
+trait BlackjackBetting {
   type EVAL <: BlackjackHandEvaluation 
   val evaluation: EVAL
 
@@ -37,7 +37,7 @@ trait BlackjackPayout {
     game.players != Nil && game.players.flatMap(p => p.handsAndBets.filter(h => h.wins.isDefined)).length == handCount
   }
 
-  def isTimeToPlaceBets(game: BlackjackGameState): Boolean = {
+  def isTimeToPlaceNewBets(game: BlackjackGameState): Boolean = {
     game.players.count(_.hands == Nil) == game.players.length
   }
 

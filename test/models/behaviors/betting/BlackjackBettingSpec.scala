@@ -1,7 +1,7 @@
-package cards.models.behaviors.payout
+package cards.models.behaviors.betting
 
 import cards.models.behaviors.Commons
-import cards.models.behaviors.payout.BlackjackPayout
+import cards.models.behaviors.betting.BlackjackBetting
 import cards.models.behaviors.evaluation.BlackjackHandEvaluation
 import cards.models.classes.state.{ BlackjackGameState, BlackjackPlayerState }
 import cards.models.classes.options.BlackjackOptions
@@ -17,19 +17,19 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 import org.scalatest.GivenWhenThen
 
-class BlackjackPayoutSpec extends AnyFlatSpec with GivenWhenThen {
-  private [payout] case object _commons extends Commons
-  private [payout] case object _evaluation extends BlackjackHandEvaluation {
+class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
+  private [betting] case object _commons extends Commons
+  private [betting] case object _evaluation extends BlackjackHandEvaluation {
     override type C = Commons
     override val commons = _commons
   }
-  case object module extends BlackjackPayout {
+  case object module extends BlackjackBetting {
     override type EVAL = BlackjackHandEvaluation
     override val evaluation = _evaluation
   }
   import module._
 
-  "BlackjackPayout" should "yield all bets a given player has placed on a specific Blackjack player's hand" in {
+  "BlackjackBetting" should "yield all bets a given player has placed on a specific Blackjack player's hand" in {
     Given("a player state who has placed bet on his own hand and who also has 2 other players who have placed bets on his hand")
     val player = BlackjackPlayerState("Jeffrey", 50, Seq( Hand(Seq(Card(Ten, Clubs), Card(Jack, Hearts)), Map("Jeffrey" -> 5, "Brandon" -> 10, "Alice" -> 15))))
 
@@ -344,6 +344,10 @@ class BlackjackPayoutSpec extends AnyFlatSpec with GivenWhenThen {
     val gameState = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1, player2))
     When("checking whether it's time to take bets")
     Then("it's determined that yes, it is in fact time to take bets")
-    isTimeToPlaceBets(gameState) shouldBe (true)
+    isTimeToPlaceNewBets(gameState) shouldBe (true)
+  }
+
+  it should "know it's no longer time to take new bets (except for double downs and insurance) when players have 2 or more cards" in {
+    Given("a game with 2 players, each having 2 cards, and the dealer who also has 2 cards but is not showing ace")
   }
 }
