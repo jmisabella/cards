@@ -28,7 +28,7 @@ trait BlackjackNonPlayer {
     if (betting.isTimeToSettle(gameState)) {
       return betting.settleBets(gameState)
     }
-    // TODO: isTimeToPlaceBets
+    // TODO: isTimeToPlaceNewBets
 
     ???
   }

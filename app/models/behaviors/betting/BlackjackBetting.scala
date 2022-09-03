@@ -17,7 +17,7 @@ trait BlackjackBetting {
   type EVAL <: BlackjackHandEvaluation 
   val evaluation: EVAL
 
-  def playerBet(playerState: BlackjackPlayerState, playerId: String): Option[(Seq[Card], Int)] = { 
+  def getPlayerBet(playerState: BlackjackPlayerState, playerId: String): Option[(Seq[Card], Int)] = { 
     (for {
       x <- playerState.handsAndBets
       if (x.bets.keys.toSeq.contains(playerId))
@@ -25,10 +25,10 @@ trait BlackjackBetting {
     ).headOption
   }
 
-  def playerBets(game: BlackjackGameState, playerId: String): Seq[(Seq[Card], Int)] = {
+  def getPlayerBets(game: BlackjackGameState, playerId: String): Seq[(Seq[Card], Int)] = {
     for {
       player <- game.players
-      bet <- playerBet(player, playerId)
+      bet <- getPlayerBet(player, playerId)
     } yield bet
   }
 
@@ -39,6 +39,32 @@ trait BlackjackBetting {
 
   def isTimeToPlaceNewBets(game: BlackjackGameState): Boolean = {
     game.players.count(_.hands == Nil) == game.players.length
+  }
+  
+
+  // TODO: test 
+  def getMinAndMaxBet(player: BlackjackPlayerState, game: BlackjackGameState): (Int, Int) =  {
+    val minBet: Int = game.minimumBet * player.minBetMultiplier 
+    val maxBet: Int = game.minimumBet * player.maxBetMultiplier match {
+      case n if (n <= game.maximumBet) => n
+      case _ => game.maximumBet
+    }
+    (minBet, maxBet)
+  }
+
+  // TODO: test
+  def placeBet(game: BlackjackGameState): BlackjackGameState = {
+    if (game.players == Nil)
+      throw new IllegalArgumentException("Cannot place bet because there are no players")
+    if (game.currentPlayerIndex.isEmpty) 
+      throw new IllegalArgumentException("Cannot place bet because no player is designated as the current player")
+    if (!isTimeToPlaceNewBets(game))
+      throw new IllegalArgumentException("Cannot place new bets as it is not currently time to take new bets")
+    // TODO: test the above 3 cases  
+
+    val (minBet, maxBet): (Int, Int) = getMinAndMaxBet(game.currentPlayer(), game) 
+    
+    ???
   }
 
   // adjusted payouts, for when player wins with blackjack or when dealer wins with a natural blackjack and player purchased insurance 

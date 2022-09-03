@@ -1,28 +1,21 @@
 package cards.models.classes.state
 
 import cards.models.classes.state.{ PlayerState, GameState }
-// import cards.models.classes.{ Card, Deck }
 import cards.models.classes.{ Card, Rank, Suit, Deck }
 import cards.models.classes.Rank._
 import cards.models.classes.Suit._
 import cards.models.classes.hand.Hand
 import cards.models.classes.options.BlackjackOptions
-// import cards.models.classes.options.BlackjackPayout._
-// import cards.models.classes.options.Surrender._
-// import cards.models.classes.options.DealerHitLimit._
-// import cards.models.classes.options.ResplitLimit._
 import cards.models.classes.actions.{ Action, BlackjackAction }
 import cards.models.classes.actions.BlackjackAction._
 
-case class BlackjackPlayerState(id: String, bank: Int = 0, handsAndBets: Seq[Hand] = Nil) extends PlayerState {
+// id: player's unique identifier
+// bank: player's available tokens
+// handsAndBets: player has 1 or more Hands, with each Hand containing its cards as well as players' bets placed on the hand
+// minBetMultiplier: (only applicable to non-players) when betting normally, how many times the minimum bet should the player bet
+// maxBetMultiplier: (only applicable to non-players) how many times minimum bet without exceeding max bet should player reach as a personal maximum bet
+case class BlackjackPlayerState(id: String, bank: Int = 0, handsAndBets: Seq[Hand] = Nil, minBetMultiplier: Int = 1, maxBetMultiplier: Int = 2) extends PlayerState {
   val hands: Seq[Seq[Card]] = handsAndBets.map(_.hand)
-  // def playerBet(playerId: String): Option[(Seq[Card], Int)] = { 
-  //   (for {
-  //     x <- handsAndBets
-  //     if (x.bets.keys.toSeq.contains(playerId))
-  //   } yield (x.hand, x.bets.filter(_._1 == playerId).values.head)
-  //   ).headOption
-  // }
 }
 
 object BlackjackPlayerState {

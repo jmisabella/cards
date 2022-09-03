@@ -34,10 +34,10 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     val player = BlackjackPlayerState("Jeffrey", 50, Seq( Hand(Seq(Card(Ten, Clubs), Card(Jack, Hearts)), Map("Jeffrey" -> 5, "Brandon" -> 10, "Alice" -> 15))))
 
     When("retrieving player bets for Jeffrey, Alice, Brandon, and a non-existent Dracula")
-    val jeffreyBet: Option[(Seq[Card], Int)] = playerBet(player, "Jeffrey")
-    val aliceBet: Option[(Seq[Card], Int)] = playerBet(player, "Alice")
-    val brandonBet: Option[(Seq[Card], Int)] = playerBet(player, "Brandon")
-    val nonExistentBet: Option[(Seq[Card], Int)] = playerBet(player, "Dracula")
+    val jeffreyBet: Option[(Seq[Card], Int)] = getPlayerBet(player, "Jeffrey")
+    val aliceBet: Option[(Seq[Card], Int)] = getPlayerBet(player, "Alice")
+    val brandonBet: Option[(Seq[Card], Int)] = getPlayerBet(player, "Brandon")
+    val nonExistentBet: Option[(Seq[Card], Int)] = getPlayerBet(player, "Dracula")
 
     Then("the player state should retrieve bets from Jeffrey, Alice, and Brandon but wouldn't retrieve any bet from the non-existent Dracula")
     nonExistentBet shouldBe empty  
@@ -72,10 +72,10 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     val gameState = BlackjackGameState(options = BlackjackOptions(), dealerHand = Hand(), players = Seq(player1, player2, player3))
 
     When("retrieving player bets for Jeffrey, Alice, Brandon and a non-existent player Santa Claus")
-    val jeffreyBets: Seq[(Seq[Card], Int)] = playerBets(gameState, "Jeffrey")
-    val aliceBets: Seq[(Seq[Card], Int)] = playerBets(gameState, "Alice")
-    val brandonBets: Seq[(Seq[Card], Int)] = playerBets(gameState, "Brandon")
-    val nonExistentBets: Seq[(Seq[Card], Int)] = playerBets(gameState, "Dracula")
+    val jeffreyBets: Seq[(Seq[Card], Int)] = getPlayerBets(gameState, "Jeffrey")
+    val aliceBets: Seq[(Seq[Card], Int)] = getPlayerBets(gameState, "Alice")
+    val brandonBets: Seq[(Seq[Card], Int)] = getPlayerBets(gameState, "Brandon")
+    val nonExistentBets: Seq[(Seq[Card], Int)] = getPlayerBets(gameState, "Dracula")
     
     Then("the game state should retrieve bets from Jeffrey, Alice, and Brandon but wouldn't retrieve any bet from the non-existent Santa Claus")
     nonExistentBets shouldBe empty
