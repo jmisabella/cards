@@ -202,4 +202,38 @@ class BlackjackStateSpec extends AnyFlatSpec with GivenWhenThen {
     winningHistory should equal (Nil)
   }
 
+  "BlackjackPlayerState" should "throw an error at construction time when maxBetMultiplier is less than minBetMultiplier" in {
+    Given("a minBetMultiplier 1 and a maxBetMultiplier 1")
+    When("constructing a BlackjackPlayerState using the min and max multipliers 2 and 1, respectively")
+    Then("an error should be thrown")
+  }
+
+  it should "throw an error at construction time when minBetMultiplier is less than 1" in {
+    Given("a minBetMultiplier 0 and a maxBetMultiplier 1")
+    val (minMultiplierA, maxMultiplierA) = (0, 1)
+    When("constructing a BlackjackPlayerState using the min and max multipliers 0 and 1, respectively")
+    Then("an error should be thrown")
+    an [IllegalArgumentException] should be thrownBy (BlackjackPlayerState("John", 0, Nil, minMultiplierA, maxMultiplierA))
+    
+    Given("a minBetMultiplier -2 and a maxBetMultiplier 0")
+    val (minMultiplierB, maxMultiplierB) = (-2, 0)
+    When("constructing a BlackjackPlayerState using the min and max multipliers -2 and 0, respectively")
+    Then("an error should be thrown")
+    an [IllegalArgumentException] should be thrownBy (BlackjackPlayerState("John", 0, Nil, minMultiplierB, maxMultiplierB))
+  } 
+
+  it should "throw an error at construction time when maxBetMultiplier is less than 1" in {
+    Given("a minBetMultiplier 0 and a maxBetMultiplier 0")
+    val (minMultiplierA, maxMultiplierA) = (0, 0)
+    When("constructing a BlackjackPlayerState using the min and max multipliers 0 and 0, respectively")
+    Then("an error should be thrown")
+    an [IllegalArgumentException] should be thrownBy (BlackjackPlayerState("John", 0, Nil, minMultiplierA, maxMultiplierA))
+  
+    Given("a minBetMultiplier -2 and a maxBetMultiplier -2")
+    val (minMultiplierB, maxMultiplierB) = (-2, -2)
+    When("constructing a BlackjackPlayerState using the min and max multipliers -2 and -2, respectively")
+    Then("an error should be thrown")
+    an [IllegalArgumentException] should be thrownBy (BlackjackPlayerState("John", 0, Nil, minMultiplierB, maxMultiplierB))
+  } 
+
 }

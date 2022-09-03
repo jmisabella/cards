@@ -42,7 +42,6 @@ trait BlackjackBetting {
   }
   
 
-  // TODO: test 
   def getMinAndMaxBet(player: BlackjackPlayerState, game: BlackjackGameState): (Int, Int) =  {
     val minBet: Int = game.minimumBet * player.minBetMultiplier 
     val maxBet: Int = game.minimumBet * player.maxBetMultiplier match {
@@ -60,7 +59,6 @@ trait BlackjackBetting {
       throw new IllegalArgumentException("Cannot place bet because no player is designated as the current player")
     if (!isTimeToPlaceNewBets(game))
       throw new IllegalArgumentException("Cannot place new bets as it is not currently time to take new bets")
-    // TODO: test the above 3 cases  
 
     val (minBet, maxBet): (Int, Int) = getMinAndMaxBet(game.currentPlayer(), game) 
     

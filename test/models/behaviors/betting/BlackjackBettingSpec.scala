@@ -331,7 +331,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     settledBets.players.head.bank should equal (21) 
   }
 
-  it should "know it's time to take bets when no players have any cards" in {
+  it should "know it's time to take new bets when no players have any cards" in {
     Given("a game with 2 players, neither of whom have any cards")
     val player1 = BlackjackPlayerState(
       "Jeffrey", 
@@ -342,12 +342,164 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       50, 
       Nil)
     val gameState = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1, player2))
-    When("checking whether it's time to take bets")
-    Then("it's determined that yes, it is in fact time to take bets")
+    When("checking whether it's time to take new bets")
+    Then("it's determined that yes, it is in fact time to take new bets")
     isTimeToPlaceNewBets(gameState) shouldBe (true)
   }
 
-  it should "know it's no longer time to take new bets (except for double downs and insurance) when players have 2 or more cards" in {
-    Given("a game with 2 players, each having 2 cards, and the dealer who also has 2 cards but is not showing ace")
+  it should "know it's no longer time to take new bets (except for double downs and insurance) when players have 3 cards" in {
+    Given("a game with 2 players, each having 3 cards, and the dealer who also has 2 cards")
+    val player1 = BlackjackPlayerState(
+      "Jeffrey", 
+      25, 
+      Seq(Hand(Seq(Card(Two, Clubs), Card(Four, Diamonds), Card(Nine, Hearts)))))
+    val player2 = BlackjackPlayerState(
+      "Alice", 
+      50, 
+      Seq(Hand(Seq(Card(Ace, Clubs), Card(Ten, Hearts), Card(Four, Spades)))))
+    val dealerHand = Hand(Seq(Card(Eight, Clubs), Card(Ace, Diamonds)))   
+    val gameState = BlackjackGameState(dealerHand = dealerHand, players = Seq(player1, player2))
+    When("checking whether it's time to take new bets")
+    Then("it's determined that it is not currently time to accept new bets")
+    isTimeToPlaceNewBets(gameState) shouldBe (false)
+  }
+
+  it should "throw an illegal argument exception when attempting to place bet on a game with no players" in {
+    Given("a game with no players")
+    val game = BlackjackGameState(dealerHand = Hand.empty, players = Nil)
+    When("placing a new bet")
+    Then("an illegal argument exception should be thrown")
+    an [IllegalArgumentException] shouldBe thrownBy (placeBet(game))
+    the [IllegalArgumentException] thrownBy (placeBet(game)) should have message "Cannot place bet because there are no players"
+  }
+
+  it should "throw an illegal argument exception when attempting to place bet on a game with no designated current player" in {
+    Given("a game with 2 players, each with no cards, but neither of whom designated as the current player")
+    val player1 = BlackjackPlayerState(
+      "Jeffrey", 
+      25, 
+      Nil)
+    val player2 = BlackjackPlayerState(
+      "Alice", 
+      50, 
+      Nil)
+    val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1, player2), currentPlayerIndex = None)
+    When("checking whether it's time to accept new bets")
+    Then("it's determined that it's time to accept new bets")
+    isTimeToPlaceNewBets(game) shouldBe (true)
+    When("placing a new bet")
+    Then("an illegal argument exception should be thrown")
+    an [IllegalArgumentException] shouldBe thrownBy (placeBet(game))
+    the [IllegalArgumentException] thrownBy (placeBet(game)) should have message "Cannot place bet because no player is designated as the current player"
+  }
+
+  it should "throw an illegal argument exception when attempting to place bet on a game when it is not the proper time to accept new bets" in {
+    Given("a game with 2 players, each having 2 or more cards, one of whom the designated current player")
+    val player1 = BlackjackPlayerState(
+      "Jeffrey", 
+      25, 
+      Seq(Hand(Seq(Card(Two, Clubs), Card(Four, Diamonds), Card(Nine, Hearts)))))
+    val player2 = BlackjackPlayerState(
+      "Alice", 
+      50, 
+      Seq(Hand(Seq(Card(Ace, Clubs), Card(Ten, Hearts), Card(Four, Spades)))))
+    val dealerHand = Hand(Seq(Card(Eight, Clubs), Card(Ace, Diamonds)))   
+    val game = BlackjackGameState(dealerHand = dealerHand, players = Seq(player1, player2), currentPlayerIndex = Some(0))
+    When("checking the current player")
+    Then("then it's determined the current player is Jeffrey")
+    game.currentPlayer() should equal (player1)
+    When("checking whether it's time to accept new bets")
+    Then("it's determined that it's not time to accept new bets")
+    isTimeToPlaceNewBets(game) shouldBe (false)
+    When("placing a new bet")
+    Then("an illegal argument exception should be thrown")
+    an [IllegalArgumentException] shouldBe thrownBy (placeBet(game))
+    the [IllegalArgumentException] thrownBy (placeBet(game)) should have message "Cannot place new bets as it is not currently time to take new bets"
+  }
+
+  it should "get a player's personal min and max bet as both being 1 when min and max multipliers are both 1 and table's minimum bet is 1" in {
+    Given("a game with minimum bet 1 and a player whose min and max bet multiplers are both 1")
+    val player1 = BlackjackPlayerState(
+      id = "Jeffrey", 
+      bank = 25, 
+      handsAndBets = Nil,
+      minBetMultiplier = 1,
+      maxBetMultiplier = 1)
+    val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 1)
+    When("getting min and max bet for the player")
+    val (minBet, maxBet) = getMinAndMaxBet(player1, game)
+    Then("min bet is 1")
+    minBet should equal (1)
+    Then("max bet is 1")
+    maxBet should equal (1)
+  }
+
+  it should "get player's personal min bet as table's minimum bet and maximum bet as twice the table's minimum bet when min and max multiplers are set to 1 and 2, respectively" in {
+    Given("a game with minimum bet 25 and a player whose min bet multipler is 1 and max bet multiplier is 2")
+    val player1 = BlackjackPlayerState(
+      id = "Jeffrey", 
+      bank = 200, 
+      handsAndBets = Nil,
+      minBetMultiplier = 1,
+      maxBetMultiplier = 2)
+    val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25)
+    When("getting min and max bet for the player")
+    val (minBet, maxBet) = getMinAndMaxBet(player1, game)
+    Then("min bet is 25")
+    minBet should equal (25)
+    Then("max bet is 50")
+    maxBet should equal (50)
+  }
+
+  it should "get player's personal max bet as the table's maximum allowed bet when product of table's minimum bet by the player's configured maxBetMultipler exceeds the table's maximum bet" in {
+    Given("a game with minimum bet 25 and maximum bet 200 and a player whose min and max bet multipliers are 1 and 10, respectively")
+    val player1 = BlackjackPlayerState(
+      id = "Jeffrey", 
+      bank = 2000, 
+      handsAndBets = Nil,
+      minBetMultiplier = 1,
+      maxBetMultiplier = 10)
+    val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 200)
+    When("getting min and max bet for the player")
+    val (minBet, maxBet) = getMinAndMaxBet(player1, game)
+    Then("player's minimum bet is 25")
+    minBet should equal (25)
+    Then("player's maximum bet is 200")
+    maxBet should equal (200)
+  }
+
+  it should "place a player's personal minimum bet when the player's history has no wins or losses" in {
+
+    pending
+  }
+
+  it should "place a player's personal minimum bet when the player's history has only wins but no losses" in {
+
+    pending
+  }
+
+  it should "place twice a player's personal minimum when player's last hand lost but previous hand won, and the bet would not exceed player's max limit" in {
+
+    pending
+  }
+
+  it should "place twice a player's personal minimum when player's last 2 hands lost, and the bet would not exceed player's max limit" in {
+
+    pending
+  }
+
+  it should "place thrice a player's personal minimum when player's last 3 hands lost, and the bet would not exceed player's max limit" in {
+
+    pending
+  }
+
+  it should "place four times a player's personal minimum when player's last 4 hands lost, and the bet would not exceed player's max limit" in {
+
+    pending
+  }
+
+  it should "place table's max limit as player's bet when player's last 4 hands lost, and four times player's personal min bet exceeds the table's max limit" in {
+
+    pending
   }
 }

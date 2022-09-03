@@ -16,6 +16,9 @@ import cards.models.classes.actions.BlackjackAction._
 // maxBetMultiplier: (only applicable to non-players) how many times minimum bet without exceeding max bet should player reach as a personal maximum bet
 case class BlackjackPlayerState(id: String, bank: Int = 0, handsAndBets: Seq[Hand] = Nil, minBetMultiplier: Int = 1, maxBetMultiplier: Int = 2) extends PlayerState {
   val hands: Seq[Seq[Card]] = handsAndBets.map(_.hand)
+  require(minBetMultiplier <= maxBetMultiplier)
+  require(minBetMultiplier >= 1)
+  require(maxBetMultiplier >= 1)
 }
 
 object BlackjackPlayerState {
