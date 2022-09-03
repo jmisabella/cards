@@ -468,7 +468,8 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     maxBet should equal (200)
   }
 
-  it should "place a player's personal minimum bet when the player's history has no wins or losses" in {
+  // Negative-Progression betting strategy
+  "a player employing Negative-Progression betting strategy using BlackjackBetting" should "place a player's personal minimum bet when the player's history has no wins or losses" in {
 
     pending
   }
@@ -502,4 +503,46 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
 
     pending
   }
+
+  // Martingale betting strategy
+  "a player employing Martingale betting strategy using BlackjackBetting" should "place a player's personal minimum bet when the player's history has no wins or losses" in {
+
+    pending
+  }
+
+  it should "place a player's personal minimum bet when the player's history has only wins but no losses" in {
+
+    pending
+  }
+
+  it should "place twice a player's personal minimum when player's last hand lost but previous hand won, and the bet would not exceed player's max limit" in {
+
+    pending
+  }
+
+  it should "place four times a player's personal minimum when player's last 2 hands lost, and the bet would not exceed player's max limit" in {
+
+    pending
+  }
+
+  it should "place eight times a player's personal minimum when player's last 3 hands lost, and the bet would not exceed player's max limit" in {
+
+    pending
+  }
+
+  it should "place sixteen times a player's personal minimum when player's last 4 hands lost, and the bet would not exceed player's max limit" in {
+
+    pending
+  }
+
+  it should "place a player's personal minimum when player's last hand won but player had lost 4 hands previous to the win" in {
+
+    pending
+  }
+  
+  it should "place table's max limit as player's bet when player's last 4 hands lost, and four times player's personal min bet exceeds the table's max limit" in {
+
+    pending
+  }
+
 }
