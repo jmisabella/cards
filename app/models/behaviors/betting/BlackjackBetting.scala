@@ -75,7 +75,7 @@ trait BlackjackBetting {
     if (!isTimeToPlaceNewBets(game))
       throw new IllegalArgumentException("Cannot place new bets as it is not currently time to take new bets")
 
-    val (minBet, maxBet): (Int, Int) = getMinAndMaxBet(game.currentPlayer(), game) 
+    val (minBet, maxBet): (Int, Int) = getMinAndMaxBet(game.currentPlayer(), game)
     val amount: Int = {
       val player: BlackjackPlayerState = game.currentPlayer()
       val strategy: BlackjackBettingStrategy = player.bettingStrategy 
@@ -93,13 +93,6 @@ trait BlackjackBetting {
           .reverse // reverse to look from most recent to the oldest
           .takeWhile(p => p) // true indicates win
           .length
-      val lastBet: Int = mostRecentBet(player, game)
-      val goalMet: Boolean = player.oscarsGoalMet
-      // oscarsBet only applicable for Oscar's betting strategy
-      // val oscarsBet = (immediateWins, minBet, maxBet, goalMet, lastBet, player.oscarsGoalMultiplier) match {
-      //   case (0, min, _, _, _, _) => min
-      //   case (_, _, _, _, _, _) => ???
-      // }
       val unrestrainedBet: Int = (strategy, immediateLosses, immediateWins) match {
           case (Steady, _, _) => minBet
           case (NegativeProgression, 0, _) => minBet
@@ -128,9 +121,17 @@ trait BlackjackBetting {
           case (PositiveProgression, _, 8) => minBet * 10
           case (PositiveProgression, _, 9) => minBet * 25 
           case (PositiveProgression, _, _) => minBet * 50
-          case (Oscars, _, 0) => minBet 
-          case (_, _, _) => ??? 
-      }  
+          case (Oscars, _, _) => {
+            val lastBet: Int = mostRecentBet(player, game)
+            val goalMet: Boolean = player.oscarsGoalMet
+            (immediateWins, minBet, maxBet, goalMet, lastBet) match {
+              case (0, min, _, _, _) => min // lost last hand, so bet min
+              case (_, min, _, true, _) => min // win last hand, but Oscar's goal has been reached, so bet min again
+              case (_, min, max, false, last) if ((2 * last) <= max) => 2 * last // goal not met, double last bet
+              case (_, _, max, _, _) => max // since doubling last bet exceeds max, bet max
+            }
+          }
+        }  
         val actualBet: Int = (unrestrainedBet, maxBet, game.currentPlayer().bank) match {
           case (u, max, bank) if (u > bank && bank <= max) => bank
           case (u, max, bank) if (u > bank && bank > max) => max

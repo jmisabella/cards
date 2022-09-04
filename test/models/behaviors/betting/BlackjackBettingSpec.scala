@@ -1298,7 +1298,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       minBetMultiplier = 1,
       maxBetMultiplier = 200,
       bettingStrategy = Oscars)
-    val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, history = Nil, currentPlayerIndex = Some(0))
+    val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 200, history = Nil, currentPlayerIndex = Some(0))
     When("placing his bet")
     val betPlaced = placeBet(game)
     Then("player should bet the table minimum of 25, since his minimum multiplier is 1")
@@ -1321,7 +1321,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       maxBetMultiplier = 200,
       bettingStrategy = Oscars)
     val history = Seq(Action("Jeffrey", Lose))
-    val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, history = history, currentPlayerIndex = Some(0))
+    val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 200, history = history, currentPlayerIndex = Some(0))
     When("placing his bet")
     val betPlaced = placeBet(game)
     Then("player should bet the table minimum of 25")
@@ -1343,7 +1343,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       maxBetMultiplier = 200,
       bettingStrategy = Oscars)
     val history = Seq(Action("Jeffrey", Win), Action("Jeffrey", Lose), Action("Jeffrey", Lose))
-    val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, history = history, currentPlayerIndex = Some(0))
+    val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 200, history = history, currentPlayerIndex = Some(0))
     When("placing his bet")
     val betPlaced = placeBet(game)
     Then("player should bet the table minimum of 25")
@@ -1353,7 +1353,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
   }
 
   it should
-  "double previous bet when last hand won, provided doubled bet doesn't exceed table's max and that Oscar's goal has not yet been reached" in {
+  "double last bet when last hand won, provided doubling the bet doesn't exceed table's max and that Oscar's goal has not yet been reached" in {
     Given(
       "a game with a minimum bet of 25 and a maximum of 200, with a current player employing Oscar's betting strategy and whose previous hand won " + 
       "and double his previous bet does not exceed table's max, and whose next Oscar's goal has not yet been reached and it's time to take new bets")
@@ -1370,7 +1370,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       Action("Jeffrey", action = Bet, actionTokens = 25), 
       Action("Jeffrey", Lose), 
       Action("Jeffrey", Win))
-    val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, history = history, currentPlayerIndex = Some(0))
+    val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 200, history = history, currentPlayerIndex = Some(0))
     When("placing his bet")
     val betPlaced = placeBet(game)
     Then("player should have bet 50, twice his last bet of 25")
@@ -1378,6 +1378,36 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 50))
     mostRecentBet(player1, betPlaced) should equal (50)
   }
-  
+
+  it should
+  "bet max bet when last hand won, provided doubling last bet exceeds table's max and that Oscar's goal has not yet been reached" in {
+    Given(
+      "a game with a minimum bet of 25 and a maximum of 200, with a current player employing Oscar's betting strategy and whose previous hand won " + 
+      "and double his last bet of 125 exceeds the table's max, and whose next Oscar's goal has not yet been reached and it's time to take new bets")
+    val player1 = BlackjackPlayerState(
+      id = "Jeffrey", 
+      bank = 2000, 
+      handsAndBets = Nil,
+      minBetMultiplier = 1,
+      maxBetMultiplier = 200,
+      bettingStrategy = Oscars,
+      oscarsGoalMultiplier = 1.25,
+      oscarsGoal = (1.25 * 2000).toInt)
+    val history: Seq[Action[BlackjackAction]] = Seq(
+      Action("Jeffrey", action = Bet, actionTokens = 125), 
+      Action("Jeffrey", Lose), 
+      Action("Jeffrey", Win),
+      Action("Jeffrey", Win))
+    val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 200, history = history, currentPlayerIndex = Some(0))
+    When("checking whether it's time to accept new bets")
+    Then("it's determined that it's time to accept new bets")
+    isTimeToPlaceNewBets(game) shouldBe (true)
+    When("placing his bet")
+    val betPlaced = placeBet(game)
+    Then("player should have bet 200, the table's max, since doubling his last bet of 125 would have exceeded the table's max")
+    betPlaced.history.length shouldBe >= (1) 
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 200))
+    mostRecentBet(player1, betPlaced) should equal (200)
+  }  
   // TODO: finish testing Oscar's betting strategy
 }
