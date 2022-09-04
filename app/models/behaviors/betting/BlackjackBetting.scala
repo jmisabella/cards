@@ -11,6 +11,7 @@ import cards.models.classes.actions.{ Action, BlackjackAction }
 import cards.models.classes.actions.{ Action, BlackjackAction }
 import cards.models.classes.actions.BlackjackAction._
 import cards.models.classes.state.{ BlackjackPlayerState, BlackjackGameState }
+import cards.models.classes.bettingstrategy.BlackjackBettingStrategy._
 import cards.models.behaviors.evaluation.BlackjackHandEvaluation
 
 trait BlackjackBetting {
@@ -61,8 +62,48 @@ trait BlackjackBetting {
       throw new IllegalArgumentException("Cannot place new bets as it is not currently time to take new bets")
 
     val (minBet, maxBet): (Int, Int) = getMinAndMaxBet(game.currentPlayer(), game) 
-    
-    ???
+    val amount: Int = {
+      val numberOfLossesSinceLastWin: Int = 
+        game
+          .winningHistory(game.currentPlayer().id)
+          .reverse // reverse to look from most recent to the oldest
+          .takeWhile(!_) // false indicates loss
+          .length
+
+      val unrestrainedBet: Int = (game.currentPlayer().bettingStrategy, numberOfLossesSinceLastWin) match {
+          case (NegativeProgression, 0) => minBet
+          case (NegativeProgression, 1) => minBet * 2
+          case (NegativeProgression, 2) => minBet * 2
+          case (NegativeProgression, 3) => minBet * 3
+          case (NegativeProgression, 4) => minBet * 3
+          case (NegativeProgression, 5) => minBet * 4
+          case (NegativeProgression, 6) => minBet * 4
+          case (NegativeProgression, 7) => minBet * 5
+          case (NegativeProgression, 8) => minBet * 10
+          case (NegativeProgression, 9) => minBet * 25 
+          case (NegativeProgression, _) => minBet * 50
+          case (Martingale, lossCount) => lossCount match {
+            case 0 => minBet
+            case _ => (1 to lossCount).foldLeft(minBet)((acc, n) => acc * 2)
+          }
+          case (_, _) => ??? 
+      }  
+        val actualBet: Int = (unrestrainedBet, maxBet, game.currentPlayer().bank) match {
+          case (u, max, bank) if (u > bank && bank <= max) => bank
+          case (u, max, bank) if (u > bank && bank > max) => max
+          case (u, max, _) if (u > max) => max
+          case (u, _, _) => u 
+        }
+        actualBet
+    }
+    val updatedPlayers = game.players.map { p => 
+      if (p.id == game.currentPlayer().id) 
+        p.copy(handsAndBets = Seq(Hand(Nil, Map(p.id -> amount)))) 
+      else 
+        p
+    }
+    val updatedHistory = game.history ++ Seq(Action(game.currentPlayer().id, Bet, Nil, amount))
+    game.copy(currentPlayerIndex = Some(game.nextPlayerIndex()), players = updatedPlayers, history = updatedHistory)
   }
 
   // adjusted payouts, for when player wins with blackjack or when dealer wins with a natural blackjack and player purchased insurance 
