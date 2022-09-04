@@ -7,9 +7,6 @@ import cards.models.classes.state.{ BlackjackGameState, BlackjackPlayerState }
 import cards.models.classes.options.BlackjackOptions
 import cards.models.classes.options.BlackjackPayout._
 import cards.models.classes.bettingstrategy.BlackjackBettingStrategy._
-// import cards.models.classes.options.Surrender._
-// import cards.models.classes.options.DealerHitLimit._
-// import cards.models.classes.options.ResplitLimit._
 import cards.models.classes.{ Card, Rank, Suit, Deck }
 import cards.models.classes.Rank._
 import cards.models.classes.Suit._
@@ -495,7 +492,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     Then("player should bet the table minimum of 25, since his minimum multiplier is 1")
     betPlaced.history.length shouldBe >= (1) 
     betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 25))
-    betPlaced.players.filter(_.id == "Jeffrey").head.handsAndBets.map(_.bets("Jeffrey")).head should equal (25)
+    mostRecentBet(player1, betPlaced) should equal (25) 
   }
 
   it should 
@@ -517,7 +514,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     Then("player should bet the table minimum of 25, since his minimum multiplier is 1")
     betPlaced.history.length shouldBe >= (1) 
     betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 25))
-    betPlaced.players.filter(_.id == "Jeffrey").head.handsAndBets.map(_.bets("Jeffrey")).head should equal (25)
+    mostRecentBet(player1, betPlaced) should equal (25) 
   }
 
   it should 
@@ -539,7 +536,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     Then("player should bet 50 (2 * the minimum)")
     betPlaced.history.length shouldBe >= (1) 
     betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 50))
-    betPlaced.players.filter(_.id == "Jeffrey").head.handsAndBets.map(_.bets("Jeffrey")).head should equal (50)
+    mostRecentBet(player1, betPlaced) should equal (50) 
   }
 
   it should 
@@ -561,7 +558,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     Then("player should bet 50 (2 * the minimum)")
     betPlaced.history.length shouldBe >= (1) 
     betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 50))
-    betPlaced.players.filter(_.id == "Jeffrey").head.handsAndBets.map(_.bets("Jeffrey")).head should equal (50)
+    mostRecentBet(player1, betPlaced) should equal (50) 
   }
 
   it should 
@@ -583,7 +580,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     Then("player should bet 75 (3 * the minimum)")
     betPlaced.history.length shouldBe >= (1) 
     betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 75))
-    betPlaced.players.filter(_.id == "Jeffrey").head.handsAndBets.map(_.bets("Jeffrey")).head should equal (75)
+    mostRecentBet(player1, betPlaced) should equal (75)
   }
 
   it should 
@@ -605,7 +602,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     Then("player should bet 75 (3 * the minimum)")
     betPlaced.history.length shouldBe >= (1) 
     betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 75))
-    betPlaced.players.filter(_.id == "Jeffrey").head.handsAndBets.map(_.bets("Jeffrey")).head should equal (75)
+    mostRecentBet(player1, betPlaced) should equal (75)
   }
 
   it should 
@@ -633,7 +630,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     Then("player should bet 100 (4 * the minimum)")
     betPlaced.history.length shouldBe >= (1) 
     betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 100))
-    betPlaced.players.filter(_.id == "Jeffrey").head.handsAndBets.map(_.bets("Jeffrey")).head should equal (100)
+    mostRecentBet(player1, betPlaced) should equal (100)
   }
 
   it should 
@@ -661,7 +658,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     Then("player should bet 999 (since 4 * the minimum 250 product of 1000 would exceed table maximum bet of 999)")
     betPlaced.history.length shouldBe >= (1) 
     betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 999))
-    betPlaced.players.filter(_.id == "Jeffrey").head.handsAndBets.map(_.bets("Jeffrey")).head should equal (999)
+    mostRecentBet(player1, betPlaced) should equal (999)
   }
 
   it should "place a player's personal minimum when player's last hand won but player had lost 4 hands previous to the win" in {
@@ -689,7 +686,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     Then("player should bet the minimum amount of 250")
     betPlaced.history.length shouldBe >= (1) 
     betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 250))
-    betPlaced.players.filter(_.id == "Jeffrey").head.handsAndBets.map(_.bets("Jeffrey")).head should equal (250)
+    mostRecentBet(player1, betPlaced) should equal (250)
   }
 
 
@@ -712,7 +709,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     Then("player should bet the table minimum of 25, since his minimum multiplier is 1")
     betPlaced.history.length shouldBe >= (1) 
     betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 25))
-    betPlaced.players.filter(_.id == "Jeffrey").head.handsAndBets.map(_.bets("Jeffrey")).head should equal (25)
+    mostRecentBet(player1, betPlaced) should equal (25)
   }
 
   it should "place a player's personal minimum bet when the player's history has only wins but no losses" in {
@@ -733,7 +730,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     Then("player should bet the table minimum of 25, since his minimum multiplier is 1")
     betPlaced.history.length shouldBe >= (1) 
     betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 25))
-    betPlaced.players.filter(_.id == "Jeffrey").head.handsAndBets.map(_.bets("Jeffrey")).head should equal (25)
+    mostRecentBet(player1, betPlaced) should equal (25)
   }
 
   it should "place twice a player's personal minimum when player's last hand lost but previous hand won, and the bet would not exceed player's max limit" in {
@@ -754,7 +751,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     Then("player should bet 50 (2 * minimum)")
     betPlaced.history.length shouldBe >= (1) 
     betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 50))
-    betPlaced.players.filter(_.id == "Jeffrey").head.handsAndBets.map(_.bets("Jeffrey")).head should equal (50)
+    mostRecentBet(player1, betPlaced) should equal (50)
   }
 
   it should "place four times a player's personal minimum when player's last 2 hands lost, and the bet would not exceed player's max limit" in {
@@ -775,7 +772,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     Then("player should bet 100 (4 * minimum)")
     betPlaced.history.length shouldBe >= (1) 
     betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 100))
-    betPlaced.players.filter(_.id == "Jeffrey").head.handsAndBets.map(_.bets("Jeffrey")).head should equal (100)
+    mostRecentBet(player1, betPlaced) should equal (100)
   }
 
   it should "place eight times a player's personal minimum when player's last 3 hands lost, and the bet would not exceed player's max limit" in {
@@ -796,7 +793,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     Then("player should bet 200 (8 * minimum)")
     betPlaced.history.length shouldBe >= (1) 
     betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 200))
-    betPlaced.players.filter(_.id == "Jeffrey").head.handsAndBets.map(_.bets("Jeffrey")).head should equal (200)
+    mostRecentBet(player1, betPlaced) should equal (200)
   }
 
   it should "place sixteen times a player's personal minimum when player's last 4 hands lost, and the bet would not exceed player's max limit" in {
@@ -817,7 +814,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     Then("player should bet 400 (16 * minimum)")
     betPlaced.history.length shouldBe >= (1) 
     betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 400))
-    betPlaced.players.filter(_.id == "Jeffrey").head.handsAndBets.map(_.bets("Jeffrey")).head should equal (400)
+    mostRecentBet(player1, betPlaced) should equal (400)
   }
 
   it should "place a player's personal minimum when player's last hand won but player had lost 4 hands previous to the win" in {
@@ -838,7 +835,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     Then("player should bet 25 (the minimum)")
     betPlaced.history.length shouldBe >= (1) 
     betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 25))
-    betPlaced.players.filter(_.id == "Jeffrey").head.handsAndBets.map(_.bets("Jeffrey")).head should equal (25)
+    mostRecentBet(player1, betPlaced) should equal (25)
   }
   
   it should "place table's max limit as player's bet when player's last 4 hands lost, and four times player's personal min bet exceeds the table's max limit" in {
@@ -859,7 +856,528 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     Then("player should bet 200 (since 16 * minimum exceeds the maximum bet of 200)")
     betPlaced.history.length shouldBe >= (1) 
     betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 200))
-    betPlaced.players.filter(_.id == "Jeffrey").head.handsAndBets.map(_.bets("Jeffrey")).head should equal (200)
+    mostRecentBet(player1, betPlaced) should equal (200)
   }
 
+  // Positive-Progression betting strategy
+  "a player employing Positive-Progression betting strategy using BlackjackBetting" should 
+  "place a player's personal minimum bet when the player's history has no wins or losses" in {
+    Given(
+      "a game with minimum bet 25 and a current player without any wins or losses and who employs the positive-progression betting strategy, " + 
+      "and it's time to take new bets")
+    val player1 = BlackjackPlayerState(
+      id = "Jeffrey", 
+      bank = 2000, 
+      handsAndBets = Nil,
+      minBetMultiplier = 1,
+      maxBetMultiplier = 200,
+      bettingStrategy = PositiveProgression)
+    val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, history = Nil, currentPlayerIndex = Some(0))
+    When("placing his bet")
+    val betPlaced = placeBet(game)
+    Then("player should bet the table minimum of 25, since his minimum multiplier is 1")
+    betPlaced.history.length shouldBe >= (1) 
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 25))
+    mostRecentBet(player1, betPlaced) should equal (25)
+  }
+
+  it should 
+  "place a player's personal minimum bet when the player's history has only losses but no wins" in {
+    Given(
+      "a game with minimum bet 25 and a current player a single loss and who employs the positive-progression betting strategy, " + 
+      "and it's time to take new bets")
+    val player1 = BlackjackPlayerState(
+      id = "Jeffrey", 
+      bank = 2000, 
+      handsAndBets = Nil,
+      minBetMultiplier = 1,
+      maxBetMultiplier = 8,
+      bettingStrategy = PositiveProgression)
+    val history = Seq(Action("Jeffrey", Lose)) 
+    val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 1000, history = history, currentPlayerIndex = Some(0))
+    When("placing his bet")
+    val betPlaced = placeBet(game)
+    Then("player should bet the table minimum of 25, since his minimum multiplier is 1")
+    betPlaced.history.length shouldBe >= (1) 
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 25))
+    mostRecentBet(player1, betPlaced) should equal (25)
+  }
+
+  it should 
+  "place twice a player's personal minimum when player's last hand won but previous hand lost, and the bet would not exceed player's max limit" in {
+    Given(
+      "a game with minimum bet 25 and a current player whose last hand won, prior to a loss, and who employs the positive-progression betting strategy, " + 
+      "and it's time to take new bets")
+    val player1 = BlackjackPlayerState(
+      id = "Jeffrey", 
+      bank = 2000, 
+      handsAndBets = Nil,
+      minBetMultiplier = 1,
+      maxBetMultiplier = 8,
+      bettingStrategy = PositiveProgression)
+    val history = Seq(Action("Jeffrey", Lose), Action("Jeffrey", Win)) 
+    val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 1000, history = history, currentPlayerIndex = Some(0))
+    When("placing his bet")
+    val betPlaced = placeBet(game)
+    Then("player should bet 50 (2 * the minimum)")
+    betPlaced.history.length shouldBe >= (1) 
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 50))
+    mostRecentBet(player1, betPlaced) should equal (50)
+  }
+
+  it should 
+  "place twice a player's personal minimum when player's last 2 hands won, and the bet would not exceed player's max limit" in {
+    Given(
+      "a game with minimum bet 25 and a current player whose last 2 hands won, prior to a loss, and who employs the positive-progression betting strategy, " + 
+      "and it's time to take new bets")
+    val player1 = BlackjackPlayerState(
+      id = "Jeffrey", 
+      bank = 2000, 
+      handsAndBets = Nil,
+      minBetMultiplier = 1,
+      maxBetMultiplier = 8,
+      bettingStrategy = PositiveProgression)
+    val history = Seq(Action("Jeffrey", Lose), Action("Jeffrey", Win), Action("Jeffrey", Win)) 
+    val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 1000, history = history, currentPlayerIndex = Some(0))
+    When("placing his bet")
+    val betPlaced = placeBet(game)
+    Then("player should bet 50 (2 * the minimum)")
+    betPlaced.history.length shouldBe >= (1) 
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 50))
+    mostRecentBet(player1, betPlaced) should equal (50)
+  }
+
+  it should 
+  "place three times a player's personal minimum when player's last 3 hands won, and the bet would not exceed player's max limit" in {
+    Given(
+      "a game with minimum bet 25 and a current player whose last 3 hands won, prior to a loss, and who employs the positive-progression betting strategy, " + 
+      "and it's time to take new bets")
+    val player1 = BlackjackPlayerState(
+      id = "Jeffrey", 
+      bank = 2000, 
+      handsAndBets = Nil,
+      minBetMultiplier = 1,
+      maxBetMultiplier = 8,
+      bettingStrategy = PositiveProgression)
+    val history = Seq(Action("Jeffrey", Lose), Action("Jeffrey", Win), Action("Jeffrey", Win), Action("Jeffrey", Win))
+    val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 1000, history = history, currentPlayerIndex = Some(0))
+    When("placing his bet")
+    val betPlaced = placeBet(game)
+    Then("player should bet 75 (3 * the minimum)")
+    betPlaced.history.length shouldBe >= (1) 
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 75))
+    mostRecentBet(player1, betPlaced) should equal (75)
+  }
+
+  it should 
+  "place three times a player's personal minimum when player's last 4 hands won prior to a loss, and the bet would not exceed player's max limit" in {
+    Given(
+      "a game with minimum bet 25 and a current player whose last 4 hands won, prior to a loss, and who employs the positive-progression betting strategy, " + 
+      "and it's time to take new bets")
+    val player1 = BlackjackPlayerState(
+      id = "Jeffrey", 
+      bank = 2000, 
+      handsAndBets = Nil,
+      minBetMultiplier = 1,
+      maxBetMultiplier = 8,
+      bettingStrategy = PositiveProgression)
+    val history = Seq(Action("Jeffrey", Lose), Action("Jeffrey", Win), Action("Jeffrey", Win), Action("Jeffrey", Win), Action("Jeffrey", Win))
+    val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 1000, history = history, currentPlayerIndex = Some(0))
+    When("placing his bet")
+    val betPlaced = placeBet(game)
+    Then("player should bet 75 (3 * the minimum)")
+    betPlaced.history.length shouldBe >= (1) 
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 75))
+    mostRecentBet(player1, betPlaced) should equal (75)
+  }
+
+  it should 
+  "place four times a player's personal minimum when player's last 5 hands won prior to a loss, and the bet would not exceed player's max limit" in {
+    Given(
+      "a game with minimum bet 25 and a current player whose last 5 hands won, prior to a loss, and who employs the positive-progression betting strategy, " + 
+      "and it's time to take new bets")
+    val player1 = BlackjackPlayerState(
+      id = "Jeffrey", 
+      bank = 2000, 
+      handsAndBets = Nil,
+      minBetMultiplier = 1,
+      maxBetMultiplier = 8,
+      bettingStrategy = PositiveProgression)
+    val history = Seq(
+      Action("Jeffrey", Lose), 
+      Action("Jeffrey", Win), 
+      Action("Jeffrey", Win), 
+      Action("Jeffrey", Win), 
+      Action("Jeffrey", Win), 
+      Action("Jeffrey", Win))
+    val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 1000, history = history, currentPlayerIndex = Some(0))
+    When("placing his bet")
+    val betPlaced = placeBet(game)
+    Then("player should bet 100 (4 * the minimum)")
+    betPlaced.history.length shouldBe >= (1) 
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 100))
+    mostRecentBet(player1, betPlaced) should equal (100)
+  }
+
+  it should 
+  "place table's max limit as player's bet when player's last 4 hands won prior to a loss, and four times player's personal min bet exceeds the table's max limit" in {
+    Given(
+      "a game with minimum bet 250, a maximum bet of 999, and a current player whose last 5 hands won, prior to a loss, and who employs the positive-progression " + 
+      "betting strategy, and it's time to take new bets")
+    val player1 = BlackjackPlayerState(
+      id = "Jeffrey", 
+      bank = 2000, 
+      handsAndBets = Nil,
+      minBetMultiplier = 1,
+      maxBetMultiplier = 8,
+      bettingStrategy = PositiveProgression)
+    val history = Seq(
+      Action("Jeffrey", Lose), 
+      Action("Jeffrey", Win), 
+      Action("Jeffrey", Win), 
+      Action("Jeffrey", Win), 
+      Action("Jeffrey", Win), 
+      Action("Jeffrey", Win))
+    val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 250, maximumBet = 999, history = history, currentPlayerIndex = Some(0))
+    When("placing his bet")
+    val betPlaced = placeBet(game)
+    Then("player should bet 999 (since 4 * the minimum 250 product of 1000 would exceed table maximum bet of 999)")
+    betPlaced.history.length shouldBe >= (1) 
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 999))
+    mostRecentBet(player1, betPlaced) should equal (999)
+  }
+
+  it should "place a player's personal minimum when player's last hand lost but player had won 4 hands previous to the loss" in {
+    Given(
+      "a game with minimum bet 250, a maximum bet of 999, and a current player last hand loss, prior to winning 5 hands consecutively" + 
+      "and who employs the positive-progression betting strategy, and it's time to take new bets")
+    val player1 = BlackjackPlayerState(
+      id = "Jeffrey", 
+      bank = 2000, 
+      handsAndBets = Nil,
+      minBetMultiplier = 1,
+      maxBetMultiplier = 8,
+      bettingStrategy = PositiveProgression)
+    val history = Seq(
+      Action("Jeffrey", Lose), 
+      Action("Jeffrey", Win),
+      Action("Jeffrey", Win),
+      Action("Jeffrey", Win),
+      Action("Jeffrey", Win),
+      Action("Jeffrey", Win),
+      Action("Jeffrey", Lose))
+    val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 250, maximumBet = 999, history = history, currentPlayerIndex = Some(0))
+    When("placing his bet")
+    val betPlaced = placeBet(game)
+    Then("player should bet the minimum amount of 250")
+    betPlaced.history.length shouldBe >= (1) 
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 250))
+    mostRecentBet(player1, betPlaced) should equal (250)
+  }
+
+  // Steady betting strategy (always bet the same amount no matter what the outcome) 
+  "a player employing Steady betting strategy using BlackjackBetting" should 
+  "place a player's personal minimum bet when the player's history has no wins or losses" in {
+    Given(
+      "a game with minimum bet 25 and a current player without any wins or losses and who employs the steady betting strategy, " + 
+      "and it's time to take new bets")
+    val player1 = BlackjackPlayerState(
+      id = "Jeffrey", 
+      bank = 2000, 
+      handsAndBets = Nil,
+      minBetMultiplier = 1,
+      maxBetMultiplier = 200,
+      bettingStrategy = Steady)
+    val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, history = Nil, currentPlayerIndex = Some(0))
+    When("placing his bet")
+    val betPlaced = placeBet(game)
+    Then("player should bet the table minimum of 25, since his minimum multiplier is 1")
+    betPlaced.history.length shouldBe >= (1) 
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 25))
+    mostRecentBet(player1, betPlaced) should equal (25)
+  }
+
+  it should 
+  "place a player's personal minimum bet when the player's history has only wins but no wins" in {
+    Given(
+      "a game with minimum bet 25 and a current player two wins only and who employs the steady betting strategy, " + 
+      "and it's time to take new bets")
+    val player1 = BlackjackPlayerState(
+      id = "Jeffrey", 
+      bank = 2000, 
+      handsAndBets = Nil,
+      minBetMultiplier = 1,
+      maxBetMultiplier = 8,
+      bettingStrategy = Steady)
+    val history = Seq(Action("Jeffrey", Win), Action("Jeffrey", Win)) 
+    val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 1000, history = history, currentPlayerIndex = Some(0))
+    When("placing his bet")
+    val betPlaced = placeBet(game)
+    Then("player should bet the table minimum of 25")
+    betPlaced.history.length shouldBe >= (1) 
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 25))
+    mostRecentBet(player1, betPlaced) should equal (25)
+  }
+  
+  it should 
+  "place a player's personal minimum bet when the player's history has only losses but no wins" in {
+    Given(
+      "a game with minimum bet 25 and a current player a single loss and who employs the steady betting strategy, " + 
+      "and it's time to take new bets")
+    val player1 = BlackjackPlayerState(
+      id = "Jeffrey", 
+      bank = 2000, 
+      handsAndBets = Nil,
+      minBetMultiplier = 1,
+      maxBetMultiplier = 8,
+      bettingStrategy = Steady)
+    val history = Seq(Action("Jeffrey", Lose)) 
+    val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 1000, history = history, currentPlayerIndex = Some(0))
+    When("placing his bet")
+    val betPlaced = placeBet(game)
+    Then("player should bet the table minimum of 25")
+    betPlaced.history.length shouldBe >= (1) 
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 25))
+    mostRecentBet(player1, betPlaced) should equal (25)
+  }
+
+  it should 
+  "place a player's personal minimum when player's last hand won but previous hand lost" in {
+    Given(
+      "a game with minimum bet 25 and a current player whose last hand won, prior to a loss, and who employs the steady betting strategy, " + 
+      "and it's time to take new bets")
+    val player1 = BlackjackPlayerState(
+      id = "Jeffrey", 
+      bank = 2000, 
+      handsAndBets = Nil,
+      minBetMultiplier = 1,
+      maxBetMultiplier = 8,
+      bettingStrategy = Steady)
+    val history = Seq(Action("Jeffrey", Lose), Action("Jeffrey", Win)) 
+    val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 1000, history = history, currentPlayerIndex = Some(0))
+    When("placing his bet")
+    val betPlaced = placeBet(game)
+    Then("player should bet the table minimum of 25")
+    betPlaced.history.length shouldBe >= (1) 
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 25))
+    mostRecentBet(player1, betPlaced) should equal (25)
+  }
+
+  it should 
+  "place a player's personal minimum when player's last 2 hands lost prior to a win, and the bet would not exceed player's max limit" in {
+    Given(
+      "a game with minimum bet 25 and a current player whose last 2 hands lost prior to a win, and who employs the positive-progression betting strategy, " + 
+      "and it's time to take new bets")
+    val player1 = BlackjackPlayerState(
+      id = "Jeffrey", 
+      bank = 2000, 
+      handsAndBets = Nil,
+      minBetMultiplier = 1,
+      maxBetMultiplier = 8,
+      bettingStrategy = Steady)
+    val history = Seq(Action("Jeffrey", Win), Action("Jeffrey", Lose), Action("Jeffrey", Lose)) 
+    val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 1000, history = history, currentPlayerIndex = Some(0))
+    When("placing his bet")
+    val betPlaced = placeBet(game)
+    Then("player should bet the table minimum of 25")
+    betPlaced.history.length shouldBe >= (1) 
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 25))
+    mostRecentBet(player1, betPlaced) should equal (25)
+  }
+
+  it should 
+  "place a player's personal minimum when player's last 3 hands won" in {
+    Given(
+      "a game with minimum bet 25 and a current player whose last 3 hands won, prior to a loss, and who employs the steady betting strategy, " + 
+      "and it's time to take new bets")
+    val player1 = BlackjackPlayerState(
+      id = "Jeffrey", 
+      bank = 2000, 
+      handsAndBets = Nil,
+      minBetMultiplier = 1,
+      maxBetMultiplier = 8,
+      bettingStrategy = Steady)
+    val history = Seq(Action("Jeffrey", Lose), Action("Jeffrey", Win), Action("Jeffrey", Win), Action("Jeffrey", Win))
+    val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 1000, history = history, currentPlayerIndex = Some(0))
+    When("placing his bet")
+    val betPlaced = placeBet(game)
+    Then("player should bet the table minimum of 25")
+    betPlaced.history.length shouldBe >= (1) 
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 25))
+    mostRecentBet(player1, betPlaced) should equal (25)
+  }
+
+  it should 
+  "place a player's personal minimum when player's last 4 hands lost prior to a win" in {
+    Given(
+      "a game with minimum bet 25 and a current player whose last 4 hands lost, prior to a win, and who employs the steady betting strategy, " + 
+      "and it's time to take new bets")
+    val player1 = BlackjackPlayerState(
+      id = "Jeffrey", 
+      bank = 2000, 
+      handsAndBets = Nil,
+      minBetMultiplier = 1,
+      maxBetMultiplier = 8,
+      bettingStrategy = Steady)
+    val history = Seq(Action("Jeffrey", Win), Action("Jeffrey", Lose), Action("Jeffrey", Lose), Action("Jeffrey", Lose), Action("Jeffrey", Lose))
+    val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 1000, history = history, currentPlayerIndex = Some(0))
+    When("placing his bet")
+    val betPlaced = placeBet(game)
+    Then("player should bet the table minimum of 25")
+    betPlaced.history.length shouldBe >= (1) 
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 25))
+    mostRecentBet(player1, betPlaced) should equal (25)
+  }
+
+  it should 
+  "place a player's personal minimum when player's last 5 hands won prior to a loss" in {
+    Given(
+      "a game with minimum bet 25 and a current player whose last 5 hands won, prior to a loss, and who employs the steady betting strategy, " + 
+      "and it's time to take new bets")
+    val player1 = BlackjackPlayerState(
+      id = "Jeffrey", 
+      bank = 2000, 
+      handsAndBets = Nil,
+      minBetMultiplier = 1,
+      maxBetMultiplier = 8,
+      bettingStrategy = Steady)
+    val history = Seq(
+      Action("Jeffrey", Lose), 
+      Action("Jeffrey", Win), 
+      Action("Jeffrey", Win), 
+      Action("Jeffrey", Win), 
+      Action("Jeffrey", Win), 
+      Action("Jeffrey", Win))
+    val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 1000, history = history, currentPlayerIndex = Some(0))
+    When("placing his bet")
+    val betPlaced = placeBet(game)
+    Then("player should bet the table minimum of 25")
+    betPlaced.history.length shouldBe >= (1) 
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 25))
+    mostRecentBet(player1, betPlaced) should equal (25)
+  }
+
+  it should "place a player's personal minimum when player's last hand lost but player had won 4 hands previous to the loss" in {
+    Given(
+      "a game with minimum bet 250, a maximum bet of 999, and a current player last hand loss, prior to winning 5 hands consecutively" + 
+      "and who employs the steady betting strategy, and it's time to take new bets")
+    val player1 = BlackjackPlayerState(
+      id = "Jeffrey", 
+      bank = 2000, 
+      handsAndBets = Nil,
+      minBetMultiplier = 1,
+      maxBetMultiplier = 8,
+      bettingStrategy = Steady)
+    val history = Seq(
+      Action("Jeffrey", Lose), 
+      Action("Jeffrey", Win),
+      Action("Jeffrey", Win),
+      Action("Jeffrey", Win),
+      Action("Jeffrey", Win),
+      Action("Jeffrey", Win),
+      Action("Jeffrey", Lose))
+    val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 250, maximumBet = 999, history = history, currentPlayerIndex = Some(0))
+    When("placing his bet")
+    val betPlaced = placeBet(game)
+    Then("player should bet the minimum amount of 250")
+    betPlaced.history.length shouldBe >= (1) 
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 250))
+    mostRecentBet(player1, betPlaced) should equal (250)
+  }
+
+  // Oscar's betting strategy
+  "a player employing Oscar's betting strategy using BlackjackBetting" should 
+  "place a player's personal minimum bet when the player's history has no wins or losses" in {
+    Given(
+      "a game with minimum bet 25 and a current player without any wins or losses and who employs the steady betting strategy, " + 
+      "and it's time to take new bets")
+    val player1 = BlackjackPlayerState(
+      id = "Jeffrey", 
+      bank = 2000, 
+      handsAndBets = Nil,
+      minBetMultiplier = 1,
+      maxBetMultiplier = 200,
+      bettingStrategy = Oscars)
+    val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, history = Nil, currentPlayerIndex = Some(0))
+    When("placing his bet")
+    val betPlaced = placeBet(game)
+    Then("player should bet the table minimum of 25, since his minimum multiplier is 1")
+    betPlaced.history.length shouldBe >= (1) 
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 25))
+    betPlaced.players.filter(_.id == "Jeffrey").head.handsAndBets.map(_.bets("Jeffrey")).head should equal (25)
+    mostRecentBet(player1, betPlaced) should equal (25)
+  }
+
+  it should 
+  "place a player's personal minimum bet when the player's history has a single loss" in {
+    Given(
+      "a game with minimum bet 25 and a current player without any wins or losses and who employs Oscar's betting strategy, " + 
+      "and it's time to take new bets")
+    val player1 = BlackjackPlayerState(
+      id = "Jeffrey", 
+      bank = 2000, 
+      handsAndBets = Nil,
+      minBetMultiplier = 1,
+      maxBetMultiplier = 200,
+      bettingStrategy = Oscars)
+    val history = Seq(Action("Jeffrey", Lose))
+    val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, history = history, currentPlayerIndex = Some(0))
+    When("placing his bet")
+    val betPlaced = placeBet(game)
+    Then("player should bet the table minimum of 25")
+    betPlaced.history.length shouldBe >= (1) 
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 25))
+    mostRecentBet(player1, betPlaced) should equal (25)
+  }
+
+  it should 
+  "place a player's personal minimum bet when the player's history has 2 losses prior to a win" in {
+    Given(
+      "a game with minimum bet 25 and a current player without any wins or losses and who employs Oscar's betting strategy, " + 
+      "and it's time to take new bets")
+    val player1 = BlackjackPlayerState(
+      id = "Jeffrey", 
+      bank = 2000, 
+      handsAndBets = Nil,
+      minBetMultiplier = 1,
+      maxBetMultiplier = 200,
+      bettingStrategy = Oscars)
+    val history = Seq(Action("Jeffrey", Win), Action("Jeffrey", Lose), Action("Jeffrey", Lose))
+    val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, history = history, currentPlayerIndex = Some(0))
+    When("placing his bet")
+    val betPlaced = placeBet(game)
+    Then("player should bet the table minimum of 25")
+    betPlaced.history.length shouldBe >= (1) 
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 25))
+    mostRecentBet(player1, betPlaced) should equal (25)
+  }
+
+  it should
+  "double previous bet when last hand won, provided doubled bet doesn't exceed table's max and that Oscar's goal has not yet been reached" in {
+    Given(
+      "a game with a minimum bet of 25 and a maximum of 200, with a current player employing Oscar's betting strategy and whose previous hand won " + 
+      "and double his previous bet does not exceed table's max, and whose next Oscar's goal has not yet been reached and it's time to take new bets")
+    val player1 = BlackjackPlayerState(
+      id = "Jeffrey", 
+      bank = 2000, 
+      handsAndBets = Nil,
+      minBetMultiplier = 1,
+      maxBetMultiplier = 200,
+      bettingStrategy = Oscars,
+      oscarsGoalMultiplier = 1.25,
+      oscarsGoal = (1.25 * 2000).toInt)
+    val history: Seq[Action[BlackjackAction]] = Seq(
+      Action("Jeffrey", action = Bet, actionTokens = 25), 
+      Action("Jeffrey", Lose), 
+      Action("Jeffrey", Win))
+    val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, history = history, currentPlayerIndex = Some(0))
+    When("placing his bet")
+    val betPlaced = placeBet(game)
+    Then("player should have bet 50, twice his last bet of 25")
+    betPlaced.history.length shouldBe >= (1) 
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 50))
+    mostRecentBet(player1, betPlaced) should equal (50)
+  }
+  
+  // TODO: finish testing Oscar's betting strategy
 }

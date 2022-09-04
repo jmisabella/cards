@@ -14,7 +14,8 @@ import cards.models.classes.bettingstrategy.BlackjackBettingStrategy._
 // bank: player's available tokens
 // handsAndBets: player has 1 or more Hands, with each Hand containing its cards as well as players' bets placed on the hand
 // minBetMultiplier: (only applicable to non-players) when betting normally, how many times the minimum bet should the player bet
-// maxBetMultiplier: (only applicable to non-players) how many times minimum bet without exceeding max bet should player reach as a personal maximum bet
+// maxBetMultiplier: (only applicable to non-players) how many times minimum bet without exceeding max bet should player reach 
+//                                                    as a personal maximum bet
 // bettingStrategy: one of Steady, Martingale, Oscars, PositiveProgression, NegativeProgression
 //  * Steady - always bet same amount, regardless of wins or losses
 //  * Martingale - always bet set amount after a win; this amount is multiplied x2 after 1 loss, x4 after 2 losses, x8 after 3 losses, etc...
@@ -23,18 +24,25 @@ import cards.models.classes.bettingstrategy.BlackjackBettingStrategy._
 //  * PositiveProgression - always bet same amount after a loss; increase this amount after wins, but to in no specific intervals
 //  * NegativeProgression - always bet same amound after a win; increase amount after losses, but unlike Martingale does not have 
 //                          to increase by a doubled amount after each loss
+// oscarsGoalMultiplier: only applicable for Oscar's betting strategy, player's bank multiplied by this value is the incremental 
+//                       goal of Oscar's betting
+// oscarsGoal: only applicable for Oscar's betting strategy, intermediate goal to be achieved
 case class BlackjackPlayerState(
   id: String, 
   bank: Int = 0, 
   handsAndBets: Seq[Hand] = Nil, 
-  minBetMultiplier: Int = 1, 
-  maxBetMultiplier: Int = 2,
-  bettingStrategy: BlackjackBettingStrategy = Steady) extends PlayerState {
+  minBetMultiplier: Double = 1.0, 
+  maxBetMultiplier: Double = 2.0,
+  bettingStrategy: BlackjackBettingStrategy = Steady,
+  oscarsGoalMultiplier: Double = 1.25, 
+  oscarsGoal: Int = 0) extends PlayerState {
   
     val hands: Seq[Seq[Card]] = handsAndBets.map(_.hand)
+    val oscarsGoalMet: Boolean = bank >= oscarsGoal 
     require(minBetMultiplier <= maxBetMultiplier)
-    require(minBetMultiplier >= 1)
-    require(maxBetMultiplier >= 1)
+    require(minBetMultiplier >= 1.0)
+    require(maxBetMultiplier >= 1.0)
+    require(oscarsGoalMultiplier >= 1.0)
 }
 
 object BlackjackPlayerState {

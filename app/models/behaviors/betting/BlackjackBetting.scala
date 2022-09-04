@@ -44,15 +44,29 @@ trait BlackjackBetting {
   
 
   def getMinAndMaxBet(player: BlackjackPlayerState, game: BlackjackGameState): (Int, Int) =  {
-    val minBet: Int = game.minimumBet * player.minBetMultiplier 
-    val maxBet: Int = game.minimumBet * player.maxBetMultiplier match {
+    val minBet: Int = (game.minimumBet * player.minBetMultiplier).toInt 
+    val maxBet: Int = (game.minimumBet * player.maxBetMultiplier).toInt match {
       case n if (n <= game.maximumBet) => n
       case _ => game.maximumBet
     }
     (minBet, maxBet)
   }
 
-  // TODO: test
+  def mostRecentBet(player: BlackjackPlayerState, game: BlackjackGameState): Int = {
+    val playerBets: Seq[Action[BlackjackAction]] = game.history.filter(h => h.playerId == player.id && h.action == Bet)
+    playerBets.length match {
+      case 0 => 0
+      case _ => playerBets.reverse.head.actionTokens
+    }
+  }
+
+  //  * Steady - always bet same amount, regardless of wins or losses
+  //  * Martingale - always bet set amount after a win; this amount is multiplied x2 after 1 loss, x4 after 2 losses, x8 after 3 losses, etc...
+  //  * Oscars - always bet set amount after a loss; after every win, allow the won amount to ride, to double it after 2 wins; 
+  //             end when a specific goal is met
+  //  * PositiveProgression - always bet same amount after a loss; increase this amount after wins, but to in no specific intervals
+  //  * NegativeProgression - always bet same amound after a win; increase amount after losses, but unlike Martingale does not have 
+  //                          to increase by a doubled amount after each loss
   def placeBet(game: BlackjackGameState): BlackjackGameState = {
     if (game.players == Nil)
       throw new IllegalArgumentException("Cannot place bet because there are no players")
@@ -63,30 +77,59 @@ trait BlackjackBetting {
 
     val (minBet, maxBet): (Int, Int) = getMinAndMaxBet(game.currentPlayer(), game) 
     val amount: Int = {
-      val numberOfLossesSinceLastWin: Int = 
+      val player: BlackjackPlayerState = game.currentPlayer()
+      val strategy: BlackjackBettingStrategy = player.bettingStrategy 
+      // number of losses since last win
+      val immediateLosses: Int = 
         game
-          .winningHistory(game.currentPlayer().id)
+          .winningHistory(player.id)
           .reverse // reverse to look from most recent to the oldest
           .takeWhile(!_) // false indicates loss
           .length
-
-      val unrestrainedBet: Int = (game.currentPlayer().bettingStrategy, numberOfLossesSinceLastWin) match {
-          case (NegativeProgression, 0) => minBet
-          case (NegativeProgression, 1) => minBet * 2
-          case (NegativeProgression, 2) => minBet * 2
-          case (NegativeProgression, 3) => minBet * 3
-          case (NegativeProgression, 4) => minBet * 3
-          case (NegativeProgression, 5) => minBet * 4
-          case (NegativeProgression, 6) => minBet * 4
-          case (NegativeProgression, 7) => minBet * 5
-          case (NegativeProgression, 8) => minBet * 10
-          case (NegativeProgression, 9) => minBet * 25 
-          case (NegativeProgression, _) => minBet * 50
-          case (Martingale, lossCount) => lossCount match {
+      // number of wins since last loss 
+      val immediateWins: Int = 
+        game
+          .winningHistory(player.id)
+          .reverse // reverse to look from most recent to the oldest
+          .takeWhile(p => p) // true indicates win
+          .length
+      val lastBet: Int = mostRecentBet(player, game)
+      val goalMet: Boolean = player.oscarsGoalMet
+      // oscarsBet only applicable for Oscar's betting strategy
+      // val oscarsBet = (immediateWins, minBet, maxBet, goalMet, lastBet, player.oscarsGoalMultiplier) match {
+      //   case (0, min, _, _, _, _) => min
+      //   case (_, _, _, _, _, _) => ???
+      // }
+      val unrestrainedBet: Int = (strategy, immediateLosses, immediateWins) match {
+          case (Steady, _, _) => minBet
+          case (NegativeProgression, 0, _) => minBet
+          case (NegativeProgression, 1, _) => minBet * 2
+          case (NegativeProgression, 2, _) => minBet * 2
+          case (NegativeProgression, 3, _) => minBet * 3
+          case (NegativeProgression, 4, _) => minBet * 3
+          case (NegativeProgression, 5, _) => minBet * 4
+          case (NegativeProgression, 6, _) => minBet * 4
+          case (NegativeProgression, 7, _) => minBet * 5
+          case (NegativeProgression, 8, _) => minBet * 10
+          case (NegativeProgression, 9, _) => minBet * 25 
+          case (NegativeProgression, _, _) => minBet * 50
+          case (Martingale, lossCount, _) => lossCount match {
             case 0 => minBet
             case _ => (1 to lossCount).foldLeft(minBet)((acc, n) => acc * 2)
           }
-          case (_, _) => ??? 
+          case (PositiveProgression, _, 0) => minBet
+          case (PositiveProgression, _, 1) => minBet * 2
+          case (PositiveProgression, _, 2) => minBet * 2
+          case (PositiveProgression, _, 3) => minBet * 3
+          case (PositiveProgression, _, 4) => minBet * 3
+          case (PositiveProgression, _, 5) => minBet * 4
+          case (PositiveProgression, _, 6) => minBet * 4
+          case (PositiveProgression, _, 7) => minBet * 5
+          case (PositiveProgression, _, 8) => minBet * 10
+          case (PositiveProgression, _, 9) => minBet * 25 
+          case (PositiveProgression, _, _) => minBet * 50
+          case (Oscars, _, 0) => minBet 
+          case (_, _, _) => ??? 
       }  
         val actualBet: Int = (unrestrainedBet, maxBet, game.currentPlayer().bank) match {
           case (u, max, bank) if (u > bank && bank <= max) => bank
