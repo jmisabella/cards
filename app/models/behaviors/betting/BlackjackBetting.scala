@@ -93,6 +93,7 @@ trait BlackjackBetting {
           .reverse // reverse to look from most recent to the oldest
           .takeWhile(p => p) // true indicates win
           .length
+      // first determined unrestrained bet, which is restrained by neither the player's available bank nor the table's maximum bet
       val unrestrainedBet: Int = (strategy, immediateLosses, immediateWins) match {
           case (Steady, _, _) => minBet
           case (NegativeProgression, 0, _) => minBet
@@ -124,14 +125,14 @@ trait BlackjackBetting {
           case (Oscars, _, _) => {
             val lastBet: Int = mostRecentBet(player, game)
             val goalMet: Boolean = player.oscarsGoalMet
-            (immediateWins, minBet, maxBet, goalMet, lastBet) match {
-              case (0, min, _, _, _) => min // lost last hand, so bet min
-              case (_, min, _, true, _) => min // win last hand, but Oscar's goal has been reached, so bet min again
-              case (_, min, max, false, last) if ((2 * last) <= max) => 2 * last // goal not met, double last bet
-              case (_, _, max, _, _) => max // since doubling last bet exceeds max, bet max
+            (immediateWins, minBet, goalMet, lastBet) match {
+              case (0, min, _, _) => min // lost last hand, so bet min
+              case (_, min, true, _) => min // win last hand, but Oscar's goal has been reached, so bet min again
+              case (_, _, false, last) => 2 * last // goal not met, double last bet
             }
           }
-        }  
+        }
+        // adjust actual bet to be restrained by player's available bank as well as the table's maximum bet
         val actualBet: Int = (unrestrainedBet, maxBet, game.currentPlayer().bank) match {
           case (u, max, bank) if (u > bank && bank <= max) => bank
           case (u, max, bank) if (u > bank && bank > max) => max

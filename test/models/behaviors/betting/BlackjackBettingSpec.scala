@@ -1408,6 +1408,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     betPlaced.history.length shouldBe >= (1) 
     betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 200))
     mostRecentBet(player1, betPlaced) should equal (200)
-  }  
-  // TODO: finish testing Oscar's betting strategy
+  }
+
+  // TODO: determine when a player should increase or decrease his or her minimum bet multiplier, and by how much
 }
