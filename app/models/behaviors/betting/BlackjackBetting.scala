@@ -151,6 +151,31 @@ trait BlackjackBetting {
     game.copy(currentPlayerIndex = Some(game.nextPlayerIndex()), players = updatedPlayers, history = updatedHistory)
   }
 
+  def alterMinBet(player: BlackjackPlayerState, game: BlackjackGameState): BlackjackGameState = {
+    if (!game.players.contains(player)) {
+      throw new IllegalArgumentException(s"Cannot alter player's state because player does not belong to this game. player [$player], game [$game]")
+    }
+    player.completedHands % 25 match { // check whether 25 hands have been completed since last min bet alteration
+      case 0 => {
+        val changeDirection: Int = (player.bank, player.bankEvery25Hands) match {
+          case (newBank, oldBank) if (newBank < oldBank) => -1 // negative for less than
+          case (newBank, oldBank) if (newBank == oldBank) => 0 // zero for equality
+          case (_, _) => 1 // positive for greater than
+        }
+        val updatedMinBetMultiplier: Double = (changeDirection, player.minBetMultiplier, game.minimumBet, game.maximumBet) match {
+          case (0, multiplier, _, _) => multiplier // no change 
+          case (d, multiplier, tableMin, tableMax) if (d > 0 && ((multiplier + 1) * tableMin) < tableMax) => multiplier + 1 // increase
+          case (d, multiplier, tableMin, tableMax) if (d > 0 && ((multiplier + 1) * tableMin) >= tableMax) => multiplier // cannot go higher
+          case (d, multiplier, tableMin, tableMax) if (d < 0 && multiplier > 1) => multiplier - 1 // decrease
+          case (_, _, _, _) => 1 // else cannot go lower than 1
+        }
+        val updatedPlayer: BlackjackPlayerState = player.copy(bankEvery25Hands = player.bank, minBetMultiplier = updatedMinBetMultiplier)
+        game.copy(players = game.players.map(p => if (p.id == player.id) updatedPlayer else p))
+      }
+      case _ => game // no change to state since player hasn't yet reached 25 hands played since last check
+    }
+  }
+
   // adjusted payouts, for when player wins with blackjack or when dealer wins with a natural blackjack and player purchased insurance 
   //  1). for winning hands only: whether hand was a blackjack and which payout is in options (adjust to ratio for payout option)
   //  2). for dealer's natural blackjack win only: whether insurance was purchased, need to adjust it to pay 2-to-1 

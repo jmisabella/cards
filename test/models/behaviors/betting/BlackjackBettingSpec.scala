@@ -1412,36 +1412,122 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
 
   // TODO: determine when a player should increase or decrease his or her minimum bet multiplier, and by how much
   "BlackjackBetting: a player" should 
-  "increase his or her minimum bet by doubling it when 25 games have been completed and the player's bank has increased" in {
+  "increase his or her minimum bet by increasing min bet multiplier by 1, when 25 games have been completed and the player's bank has increased" in {
     Given("a game with a player whose bank has increased after 25 games and whose personal minimum bet is less than the table's max bet")
+    val player1 = BlackjackPlayerState(
+      id = "Jeffrey", 
+      bank = 2000, 
+      handsAndBets = Nil,
+      minBetMultiplier = 2,
+      maxBetMultiplier = 200,
+      bettingStrategy = Steady,
+      completedHands = 25,
+      bankEvery25Hands = 1900)
+    val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 200, currentPlayerIndex = Some(0))
     When("checking whether player should increase their personal minimum bet")
+    val alteredMinBet: BlackjackGameState = alterMinBet(player1, game)
     Then("player's minimum bet should be increased by doubling it")
-    pending
+    val updatedPlayer1: BlackjackPlayerState = alteredMinBet.players.filter(_.id == "Jeffrey").head
+    updatedPlayer1.minBetMultiplier should equal (player1.minBetMultiplier + 1)
   }
 
+  it should
+  "throw an illegal argument exception when checking to alter minimum bet for player who does not belong to the game" in {
+    Given("a game and a player who does not belong to the game")
+    val player1 = BlackjackPlayerState(
+      id = "Jeffrey", 
+      bank = 2000, 
+      handsAndBets = Nil,
+      minBetMultiplier = 2,
+      maxBetMultiplier = 200,
+      bettingStrategy = Steady,
+      completedHands = 25,
+      bankEvery25Hands = 1900)
+    val game = BlackjackGameState(dealerHand = Hand.empty, players = Nil, minimumBet = 25, maximumBet = 200)
+    When("checking whether player should alter their minimum bet")
+    Then("an illegal argument exception should be thrown")
+    an [IllegalArgumentException] shouldBe thrownBy (alterMinBet(player1, game))
+  }
+
+  it should 
+  "not increase his or her minimum bet by by increasing min bet multiplier by 1 it when only 24 games have been completed and the player's bank has increased" in {
+    Given("a game with a player whose bank has increased after 24 games and whose personal minimum bet is less than the table's max bet")
+    val player1 = BlackjackPlayerState(
+      id = "Jeffrey", 
+      bank = 2000, 
+      handsAndBets = Nil,
+      minBetMultiplier = 2,
+      maxBetMultiplier = 200,
+      bettingStrategy = Steady,
+      completedHands = 24,
+      bankEvery25Hands = 1900)
+    val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 200, currentPlayerIndex = Some(0))
+    When("checking whether player should increase their personal minimum bet")
+    val alteredMinBet: BlackjackGameState = alterMinBet(player1, game)
+    Then("player's minimum bet should stay the same")
+    val updatedPlayer1: BlackjackPlayerState = alteredMinBet.players.filter(_.id == "Jeffrey").head
+    updatedPlayer1.minBetMultiplier should equal (player1.minBetMultiplier)
+  }
+  
   it should 
   "not increase his or her minimum bet when 25 games have been completed and the player's bank has increased " + 
   "but is already betting at the table's maximum bet" in {
     Given("a game with a player whose bank has increased after 25 games and whose personal minimum bet the same as the table's max bet")
+    val player1 = BlackjackPlayerState(
+      id = "Jeffrey", 
+      bank = 2000, 
+      handsAndBets = Nil,
+      minBetMultiplier = 10,
+      maxBetMultiplier = 200,
+      bettingStrategy = Steady,
+      completedHands = 25,
+      bankEvery25Hands = 1900)
+    val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 200, currentPlayerIndex = Some(0))
     When("checking whether player should increase their personal minimum bet")
-    Then("player's minimum bet should remain at the table's maximum")
-    pending
+    val alteredMinBet: BlackjackGameState = alterMinBet(player1, game)
+    Then("player's minimum bet should stay the same")
+    val updatedPlayer1: BlackjackPlayerState = alteredMinBet.players.filter(_.id == "Jeffrey").head
+    updatedPlayer1.minBetMultiplier should equal (player1.minBetMultiplier)
   }
   
-  it should "decrease his or her minimum bet by decreasing it 100% when 25 games have been completed and the player's bank has decreased, " + 
-  "provided player's minimum bet is not already at the table's minimum" in {
-    Given("a game with a player whose bank has decreased after 25 games and whose personal minimum bet is greater than the table's min bet")
+  it should "decrease his or her minimum bet by by decreasing min bet multiplier by 1 when 75 games have been completed and the player's bank " + 
+  "has decreased, provided player's minimum bet is not already at the table's minimum" in {
+    Given("a game with a player whose bank has decreased after 75 games and whose personal minimum bet is greater than the table's min bet")
+    val player1 = BlackjackPlayerState(
+      id = "Jeffrey", 
+      bank = 2000, 
+      handsAndBets = Nil,
+      minBetMultiplier = 3,
+      maxBetMultiplier = 200,
+      bettingStrategy = Steady,
+      completedHands = 75,
+      bankEvery25Hands = 3200)
+    val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 200, currentPlayerIndex = Some(0))
     When("checking whether player should decrease their personal minimum bet")
-    Then("player's minimum bet should be decreased by half")
-    pending
+    val alteredMinBet: BlackjackGameState = alterMinBet(player1, game)
+    Then("player's minimum bet multiplier should be decreased by 1")
+    val updatedPlayer1: BlackjackPlayerState = alteredMinBet.players.filter(_.id == "Jeffrey").head
+    updatedPlayer1.minBetMultiplier should equal (player1.minBetMultiplier - 1)
   }
 
-  it should "not decrease his or her minimum bet when 25 games have been completed, player's hand has decreased, " + 
+  it should "not decrease his or her minimum bet when 50 games have been completed, player's hand has decreased, " + 
   "but is already betting at the table's minimum" in {
-    Given("a game with a player whose bank has decreased after 25 games and whose personal minimum bet is the same as the table's min bet")
+    Given("a game with a player whose bank has decreased after 50 games and whose personal minimum bet is the same as the table's min bet")
+    val player1 = BlackjackPlayerState(
+      id = "Jeffrey", 
+      bank = 2000, 
+      handsAndBets = Nil,
+      minBetMultiplier = 1,
+      maxBetMultiplier = 200,
+      bettingStrategy = Steady,
+      completedHands = 50,
+      bankEvery25Hands = 3200)
+    val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 200, currentPlayerIndex = Some(0))
     When("checking whether player should decrease their personal minimum bet")
+    val alteredMinBet: BlackjackGameState = alterMinBet(player1, game)
     Then("player's minimum bet should remain the same, at the table's minimum")
-    pending
+    val updatedPlayer1: BlackjackPlayerState = alteredMinBet.players.filter(_.id == "Jeffrey").head
+    updatedPlayer1.minBetMultiplier should equal (player1.minBetMultiplier)
   }
 
   // TODO: determine when a player is not doing well with a betting strategy and should switch to a different betting strategy
@@ -1450,11 +1536,13 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     Given("a game with a player whose bank has not increased by 15% after 250 games")
     When("checking whether player should change to a different betting strategy")
     Then("player's betting strategy should randomly change to a different strategy")
+    pending
   }
 
   it should "not change betting strategies if 250 games have been completed and player's bank has increased by 15%" in {
     Given("a game with a player whose bank has increased by 15% after 250 games")
     When("checking whether player should change to a different betting strategy")
     Then("player's betting strategy should remain the same strategy")
+    pending
   }
 }
