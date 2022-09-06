@@ -1410,7 +1410,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     mostRecentBet(player1, betPlaced) should equal (200)
   }
 
-  // TODO: determine when a player should increase or decrease his or her minimum bet multiplier, and by how much
+  // TEST GROUPING: determine when a player should increase or decrease his or her minimum bet multiplier, and by how much
   "BlackjackBetting: a player" should 
   "increase his or her minimum bet by increasing min bet multiplier by 1, when 25 games have been completed and the player's bank has increased" in {
     Given("a game with a player whose bank has increased after 25 games and whose personal minimum bet is less than the table's max bet")
@@ -1530,19 +1530,61 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     updatedPlayer1.minBetMultiplier should equal (player1.minBetMultiplier)
   }
 
-  // TODO: determine when a player is not doing well with a betting strategy and should switch to a different betting strategy
+  // TEST GROUPING: determine when a player is not doing well with a betting strategy and should switch to a different betting strategy
   it should "change betting strategies to a random strategy if, after 250 games have been completed " + 
   "and player's bank has not increased by 15%" in {
     Given("a game with a player whose bank has not increased by 15% after 250 games")
+    val player1 = BlackjackPlayerState(
+      id = "Jeffrey", 
+      bank = 1149, // less than 15% of 1000 
+      handsAndBets = Nil,
+      minBetMultiplier = 1,
+      maxBetMultiplier = 200,
+      bettingStrategy = Steady,
+      completedHands = 250,
+      bankEvery250Hands = 1000)
+    val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 200, currentPlayerIndex = Some(0))
     When("checking whether player should change to a different betting strategy")
+    val alteredStrategy: BlackjackGameState = alterBettingStrategy(player1, game) 
     Then("player's betting strategy should randomly change to a different strategy")
-    pending
+    val updatedPlayer1: BlackjackPlayerState = alteredStrategy.players.filter(_.id == "Jeffrey").head
+    updatedPlayer1.bettingStrategy should not equal (player1.bettingStrategy)
+  }
+
+  it should 
+  "throw an illegal argument exception when checking whether to change a player's betting strategy when the player does not belong to the game" in {
+    Given("a player who hasn't increased bank by 15% in 250 games but who does not belong to the specified game")
+    val player1 = BlackjackPlayerState(
+      id = "Jeffrey", 
+      bank = 1149, // less than 15% of 1000 
+      handsAndBets = Nil,
+      minBetMultiplier = 1,
+      maxBetMultiplier = 200,
+      bettingStrategy = Steady,
+      completedHands = 250,
+      bankEvery250Hands = 1000)
+    val game = BlackjackGameState(dealerHand = Hand.empty, players = Nil, minimumBet = 25, maximumBet = 200, currentPlayerIndex = Some(0))
+    When("checking whether player should change to a different betting strategy")
+    Then("an illegal exception should be thrown")
+    an [IllegalArgumentException] shouldBe thrownBy (alterBettingStrategy(player1, game))
   }
 
   it should "not change betting strategies if 250 games have been completed and player's bank has increased by 15%" in {
     Given("a game with a player whose bank has increased by 15% after 250 games")
+    val player1 = BlackjackPlayerState(
+      id = "Jeffrey", 
+      bank = 1150, // 15% of 1000 
+      handsAndBets = Nil,
+      minBetMultiplier = 1,
+      maxBetMultiplier = 200,
+      bettingStrategy = Steady,
+      completedHands = 250,
+      bankEvery250Hands = 1000)
+    val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 200, currentPlayerIndex = Some(0))
     When("checking whether player should change to a different betting strategy")
+    val alteredStrategy: BlackjackGameState = alterBettingStrategy(player1, game) 
     Then("player's betting strategy should remain the same strategy")
-    pending
+    val updatedPlayer1: BlackjackPlayerState = alteredStrategy.players.filter(_.id == "Jeffrey").head
+    updatedPlayer1.bettingStrategy should equal (player1.bettingStrategy)
   }
 }
