@@ -29,12 +29,13 @@ trait BlackjackNonPlayer {
       throw new IllegalStateException(
         "Cannot proceed to next state because no player is designated as the current player")
     }
-    // val adjustedBetting: BlackjackGameState = betting.  
     if (betting.isTimeToSettle(game)) {
       return betting.settleBets(game)
     }
     if (betting.isTimeToPlaceNewBets(game)) {
-      return betting.placeBet(game) // TODO: test
+      val adjustedStrategy: BlackjackGameState = betting.alterBettingStrategy(game.currentPlayer(), game) 
+      val adjustedBetting: BlackjackGameState = betting.alterMinBet(adjustedStrategy.currentPlayer(), adjustedStrategy)
+      return betting.placeBet(adjustedBetting) // TODO: test
     } 
 
     ???
