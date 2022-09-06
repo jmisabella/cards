@@ -1411,4 +1411,50 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
   }
 
   // TODO: determine when a player should increase or decrease his or her minimum bet multiplier, and by how much
+  "BlackjackBetting: a player" should 
+  "increase his or her minimum bet by doubling it when 25 games have been completed and the player's bank has increased" in {
+    Given("a game with a player whose bank has increased after 25 games and whose personal minimum bet is less than the table's max bet")
+    When("checking whether player should increase their personal minimum bet")
+    Then("player's minimum bet should be increased by doubling it")
+    pending
+  }
+
+  it should 
+  "not increase his or her minimum bet when 25 games have been completed and the player's bank has increased " + 
+  "but is already betting at the table's maximum bet" in {
+    Given("a game with a player whose bank has increased after 25 games and whose personal minimum bet the same as the table's max bet")
+    When("checking whether player should increase their personal minimum bet")
+    Then("player's minimum bet should remain at the table's maximum")
+    pending
+  }
+  
+  it should "decrease his or her minimum bet by decreasing it 100% when 25 games have been completed and the player's bank has decreased, " + 
+  "provided player's minimum bet is not already at the table's minimum" in {
+    Given("a game with a player whose bank has decreased after 25 games and whose personal minimum bet is greater than the table's min bet")
+    When("checking whether player should decrease their personal minimum bet")
+    Then("player's minimum bet should be decreased by half")
+    pending
+  }
+
+  it should "not decrease his or her minimum bet when 25 games have been completed, player's hand has decreased, " + 
+  "but is already betting at the table's minimum" in {
+    Given("a game with a player whose bank has decreased after 25 games and whose personal minimum bet is the same as the table's min bet")
+    When("checking whether player should decrease their personal minimum bet")
+    Then("player's minimum bet should remain the same, at the table's minimum")
+    pending
+  }
+
+  // TODO: determine when a player is not doing well with a betting strategy and should switch to a different betting strategy
+  it should "change betting strategies to a random strategy if, after 250 games have been completed " + 
+  "and player's bank has not increased by 15%" in {
+    Given("a game with a player whose bank has not increased by 15% after 250 games")
+    When("checking whether player should change to a different betting strategy")
+    Then("player's betting strategy should randomly change to a different strategy")
+  }
+
+  it should "not change betting strategies if 250 games have been completed and player's bank has increased by 15%" in {
+    Given("a game with a player whose bank has increased by 15% after 250 games")
+    When("checking whether player should change to a different betting strategy")
+    Then("player's betting strategy should remain the same strategy")
+  }
 }

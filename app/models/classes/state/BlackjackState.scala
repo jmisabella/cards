@@ -27,6 +27,10 @@ import cards.models.classes.bettingstrategy.BlackjackBettingStrategy._
 // oscarsGoalMultiplier: only applicable for Oscar's betting strategy, player's bank multiplied by this value is the incremental 
 //                       goal of Oscar's betting
 // oscarsGoal: only applicable for Oscar's betting strategy, intermediate goal to be achieved
+// bankStartEvery25Intervals: to be reset every 25 games to update to bank amount, used to determine whether to increase or decrease  
+//                            player's minimum bet, based on whether bank increases or decreases after 25 games
+// bankStartEvery250Intervals: to be reset every 250 games to update to current bank amount, used to determine whether to change betting strategy, 
+//                             based on whether bank increases by 15% after 250 games 
 case class BlackjackPlayerState(
   id: String, 
   bank: Int = 0, 
@@ -35,7 +39,10 @@ case class BlackjackPlayerState(
   maxBetMultiplier: Double = 2.0,
   bettingStrategy: BlackjackBettingStrategy = Steady,
   oscarsGoalMultiplier: Double = 1.25, 
-  oscarsGoal: Int = 0) extends PlayerState {
+  oscarsGoal: Int = 0,
+  bankStartEvery25Intervals: Int = 0,
+  bankStartEvery250Intervals: Int = 0,
+  gameCounter: Int = 0) extends PlayerState {
   
     val hands: Seq[Seq[Card]] = handsAndBets.map(_.hand)
     val oscarsGoalMet: Boolean = bank >= oscarsGoal 
