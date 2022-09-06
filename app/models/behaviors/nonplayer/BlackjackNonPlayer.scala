@@ -16,19 +16,26 @@ trait BlackjackNonPlayer {
   val predicates: PREDICATES
   val betting: BETTING
 
-  def next(gameState: BlackjackGameState): BlackjackGameState = {
-    if (gameState.deck.length == 0) {
+  def next(game: BlackjackGameState): BlackjackGameState = {
+    if (game.deck.length == 0) {
       throw new IllegalStateException(
-        s"Cannot get next because deck is empty")
+        s"Cannot proceed to next state because deck is empty")
     }
-    if (gameState.players.length == 0) {
+    if (game.players.length == 0) {
       throw new IllegalStateException(
-        s"Cannot get next because there are no players")
+        s"Cannot proceed to next state because there are no players")
     }
-    if (betting.isTimeToSettle(gameState)) {
-      return betting.settleBets(gameState)
+    if (game.currentPlayerIndex.isEmpty) {
+      throw new IllegalStateException(
+        "Cannot proceed to next state because no player is designated as the current player")
     }
-    // TODO: isTimeToPlaceNewBets
+    // val adjustedBetting: BlackjackGameState = betting.  
+    if (betting.isTimeToSettle(game)) {
+      return betting.settleBets(game)
+    }
+    if (betting.isTimeToPlaceNewBets(game)) {
+      return betting.placeBet(game) // TODO: test
+    } 
 
     ???
   }
