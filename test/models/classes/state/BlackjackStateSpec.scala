@@ -203,31 +203,31 @@ class BlackjackStateSpec extends AnyFlatSpec with GivenWhenThen {
   }
 
   "BlackjackPlayerState" should "throw an error at construction time when minBetMultiplier is less than 1" in {
-    Given("a minBetMultiplier 0 and a maxBetMultiplier 1")
-    val (minMultiplierA, maxMultiplierA) = (0, 1)
-    When("constructing a BlackjackPlayerState using the min and max multipliers 0 and 1, respectively")
+    Given("a minBetMultiplier 0 and a maxBet 100")
+    val (minMultiplierA, maxBetA) = (0, Some(100))
+    When("constructing a BlackjackPlayerState using the min multiplier of 1 and maxBet of 100")
     Then("an illegal argument exception should be thrown")
-    an [IllegalArgumentException] should be thrownBy (BlackjackPlayerState("John", 0, Nil, minMultiplierA, maxMultiplierA))
+    an [IllegalArgumentException] should be thrownBy (BlackjackPlayerState("John", 0, Nil, minMultiplierA, maxBetA))
     
-    Given("a minBetMultiplier -2 and a maxBetMultiplier 0")
-    val (minMultiplierB, maxMultiplierB) = (-2, 0)
-    When("constructing a BlackjackPlayerState using the min and max multipliers -2 and 0, respectively")
+    Given("a minBetMultiplier -2 and a maxBet of 100")
+    val (minMultiplierB, maxBetB) = (-2, Some(100))
+    When("constructing a BlackjackPlayerState using the min multiplier -2 and max bet 100")
     Then("an illegal argument exception should be thrown")
-    an [IllegalArgumentException] should be thrownBy (BlackjackPlayerState("John", 0, Nil, minMultiplierB, maxMultiplierB))
+    an [IllegalArgumentException] should be thrownBy (BlackjackPlayerState("John", 0, Nil, minMultiplierB, maxBetB))
   } 
 
-  it should "throw an error at construction time when maxBetMultiplier is less than 1" in {
-    Given("a minBetMultiplier 0 and a maxBetMultiplier 0")
-    val (minMultiplierA, maxMultiplierA) = (0, 0)
-    When("constructing a BlackjackPlayerState using the min and max multipliers 0 and 0, respectively")
+  it should "throw an error at construction time when minBetMulplier is 0" in {
+    Given("a minBetMultiplier 0 and no maxBet")
+    val (minMultiplierA) = 0
+    When("constructing a BlackjackPlayerState using the min multiplier 0")
     Then("an illegal argument exception should be thrown")
-    an [IllegalArgumentException] should be thrownBy (BlackjackPlayerState("John", 0, Nil, minMultiplierA, maxMultiplierA))
+    an [IllegalArgumentException] should be thrownBy (BlackjackPlayerState("John", 0, Nil, minMultiplierA))
   
-    Given("a minBetMultiplier -2 and a maxBetMultiplier -2")
+    Given("a minBetMultiplier -2")
     val (minMultiplierB, maxMultiplierB) = (-2, -2)
-    When("constructing a BlackjackPlayerState using the min and max multipliers -2 and -2, respectively")
+    When("constructing a BlackjackPlayerState using the min multiplier -2")
     Then("an illegal argument exception should be thrown")
-    an [IllegalArgumentException] should be thrownBy (BlackjackPlayerState("John", 0, Nil, minMultiplierB, maxMultiplierB))
+    an [IllegalArgumentException] should be thrownBy (BlackjackPlayerState("John", 0, Nil, minMultiplierB))
   }
 
   it should "throw an error at construction time when oscarsGoalMultiplier is 0.75" in {

@@ -48,9 +48,10 @@ trait BlackjackBetting {
 
   def getMinAndMaxBet(player: BlackjackPlayerState, game: BlackjackGameState): (Int, Int) =  {
     val minBet: Int = (game.minimumBet * player.minBetMultiplier).toInt 
-    val maxBet: Int = (game.minimumBet * player.maxBetMultiplier).toInt match {
-      case n if (n <= game.maximumBet) => n
-      case _ => game.maximumBet
+    val maxBet: Int = (player.maxBet, game.maximumBet) match {
+      case (None, tableMax) => tableMax
+      case (Some(playerMax), tableMax) if (playerMax <= tableMax) => playerMax
+      case (_, tableMax) => tableMax
     }
     (minBet, maxBet)
   }

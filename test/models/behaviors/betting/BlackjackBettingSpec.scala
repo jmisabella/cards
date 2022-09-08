@@ -421,14 +421,14 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     the [IllegalArgumentException] thrownBy (placeBet(game)) should have message "Cannot place new bets as it is not currently time to take new bets"
   }
 
-  it should "get a player's personal min and max bet as both being 1 when min and max multipliers are both 1 and table's minimum bet is 1" in {
-    Given("a game with minimum bet 1 and a player whose min and max bet multiplers are both 1")
+  it should "get a player's personal min bet multplier is 1 and max bet is 1 and table's minimum bet is 1" in {
+    Given("a game with minimum bet 1 and a player whose min multiplier and max bet are both 1")
     val player1 = BlackjackPlayerState(
       id = "Jeffrey", 
       bank = 25, 
       handsAndBets = Nil,
       minBetMultiplier = 1,
-      maxBetMultiplier = 1)
+      maxBet = Some(1))
     val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 1)
     When("getting min and max bet for the player")
     val (minBet, maxBet) = getMinAndMaxBet(player1, game)
@@ -445,7 +445,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       bank = 200, 
       handsAndBets = Nil,
       minBetMultiplier = 1,
-      maxBetMultiplier = 2)
+      maxBet = Some(50))
     val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25)
     When("getting min and max bet for the player")
     val (minBet, maxBet) = getMinAndMaxBet(player1, game)
@@ -456,14 +456,14 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
   }
 
   it should 
-  "get player's personal max bet as the table's maximum allowed bet when product of table's minimum bet by the player's configured maxBetMultipler exceeds the table's maximum bet" in {
-    Given("a game with minimum bet 25 and maximum bet 200 and a player whose min and max bet multipliers are 1 and 10, respectively")
+  "get player's personal max bet as the table's maximum allowed bet when product of table's minimum bet by the player's configured max bet exceeds the table's maximum bet" in {
+    Given("a game with minimum bet 25 and maximum bet 200 and a player whose max bet is 250")
     val player1 = BlackjackPlayerState(
       id = "Jeffrey", 
       bank = 2000, 
       handsAndBets = Nil,
       minBetMultiplier = 1,
-      maxBetMultiplier = 10)
+      maxBet = Some(250))
     val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 200)
     When("getting min and max bet for the player")
     val (minBet, maxBet) = getMinAndMaxBet(player1, game)
@@ -484,7 +484,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       bank = 2000, 
       handsAndBets = Nil,
       minBetMultiplier = 1,
-      maxBetMultiplier = 8,
+      maxBet = None,
       bettingStrategy = NegativeProgression)
     val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, history = Nil, currentPlayerIndex = Some(0))
     When("placing his bet")
@@ -505,7 +505,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       bank = 2000, 
       handsAndBets = Nil,
       minBetMultiplier = 1,
-      maxBetMultiplier = 8,
+      maxBet = None,
       bettingStrategy = NegativeProgression)
     val history = Seq(Action("Jeffrey", Win)) 
     val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 1000, history = history, currentPlayerIndex = Some(0))
@@ -527,7 +527,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       bank = 2000, 
       handsAndBets = Nil,
       minBetMultiplier = 1,
-      maxBetMultiplier = 8,
+      maxBet = None,
       bettingStrategy = NegativeProgression)
     val history = Seq(Action("Jeffrey", Win), Action("Jeffrey", Lose)) 
     val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 1000, history = history, currentPlayerIndex = Some(0))
@@ -549,7 +549,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       bank = 2000, 
       handsAndBets = Nil,
       minBetMultiplier = 1,
-      maxBetMultiplier = 8,
+      maxBet = None,
       bettingStrategy = NegativeProgression)
     val history = Seq(Action("Jeffrey", Win), Action("Jeffrey", Lose), Action("Jeffrey", Lose)) 
     val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 1000, history = history, currentPlayerIndex = Some(0))
@@ -571,7 +571,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       bank = 2000, 
       handsAndBets = Nil,
       minBetMultiplier = 1,
-      maxBetMultiplier = 8,
+      maxBet = None,
       bettingStrategy = NegativeProgression)
     val history = Seq(Action("Jeffrey", Win), Action("Jeffrey", Lose), Action("Jeffrey", Lose), Action("Jeffrey", Lose))
     val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 1000, history = history, currentPlayerIndex = Some(0))
@@ -593,7 +593,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       bank = 2000, 
       handsAndBets = Nil,
       minBetMultiplier = 1,
-      maxBetMultiplier = 8,
+      maxBet = None,
       bettingStrategy = NegativeProgression)
     val history = Seq(Action("Jeffrey", Win), Action("Jeffrey", Lose), Action("Jeffrey", Lose), Action("Jeffrey", Lose), Action("Jeffrey", Lose))
     val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 1000, history = history, currentPlayerIndex = Some(0))
@@ -615,7 +615,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       bank = 2000, 
       handsAndBets = Nil,
       minBetMultiplier = 1,
-      maxBetMultiplier = 8,
+      maxBet = None,
       bettingStrategy = NegativeProgression)
     val history = Seq(
       Action("Jeffrey", Win), 
@@ -643,7 +643,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       bank = 2000, 
       handsAndBets = Nil,
       minBetMultiplier = 1,
-      maxBetMultiplier = 8,
+      maxBet = None,
       bettingStrategy = NegativeProgression)
     val history = Seq(
       Action("Jeffrey", Win), 
@@ -670,7 +670,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       bank = 2000, 
       handsAndBets = Nil,
       minBetMultiplier = 1,
-      maxBetMultiplier = 8,
+      maxBet = None,
       bettingStrategy = NegativeProgression)
     val history = Seq(
       Action("Jeffrey", Win), 
@@ -701,7 +701,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       bank = 2000, 
       handsAndBets = Nil,
       minBetMultiplier = 1,
-      maxBetMultiplier = 200,
+      maxBet = Some(200),
       bettingStrategy = Martingale)
     val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, history = Nil, currentPlayerIndex = Some(0))
     When("placing his bet")
@@ -721,7 +721,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       bank = 2000, 
       handsAndBets = Nil,
       minBetMultiplier = 1,
-      maxBetMultiplier = 200,
+      maxBet = Some(200),
       bettingStrategy = Martingale)
     val history = Seq(Action("Jeffrey", Win), Action("Jeffrey", Win))
     val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, history = history, currentPlayerIndex = Some(0))
@@ -742,7 +742,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       bank = 2000, 
       handsAndBets = Nil,
       minBetMultiplier = 1,
-      maxBetMultiplier = 200,
+      maxBet = Some(200),
       bettingStrategy = Martingale)
     val history = Seq(Action("Jeffrey", Win), Action("Jeffrey", Lose))
     val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 10000, history = history, currentPlayerIndex = Some(0))
@@ -763,7 +763,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       bank = 2000, 
       handsAndBets = Nil,
       minBetMultiplier = 1,
-      maxBetMultiplier = 200,
+      maxBet = Some(200),
       bettingStrategy = Martingale)
     val history = Seq(Action("Jeffrey", Win), Action("Jeffrey", Lose), Action("Jeffrey", Lose))
     val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 1000, history = history, currentPlayerIndex = Some(0))
@@ -784,7 +784,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       bank = 2000, 
       handsAndBets = Nil,
       minBetMultiplier = 1,
-      maxBetMultiplier = 200,
+      maxBet = Some(200),
       bettingStrategy = Martingale)
     val history = Seq(Action("Jeffrey", Win), Action("Jeffrey", Lose), Action("Jeffrey", Lose), Action("Jeffrey", Lose))
     val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 1000, history = history, currentPlayerIndex = Some(0))
@@ -805,7 +805,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       bank = 2000, 
       handsAndBets = Nil,
       minBetMultiplier = 1,
-      maxBetMultiplier = 200,
+      maxBet = Some(1000),
       bettingStrategy = Martingale)
     val history = Seq(Action("Jeffrey", Win), Action("Jeffrey", Lose), Action("Jeffrey", Lose), Action("Jeffrey", Lose), Action("Jeffrey", Lose))
     val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 1000, history = history, currentPlayerIndex = Some(0))
@@ -826,7 +826,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       bank = 2000, 
       handsAndBets = Nil,
       minBetMultiplier = 1,
-      maxBetMultiplier = 200,
+      maxBet = Some(200),
       bettingStrategy = Martingale)
     val history = Seq(Action("Jeffrey", Lose), Action("Jeffrey", Lose), Action("Jeffrey", Lose), Action("Jeffrey", Lose), Action("Jeffrey", Win))
     val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 1000, history = history, currentPlayerIndex = Some(0))
@@ -847,7 +847,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       bank = 2000, 
       handsAndBets = Nil,
       minBetMultiplier = 1,
-      maxBetMultiplier = 200,
+      maxBet = Some(200),
       bettingStrategy = Martingale)
     val history = Seq(Action("Jeffrey", Win), Action("Jeffrey", Lose), Action("Jeffrey", Lose), Action("Jeffrey", Lose), Action("Jeffrey", Lose))
     val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 200, history = history, currentPlayerIndex = Some(0))
@@ -870,7 +870,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       bank = 2000, 
       handsAndBets = Nil,
       minBetMultiplier = 1,
-      maxBetMultiplier = 200,
+      maxBet = Some(200),
       bettingStrategy = PositiveProgression)
     val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, history = Nil, currentPlayerIndex = Some(0))
     When("placing his bet")
@@ -891,7 +891,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       bank = 2000, 
       handsAndBets = Nil,
       minBetMultiplier = 1,
-      maxBetMultiplier = 8,
+      maxBet = None,
       bettingStrategy = PositiveProgression)
     val history = Seq(Action("Jeffrey", Lose)) 
     val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 1000, history = history, currentPlayerIndex = Some(0))
@@ -913,7 +913,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       bank = 2000, 
       handsAndBets = Nil,
       minBetMultiplier = 1,
-      maxBetMultiplier = 8,
+      maxBet = None,
       bettingStrategy = PositiveProgression)
     val history = Seq(Action("Jeffrey", Lose), Action("Jeffrey", Win)) 
     val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 1000, history = history, currentPlayerIndex = Some(0))
@@ -935,7 +935,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       bank = 2000, 
       handsAndBets = Nil,
       minBetMultiplier = 1,
-      maxBetMultiplier = 8,
+      maxBet = None,
       bettingStrategy = PositiveProgression)
     val history = Seq(Action("Jeffrey", Lose), Action("Jeffrey", Win), Action("Jeffrey", Win)) 
     val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 1000, history = history, currentPlayerIndex = Some(0))
@@ -957,7 +957,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       bank = 2000, 
       handsAndBets = Nil,
       minBetMultiplier = 1,
-      maxBetMultiplier = 8,
+      maxBet = None,
       bettingStrategy = PositiveProgression)
     val history = Seq(Action("Jeffrey", Lose), Action("Jeffrey", Win), Action("Jeffrey", Win), Action("Jeffrey", Win))
     val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 1000, history = history, currentPlayerIndex = Some(0))
@@ -979,7 +979,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       bank = 2000, 
       handsAndBets = Nil,
       minBetMultiplier = 1,
-      maxBetMultiplier = 8,
+      maxBet = None,
       bettingStrategy = PositiveProgression)
     val history = Seq(Action("Jeffrey", Lose), Action("Jeffrey", Win), Action("Jeffrey", Win), Action("Jeffrey", Win), Action("Jeffrey", Win))
     val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 1000, history = history, currentPlayerIndex = Some(0))
@@ -1001,7 +1001,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       bank = 2000, 
       handsAndBets = Nil,
       minBetMultiplier = 1,
-      maxBetMultiplier = 8,
+      maxBet = None,
       bettingStrategy = PositiveProgression)
     val history = Seq(
       Action("Jeffrey", Lose), 
@@ -1029,7 +1029,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       bank = 2000, 
       handsAndBets = Nil,
       minBetMultiplier = 1,
-      maxBetMultiplier = 8,
+      maxBet = None,
       bettingStrategy = PositiveProgression)
     val history = Seq(
       Action("Jeffrey", Lose), 
@@ -1056,7 +1056,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       bank = 2000, 
       handsAndBets = Nil,
       minBetMultiplier = 1,
-      maxBetMultiplier = 8,
+      maxBet = None,
       bettingStrategy = PositiveProgression)
     val history = Seq(
       Action("Jeffrey", Lose), 
@@ -1086,7 +1086,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       bank = 2000, 
       handsAndBets = Nil,
       minBetMultiplier = 1,
-      maxBetMultiplier = 200,
+      maxBet = Some(200),
       bettingStrategy = Steady)
     val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, history = Nil, currentPlayerIndex = Some(0))
     When("placing his bet")
@@ -1107,7 +1107,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       bank = 2000, 
       handsAndBets = Nil,
       minBetMultiplier = 1,
-      maxBetMultiplier = 8,
+      maxBet = None,
       bettingStrategy = Steady)
     val history = Seq(Action("Jeffrey", Win), Action("Jeffrey", Win)) 
     val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 1000, history = history, currentPlayerIndex = Some(0))
@@ -1129,7 +1129,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       bank = 2000, 
       handsAndBets = Nil,
       minBetMultiplier = 1,
-      maxBetMultiplier = 8,
+      maxBet = None,
       bettingStrategy = Steady)
     val history = Seq(Action("Jeffrey", Lose)) 
     val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 1000, history = history, currentPlayerIndex = Some(0))
@@ -1151,7 +1151,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       bank = 2000, 
       handsAndBets = Nil,
       minBetMultiplier = 1,
-      maxBetMultiplier = 8,
+      maxBet = None,
       bettingStrategy = Steady)
     val history = Seq(Action("Jeffrey", Lose), Action("Jeffrey", Win)) 
     val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 1000, history = history, currentPlayerIndex = Some(0))
@@ -1173,7 +1173,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       bank = 2000, 
       handsAndBets = Nil,
       minBetMultiplier = 1,
-      maxBetMultiplier = 8,
+      maxBet = None,
       bettingStrategy = Steady)
     val history = Seq(Action("Jeffrey", Win), Action("Jeffrey", Lose), Action("Jeffrey", Lose)) 
     val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 1000, history = history, currentPlayerIndex = Some(0))
@@ -1195,7 +1195,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       bank = 2000, 
       handsAndBets = Nil,
       minBetMultiplier = 1,
-      maxBetMultiplier = 8,
+      maxBet = None,
       bettingStrategy = Steady)
     val history = Seq(Action("Jeffrey", Lose), Action("Jeffrey", Win), Action("Jeffrey", Win), Action("Jeffrey", Win))
     val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 1000, history = history, currentPlayerIndex = Some(0))
@@ -1217,7 +1217,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       bank = 2000, 
       handsAndBets = Nil,
       minBetMultiplier = 1,
-      maxBetMultiplier = 8,
+      maxBet = None: Option[Int],
       bettingStrategy = Steady)
     val history = Seq(Action("Jeffrey", Win), Action("Jeffrey", Lose), Action("Jeffrey", Lose), Action("Jeffrey", Lose), Action("Jeffrey", Lose))
     val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 1000, history = history, currentPlayerIndex = Some(0))
@@ -1239,7 +1239,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       bank = 2000, 
       handsAndBets = Nil,
       minBetMultiplier = 1,
-      maxBetMultiplier = 8,
+      maxBet = None: Option[Int],
       bettingStrategy = Steady)
     val history = Seq(
       Action("Jeffrey", Lose), 
@@ -1266,7 +1266,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       bank = 2000, 
       handsAndBets = Nil,
       minBetMultiplier = 1,
-      maxBetMultiplier = 8,
+      maxBet = None: Option[Int],
       bettingStrategy = Steady)
     val history = Seq(
       Action("Jeffrey", Lose), 
@@ -1296,7 +1296,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       bank = 2000, 
       handsAndBets = Nil,
       minBetMultiplier = 1,
-      maxBetMultiplier = 200,
+      maxBet = None: Option[Int],
       bettingStrategy = Oscars)
     val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 200, history = Nil, currentPlayerIndex = Some(0))
     When("placing his bet")
@@ -1318,7 +1318,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       bank = 2000, 
       handsAndBets = Nil,
       minBetMultiplier = 1,
-      maxBetMultiplier = 200,
+      maxBet = None: Option[Int],
       bettingStrategy = Oscars)
     val history = Seq(Action("Jeffrey", Lose))
     val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 200, history = history, currentPlayerIndex = Some(0))
@@ -1340,7 +1340,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       bank = 2000, 
       handsAndBets = Nil,
       minBetMultiplier = 1,
-      maxBetMultiplier = 200,
+      maxBet = None: Option[Int],
       bettingStrategy = Oscars)
     val history = Seq(Action("Jeffrey", Win), Action("Jeffrey", Lose), Action("Jeffrey", Lose))
     val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 200, history = history, currentPlayerIndex = Some(0))
@@ -1362,7 +1362,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       bank = 2000, 
       handsAndBets = Nil,
       minBetMultiplier = 1,
-      maxBetMultiplier = 200,
+      maxBet = None: Option[Int],
       bettingStrategy = Oscars,
       oscarsGoalMultiplier = 1.25,
       oscarsGoal = (1.25 * 2000).toInt)
@@ -1389,7 +1389,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       bank = 2000, 
       handsAndBets = Nil,
       minBetMultiplier = 1,
-      maxBetMultiplier = 200,
+      maxBet = None: Option[Int],
       bettingStrategy = Oscars,
       oscarsGoalMultiplier = 1.25,
       oscarsGoal = (1.25 * 2000).toInt)
@@ -1419,7 +1419,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       bank = 2000, 
       handsAndBets = Nil,
       minBetMultiplier = 2,
-      maxBetMultiplier = 200,
+      maxBet = None: Option[Int],
       bettingStrategy = Steady,
       completedHands = 25,
       bankEvery25Hands = 1900)
@@ -1439,7 +1439,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       bank = 2000, 
       handsAndBets = Nil,
       minBetMultiplier = 2,
-      maxBetMultiplier = 200,
+      maxBet = None: Option[Int],
       bettingStrategy = Steady,
       completedHands = 25,
       bankEvery25Hands = 1900)
@@ -1457,7 +1457,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       bank = 2000, 
       handsAndBets = Nil,
       minBetMultiplier = 2,
-      maxBetMultiplier = 200,
+      maxBet = None: Option[Int],
       bettingStrategy = Steady,
       completedHands = 24,
       bankEvery25Hands = 1900)
@@ -1478,7 +1478,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       bank = 2000, 
       handsAndBets = Nil,
       minBetMultiplier = 10,
-      maxBetMultiplier = 200,
+      maxBet = None: Option[Int],
       bettingStrategy = Steady,
       completedHands = 25,
       bankEvery25Hands = 1900)
@@ -1498,7 +1498,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       bank = 2000, 
       handsAndBets = Nil,
       minBetMultiplier = 3,
-      maxBetMultiplier = 200,
+      maxBet = None: Option[Int],
       bettingStrategy = Steady,
       completedHands = 75,
       bankEvery25Hands = 3200)
@@ -1518,7 +1518,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       bank = 2000, 
       handsAndBets = Nil,
       minBetMultiplier = 1,
-      maxBetMultiplier = 200,
+      maxBet = None: Option[Int],
       bettingStrategy = Steady,
       completedHands = 50,
       bankEvery25Hands = 3200)
@@ -1539,7 +1539,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       bank = 1149, // less than 15% of 1000 
       handsAndBets = Nil,
       minBetMultiplier = 1,
-      maxBetMultiplier = 200,
+      maxBet = None: Option[Int],
       bettingStrategy = Steady,
       completedHands = 250,
       bankEvery250Hands = 1000)
@@ -1559,7 +1559,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       bank = 1149, // less than 15% of 1000 
       handsAndBets = Nil,
       minBetMultiplier = 1,
-      maxBetMultiplier = 200,
+      maxBet = None: Option[Int],
       bettingStrategy = Steady,
       completedHands = 250,
       bankEvery250Hands = 1000)
@@ -1576,7 +1576,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       bank = 1150, // 15% of 1000 
       handsAndBets = Nil,
       minBetMultiplier = 1,
-      maxBetMultiplier = 200,
+      maxBet = None: Option[Int],
       bettingStrategy = Steady,
       completedHands = 250,
       bankEvery250Hands = 1000)

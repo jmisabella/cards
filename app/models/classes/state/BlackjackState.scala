@@ -14,8 +14,7 @@ import cards.models.classes.bettingstrategy.BlackjackBettingStrategy._
 // bank: player's available tokens
 // handsAndBets: player has 1 or more Hands, with each Hand containing its cards as well as players' bets placed on the hand
 // minBetMultiplier: (only applicable to non-players) when betting normally, how many times the minimum bet should the player bet
-// maxBetMultiplier: (only applicable to non-players) how many times minimum bet without exceeding max bet should player reach 
-//                                                    as a personal maximum bet
+// maxBet: (only applicable to non-players) when specified, maximum bet a player wishes to make for any hand
 // bettingStrategy: one of Steady, Martingale, Oscars, PositiveProgression, NegativeProgression
 //  * Steady - always bet same amount, regardless of wins or losses
 //  * Martingale - always bet set amount after a win; this amount is multiplied x2 after 1 loss, x4 after 2 losses, x8 after 3 losses, etc...
@@ -38,7 +37,7 @@ case class BlackjackPlayerState(
   bank: Int = 0, 
   handsAndBets: Seq[Hand] = Nil, 
   minBetMultiplier: Double = 1.0, 
-  maxBetMultiplier: Double = 2.0,
+  maxBet: Option[Int] = None,
   bettingStrategy: BlackjackBettingStrategy = Steady,
   oscarsGoalMultiplier: Double = 1.25, 
   oscarsGoal: Int = 0,
@@ -48,9 +47,7 @@ case class BlackjackPlayerState(
   
     val hands: Seq[Seq[Card]] = handsAndBets.map(_.hand)
     val oscarsGoalMet: Boolean = bank >= oscarsGoal 
-    require(minBetMultiplier <= maxBetMultiplier)
     require(minBetMultiplier >= 1.0)
-    require(maxBetMultiplier >= 1.0)
     require(oscarsGoalMultiplier >= 1.0)
 }
 
