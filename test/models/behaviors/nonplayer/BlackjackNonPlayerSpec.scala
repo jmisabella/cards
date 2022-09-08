@@ -5,6 +5,7 @@ import cards.models.behaviors.evaluation.BlackjackHandEvaluation
 import cards.models.behaviors.predicates.BlackjackPredicates
 import cards.models.behaviors.betting.BlackjackBetting
 import cards.models.behaviors.nonplayer.BlackjackNonPlayer
+import cards.models.behaviors.play.BlackjackPlay
 import cards.models.classes.{ Card, Rank, Suit, Deck, DeckType }
 import cards.models.classes.DeckType._
 import cards.models.classes.Rank._
@@ -32,15 +33,18 @@ class BlackjackNonPlayerSpec extends AnyFlatSpec with GivenWhenThen {
   private [nonplayer] case object _betting extends BlackjackBetting {
     override type EVAL = BlackjackHandEvaluation
     override val evaluation = _evaluation
-
   }
+  private [nonplayer] case object _play extends BlackjackPlay
+
   case object module extends BlackjackNonPlayer {
     override type EVAL = BlackjackHandEvaluation
     override type PREDICATES = BlackjackPredicates
     override type BETTING = BlackjackBetting
+    override type PLAY = BlackjackPlay
     override val evaluation = _evaluation
     override val predicates = _predicates
     override val betting = _betting
+    override val play = _play
   }
 
   "BlackjackNonPlayer" should "throw an illegal state exception when proceeding to next state from a game state without any players" in {
