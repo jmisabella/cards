@@ -3,8 +3,9 @@ package cards.models.behaviors.nonplayer
 import cards.models.behaviors.Commons
 import cards.models.behaviors.evaluation.BlackjackHandEvaluation
 import cards.models.behaviors.predicates.BlackjackPredicates
-import cards.models.behaviors.payout.BlackjackPayout
+import cards.models.behaviors.betting.BlackjackBetting
 import cards.models.behaviors.nonplayer.BlackjackNonPlayer
+import cards.models.behaviors.play.BlackjackPlay
 import cards.models.classes.{ Card, Rank, Suit, Deck, DeckType }
 import cards.models.classes.DeckType._
 import cards.models.classes.Rank._
@@ -29,18 +30,21 @@ class BlackjackNonPlayerSpec extends AnyFlatSpec with GivenWhenThen {
     override type CB = Commons
     override val commons = _commons
   }
-  private [nonplayer] case object _payout extends BlackjackPayout {
+  private [nonplayer] case object _betting extends BlackjackBetting {
     override type EVAL = BlackjackHandEvaluation
     override val evaluation = _evaluation
-
   }
+  private [nonplayer] case object _play extends BlackjackPlay
+
   case object module extends BlackjackNonPlayer {
     override type EVAL = BlackjackHandEvaluation
     override type PREDICATES = BlackjackPredicates
-    override type PAYOUT = BlackjackPayout
+    override type BETTING = BlackjackBetting
+    override type PLAY = BlackjackPlay
     override val evaluation = _evaluation
     override val predicates = _predicates
-    override val payout = _payout
+    override val betting = _betting
+    override val play = _play
   }
 
   "BlackjackNonPlayer" should "throw an illegal state exception when proceeding to next state from a game state without any players" in {
@@ -51,6 +55,36 @@ class BlackjackNonPlayerSpec extends AnyFlatSpec with GivenWhenThen {
     an [IllegalStateException] shouldBe thrownBy (module.next(gameState)) 
   }
 
+  "BlackjackNonPlayer" should "throw an illegal state exception when proceeding to next state from a game state with no designated current player" in {
+    Given("a blackjack game state with 3 players but with no designated current player")
+    val player1 = BlackjackPlayerState(
+      "Jeffrey", 
+      25, 
+      Seq( 
+        Hand(Seq(Card(Four, Hearts), Card(Jack, Diamonds)), 
+        bets = Map("Jeffrey" -> 15, "Alice" -> 10), 
+        wins = None)))
+    val player2 = BlackjackPlayerState(
+      "Alice", 
+      50, 
+      Seq( 
+        Hand(Seq(Card(Two, Clubs), Card(Ace, Spades)), 
+        bets = Map("Jeffrey" -> 5, "Brandon" -> 10, "Alice" -> 15),
+        wins = None)))
+    val player3 = BlackjackPlayerState(
+      "Brandon", 
+      40, 
+      Seq( 
+        Hand(Seq(Card(Three, Spades), Card(Seven, Hearts)), 
+        bets = Map("Brandon" -> 20, "Alice" -> 25),
+        wins = None)))
+    val dealerCards: Seq[Card] = Seq(Card(Ten, Diamonds), Card(Nine, Spades))
+    val gameState = BlackjackGameState(options = BlackjackOptions(), dealerHand = Hand(dealerCards), players = Seq(player1, player2, player3), currentPlayerIndex = None)
+    When("proceeding to the next state")
+    Then("an illegal state exception should be thrown")
+    an [IllegalStateException] shouldBe thrownBy (module.next(gameState)) 
+  }
+  
   it should "throw an illegal state exception when proceeding to next state from a game state whose deck is empty" in {
     Given("a blackjack game state whose deck has no remaining cards")
     val player1 = BlackjackPlayerState(
@@ -75,7 +109,12 @@ class BlackjackNonPlayerSpec extends AnyFlatSpec with GivenWhenThen {
         bets = Map("Brandon" -> 20, "Alice" -> 25),
         wins = None)))
     val dealerCards: Seq[Card] = Seq(Card(Ten, Diamonds), Card(Nine, Spades))
-    val gameState = BlackjackGameState(options = BlackjackOptions(), deck = Deck.emptyDeck, dealerHand = Hand(dealerCards), players = Seq(player1, player2, player3))
+    val gameState = BlackjackGameState(
+      options = BlackjackOptions(), 
+      deck = Deck.emptyDeck, 
+      dealerHand = Hand(dealerCards), 
+      players = Seq(player1, player2, player3),
+      currentPlayerIndex = Some(0))
     When("proceeding to the next state")
     Then("an illegal state exception should be thrown")
     an [IllegalStateException] shouldBe thrownBy (module.next(gameState)) 
@@ -105,8 +144,11 @@ class BlackjackNonPlayerSpec extends AnyFlatSpec with GivenWhenThen {
         bets = Map("Brandon" -> 20, "Alice" -> 25),
         wins = Some(false))))
     val dealerCards: Seq[Card] = Seq(Card(Ten, Diamonds), Card(Nine, Spades))
-    val gameState = BlackjackGameState(options = BlackjackOptions(), dealerHand = Hand(dealerCards), players = Seq(player1, player2, player3))
-
+    val gameState = BlackjackGameState(
+      options = BlackjackOptions(), 
+      dealerHand = Hand(dealerCards), 
+      players = Seq(player1, player2, player3),
+      currentPlayerIndex = Some(0))
     When("progressing to the next state")
     val settledBets: BlackjackGameState = module.next(gameState)
     import scala.language.postfixOps
@@ -136,7 +178,11 @@ class BlackjackNonPlayerSpec extends AnyFlatSpec with GivenWhenThen {
         bets = Map("Jeffrey" -> 2), // bet 2 on his hand 
         wins = Some(true))))
     val dealerCards: Seq[Card] = Seq(Card(Ten, Diamonds), Card(Nine, Spades))
-    val gameState = BlackjackGameState(options = BlackjackOptions(), dealerHand = Hand(dealerCards), players = Seq(player1))
+    val gameState = BlackjackGameState(
+      options = BlackjackOptions(), 
+      dealerHand = Hand(dealerCards), 
+      players = Seq(player1),
+      currentPlayerIndex = Some(0))
     When("progressing to the next state")
     val settledBets = module.next(gameState)  
     Then("the player should be paid 3-to-2, so would win 3")
@@ -153,7 +199,11 @@ class BlackjackNonPlayerSpec extends AnyFlatSpec with GivenWhenThen {
         bets = Map("Jeffrey" -> 5), // bet 2 on his hand 
         wins = Some(true))))
     val dealerCards: Seq[Card] = Seq(Card(Ten, Diamonds), Card(Nine, Spades))
-    val gameState = BlackjackGameState(options = BlackjackOptions(payout = SixToFive), dealerHand = Hand(dealerCards), players = Seq(player1))
+    val gameState = BlackjackGameState(
+      options = BlackjackOptions(payout = SixToFive), 
+      dealerHand = Hand(dealerCards), 
+      players = Seq(player1),
+      currentPlayerIndex = Some(0))
     When("progressing to the next game state")
     val settledBets = module.next(gameState)  
     Then("the player should be paid 6-to-5, so would win 6 since bet was 5")
@@ -170,7 +220,11 @@ class BlackjackNonPlayerSpec extends AnyFlatSpec with GivenWhenThen {
         bets = Map("Jeffrey" -> 2), // bet 2 on his hand 
         wins = Some(true))))
     val dealerCards: Seq[Card] = Seq(Card(Ten, Diamonds), Card(Nine, Spades))
-    val gameState = BlackjackGameState(options = BlackjackOptions(payout = OneToOne), dealerHand = Hand(dealerCards), players = Seq(player1))
+    val gameState = BlackjackGameState(
+      options = BlackjackOptions(payout = OneToOne), 
+      dealerHand = Hand(dealerCards), 
+      players = Seq(player1),
+      currentPlayerIndex = Some(0))
     When("progressing to the next state")
     val settledBets = module.next(gameState)  
     Then("the player should be paid 1-to-1, so would win 2")
@@ -187,7 +241,10 @@ class BlackjackNonPlayerSpec extends AnyFlatSpec with GivenWhenThen {
         bets = Map("Jeffrey" -> 1), // bet 2 on his hand 
         wins = Some(false))))
     val dealerCards: Hand = Hand(Seq(Card(Ace, Diamonds), Card(Ten, Spades)), Map("Jeffrey" -> 1), Some(true))
-    val gameState = BlackjackGameState(dealerHand = dealerCards, players = Seq(player1))
+    val gameState = BlackjackGameState(
+      dealerHand = dealerCards, 
+      players = Seq(player1),
+      currentPlayerIndex = Some(0))
     When("progressing to the next game state")
     val settledBets = module.next(gameState)  
     Then("player should win 2 for insurance but lose 1 for his losing hand, for a new bank total of 21")

@@ -1,28 +1,54 @@
 package cards.models.classes.state
 
 import cards.models.classes.state.{ PlayerState, GameState }
-// import cards.models.classes.{ Card, Deck }
 import cards.models.classes.{ Card, Rank, Suit, Deck }
 import cards.models.classes.Rank._
 import cards.models.classes.Suit._
 import cards.models.classes.hand.Hand
 import cards.models.classes.options.BlackjackOptions
-// import cards.models.classes.options.BlackjackPayout._
-// import cards.models.classes.options.Surrender._
-// import cards.models.classes.options.DealerHitLimit._
-// import cards.models.classes.options.ResplitLimit._
 import cards.models.classes.actions.{ Action, BlackjackAction }
 import cards.models.classes.actions.BlackjackAction._
+import cards.models.classes.bettingstrategy.BlackjackBettingStrategy._
 
-case class BlackjackPlayerState(id: String, bank: Int = 0, handsAndBets: Seq[Hand] = Nil) extends PlayerState {
-  val hands: Seq[Seq[Card]] = handsAndBets.map(_.hand)
-  // def playerBet(playerId: String): Option[(Seq[Card], Int)] = { 
-  //   (for {
-  //     x <- handsAndBets
-  //     if (x.bets.keys.toSeq.contains(playerId))
-  //   } yield (x.hand, x.bets.filter(_._1 == playerId).values.head)
-  //   ).headOption
-  // }
+// id: player's unique identifier
+// bank: player's available tokens
+// handsAndBets: player has 1 or more Hands, with each Hand containing its cards as well as players' bets placed on the hand
+// minBetMultiplier: (only applicable to non-players) when betting normally, how many times the minimum bet should the player bet
+// maxBet: (only applicable to non-players) when specified, maximum bet a player wishes to make for any hand
+// bettingStrategy: one of Steady, Martingale, Oscars, PositiveProgression, NegativeProgression
+//  * Steady - always bet same amount, regardless of wins or losses
+//  * Martingale - always bet set amount after a win; this amount is multiplied x2 after 1 loss, x4 after 2 losses, x8 after 3 losses, etc...
+//  * Oscars - always bet set amount after a loss; after every win, allow the won amount to ride, to double it after 2 wins; 
+//             end when a specific goal is met
+//  * PositiveProgression - always bet same amount after a loss; increase this amount after wins, but to in no specific intervals
+//  * NegativeProgression - always bet same amound after a win; increase amount after losses, but unlike Martingale does not have 
+//                          to increase by a doubled amount after each loss
+// oscarsGoalMultiplier: only applicable for Oscar's betting strategy, player's bank multiplied by this value is the incremental 
+//                       goal of Oscar's betting
+// oscarsGoal: only applicable for Oscar's betting strategy, intermediate goal to be achieved
+// bankEvery25Intervals: to be reset every 25 games to update to bank amount, used to determine whether to increase or decrease  
+//                            player's minimum bet, based on whether bank increases or decreases after 25 games
+// bankEvery250Intervals: to be reset every 250 games to update to current bank amount, used to determine whether to change betting strategy, 
+//                             based on whether bank increases by 15% after 250 games
+// completedHands: starts at 0 and increases with every hand won or lost, the number of completed hands is used to track updating every 25 and 250 
+//                 hands to determine when to refresh bankEvery25Hands and bankEvery250Hands
+case class BlackjackPlayerState(
+  id: String, 
+  bank: Int = 0, 
+  handsAndBets: Seq[Hand] = Nil, 
+  minBetMultiplier: Double = 1.0, 
+  maxBet: Option[Int] = None,
+  bettingStrategy: BlackjackBettingStrategy = Steady,
+  oscarsGoalMultiplier: Double = 1.25, 
+  oscarsGoal: Int = 0,
+  bankEvery25Hands: Int = 0,
+  bankEvery250Hands: Int = 0,
+  completedHands: Int = 0) extends PlayerState {
+  
+    val hands: Seq[Seq[Card]] = handsAndBets.map(_.hand)
+    val oscarsGoalMet: Boolean = bank >= oscarsGoal 
+    require(minBetMultiplier >= 1.0)
+    require(oscarsGoalMultiplier >= 1.0)
 }
 
 object BlackjackPlayerState {

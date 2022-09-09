@@ -5,6 +5,8 @@ import cards.models.classes.{ Card, Rank, Suit, Deck }
 import cards.models.classes.Rank._
 import cards.models.classes.Suit._
 import cards.models.classes.hand.Hand
+import cards.models.classes.actions.Action
+import cards.models.classes.actions.BlackjackAction._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 import org.scalatest.GivenWhenThen
@@ -135,17 +137,121 @@ class BlackjackStateSpec extends AnyFlatSpec with GivenWhenThen {
   }
 
   it should "have knowledge when a player's last 2 outcomes were wins" in {
-
-    pending 
+    val player = 
+      BlackjackPlayerState(
+        "Jeffrey", 
+        20, 
+        Seq(Hand(Seq(Card(Three, Clubs), Card(Ten, Diamonds)))))
+    val dealerHand = Hand(Seq(Card(Three, Hearts), Card(Eight, Clubs)))
+    val history = Seq(
+      Action("Jeffrey", Win), 
+      Action(
+        playerId = "Jeffrey", 
+        action = Hit, 
+        actionCards = Seq(Card(Two, Hearts)), 
+        beforeCards = Seq(Card(Three, Clubs), Card(Ten, Diamonds)), 
+        afterCards = Seq(Card(Three, Clubs), Card(Ten, Diamonds), Card(Two, Hearts))),
+      Action(
+        playerId = "Jeffrey", 
+        action = Stand, 
+        actionCards = Nil,
+        beforeCards = Seq(Card(Three, Clubs), Card(Ten, Diamonds), Card(Two, Hearts)),
+        afterCards = Seq(Card(Three, Clubs), Card(Ten, Diamonds), Card(Two, Hearts))),
+      Action(
+        playerId = "DEALER",
+        action = Stand,
+        actionCards = Nil,
+        beforeCards = dealerHand.hand,
+        afterCards = dealerHand.hand
+      ),
+      Action("Jeffrey", Win))  
+    val state: BlackjackGameState = 
+      BlackjackGameState(
+        players = Seq(player), 
+        dealerHand = dealerHand,
+        history = history,
+        currentPlayerIndex = Some(0),
+        currentHandIndex = Some(0))
+    When("getting winning history for the player Jeffrey")
+    val winningHistory = state.winningHistory("Jeffrey")
+    Then("winning history would show exactly 2 wins for Jeffrey") 
+    winningHistory should have length (2)
+    winningHistory should equal (Seq(true, true))
   }
 
   it should "have knowledge when a player doesn't yet have any outcomes in her history" in {
-
-    pending 
+    Given("game with single player who has 2 cards but has an empty history") 
+    val player = 
+      BlackjackPlayerState(
+        "Alice", 
+        20, 
+        Seq(Hand(Seq(Card(Three, Clubs), Card(Ten, Diamonds)))))
+    val dealerHand = Hand(Seq(Card(Three, Hearts), Card(Eight, Clubs)))
+    val history: Seq[Action[BlackjackAction]] = Nil
+    val state: BlackjackGameState = 
+      BlackjackGameState(
+        players = Seq(player), 
+        dealerHand = dealerHand,
+        history = history,
+        currentPlayerIndex = Some(0),
+        currentHandIndex = Some(0))
+    When("getting winning history for the player Alice")
+    val winningHistory = state.winningHistory("Alice")
+    Then("winning history would be empty Alice") 
+    winningHistory should have length (0)
+    winningHistory should equal (Nil)
   }
 
-  it should "have knowledge when a player's complete outcome history is win, lose, lose" in {
+  "BlackjackPlayerState" should "throw an error at construction time when minBetMultiplier is less than 1" in {
+    Given("a minBetMultiplier 0 and a maxBet 100")
+    val (minMultiplierA, maxBetA) = (0, Some(100))
+    When("constructing a BlackjackPlayerState using the min multiplier of 1 and maxBet of 100")
+    Then("an illegal argument exception should be thrown")
+    an [IllegalArgumentException] should be thrownBy (BlackjackPlayerState("John", 0, Nil, minMultiplierA, maxBetA))
+    
+    Given("a minBetMultiplier -2 and a maxBet of 100")
+    val (minMultiplierB, maxBetB) = (-2, Some(100))
+    When("constructing a BlackjackPlayerState using the min multiplier -2 and max bet 100")
+    Then("an illegal argument exception should be thrown")
+    an [IllegalArgumentException] should be thrownBy (BlackjackPlayerState("John", 0, Nil, minMultiplierB, maxBetB))
+  } 
 
-    pending
+  it should "throw an error at construction time when minBetMulplier is 0" in {
+    Given("a minBetMultiplier 0 and no maxBet")
+    val (minMultiplierA) = 0
+    When("constructing a BlackjackPlayerState using the min multiplier 0")
+    Then("an illegal argument exception should be thrown")
+    an [IllegalArgumentException] should be thrownBy (BlackjackPlayerState("John", 0, Nil, minMultiplierA))
+  
+    Given("a minBetMultiplier -2")
+    val (minMultiplierB, maxMultiplierB) = (-2, -2)
+    When("constructing a BlackjackPlayerState using the min multiplier -2")
+    Then("an illegal argument exception should be thrown")
+    an [IllegalArgumentException] should be thrownBy (BlackjackPlayerState("John", 0, Nil, minMultiplierB))
   }
+
+  it should "throw an error at construction time when oscarsGoalMultiplier is 0.75" in {
+    Given("an oscarsGoalMultiplier of 0.75")
+    val oscarsGoalMultiplier = 0.75
+    When("constructing a BlackjackPlayerState using the oscar's goal multiplier 0.75")
+    Then("an illegal argument exception should be thrown")
+    an [IllegalArgumentException] should be thrownBy (BlackjackPlayerState(id = "John", bank = 100, oscarsGoalMultiplier = oscarsGoalMultiplier))
+  } 
+
+  it should "throw an error at construction time when oscarsGoalMultiplier 0" in {
+    Given("an oscarsGoalMultiplier of 0")
+    val oscarsGoalMultiplier = 0.0
+    When("constructing a BlackjackPlayerState using the oscar's goal multiplier 0")
+    Then("an illegal argument exception should be thrown")
+    an [IllegalArgumentException] should be thrownBy (BlackjackPlayerState(id = "John", bank = 100, oscarsGoalMultiplier = oscarsGoalMultiplier))
+  }
+ 
+  it should "throw an error at construction time when oscarsGoalMultiplier -2.0" in {
+    Given("an oscarsGoalMultiplier of -2.0")
+    val oscarsGoalMultiplier = -2.0
+    When("constructing a BlackjackPlayerState using the oscar's goal multiplier -2.0")
+    Then("an illegal argument exception should be thrown")
+    an [IllegalArgumentException] should be thrownBy (BlackjackPlayerState(id = "John", bank = 100, oscarsGoalMultiplier = oscarsGoalMultiplier))
+  }
+
 }
