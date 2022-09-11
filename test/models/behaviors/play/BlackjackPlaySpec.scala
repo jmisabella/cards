@@ -1,6 +1,7 @@
 package cards.models.behaviors.play
 
 import cards.models.behaviors.play.BlackjackPlay
+import cards.models.behaviors.Commons
 import cards.models.classes.{ Card, Rank, Suit, Deck, DeckType }
 import cards.models.classes.DeckType._
 import cards.models.classes.Rank._
@@ -16,7 +17,11 @@ import org.scalatest.matchers.should.Matchers._
 import org.scalatest.GivenWhenThen
 
 class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
-  private case object _play extends BlackjackPlay
+  private case object _commons extends Commons
+  private case object _play extends BlackjackPlay {
+    override type C = Commons
+    override val commons = _commons
+  }
   import _play._
 
   "BlackjackPlay" should "know when it's not yet time to play because bets have not yet been taken" in {
@@ -105,6 +110,83 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
     an [IllegalArgumentException] shouldBe thrownBy (isTimeToPlay(game))
   }
 
-  // TODO: 
+  it should "not allow split for an empty hand" in {
+    val cards: Seq[Card] = Nil
+    val result: Boolean = canSplit(cards)
+    result should be (false)
+  }
+
+  it should "not allow split for a single-card hand" in {
+    val cards: Seq[Card] = Seq(Card(Three, Clubs))
+    val result: Boolean = canSplit(cards)
+    result should be (false)
+  }
+
+  it should "not allow split for a 2-card hand with cards of different rank whose values are both lower than 10" in {
+    val cards: Seq[Card] = Seq(Card(Seven, Hearts), Card(Nine, Spades))
+    val result: Boolean = canSplit(cards)
+    result should be (false)
+  }
+
+  it should "allow split for a 2-card hand with cards of matching rank" in {
+    val cards: Seq[Card] = Seq(Card(Jack, Clubs), Card(Jack, Hearts))
+    val result: Boolean = canSplit(cards)
+    result should be (true)
+  }
+
+  it should "by default allow split for a 2-card hand consisting of a Ten and a Queen" in {
+    val cards: Seq[Card] = Seq(Card(Ten, Clubs), Card(Queen, Hearts))
+    val result: Boolean = canSplit(cards)
+    result should be (true)
+  }
+  
+  it should "allow split for a 2-card hand consisting of a Ten and a Queen (differ in rank, but share same value 10)" in {
+    val cards: Seq[Card] = Seq(Card(Ten, Clubs), Card(Queen, Hearts))
+    val result: Boolean = canSplit(cards)
+    result should be (true)
+  }
+  
+  it should "allow split for a 2-card hand consisting of two Tens" in {
+    val cards: Seq[Card] = Seq(Card(Ten, Clubs), Card(Ten, Hearts))
+    val result: Boolean = canSplit(cards)
+    result should be (true)
+  }
+
+  it should "not allow split for a 3-card hand with 2 cards of matching rank and one additional card" in {
+    val cards: Seq[Card] = Seq(Card(Jack, Clubs), Card(Jack, Hearts), Card(Two, Clubs))
+    val result: Boolean = canSplit(cards)
+    result should be (false)
+  }
+
+  it should "allow split for pair of sevens if split limit of 2 has not yet been reached (split count is 1)" in {
+    val cards: Seq[Card] = Seq(Card(Seven, Clubs), Card(Seven, Hearts))
+    val result: Boolean = canSplit(cards, BlackjackOptions(splitLimit = Some(2)), splitCount = 1)
+    result should be (true)
+  }
+  
+  it should "not allow split for pair of threes if split limit of 2 has been reached (split count is 2)" in {
+    val cards: Seq[Card] = Seq(Card(Three, Clubs), Card(Three, Hearts))
+    val result: Boolean = canSplit(cards, BlackjackOptions(splitLimit = Some(2)), splitCount = 2)
+    result should be (false)
+  }
+
+  it should "not allow split for pair of threes if split limit of 2 has been exceeded (split count is 3)" in {
+    val cards: Seq[Card] = Seq(Card(Three, Clubs), Card(Three, Hearts))
+    val result: Boolean = canSplit(cards, BlackjackOptions(splitLimit = Some(2)), splitCount = 3)
+    result should be (false)
+  }
+
+  it should ", when resplitOnSplitAces is false, allow split for pair of aces if there were no previous aces split during this turn" in {
+    val cards: Seq[Card] = Seq(Card(Ace, Clubs), Card(Ace, Hearts))
+    val result: Boolean = canSplit(cards, BlackjackOptions(splitLimit = Some(2), resplitOnSplitAces = false), splitCount = 0, splitAcesCount = 0)
+    result should be (true)
+  }
+
+  it should ", when resplitOnSplitAces is false, not allow split for pair of aces if there were already aces split during this turn" in {
+    val cards: Seq[Card] = Seq(Card(Ace, Clubs), Card(Ace, Hearts))
+    val result: Boolean = canSplit(cards, BlackjackOptions(splitLimit = Some(2), resplitOnSplitAces = false), splitCount = 0, splitAcesCount = 1)
+    result should be (false)
+  }
 
 }
+ 

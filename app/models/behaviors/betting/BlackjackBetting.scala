@@ -6,8 +6,6 @@ import cards.models.classes.options.BlackjackOptions
 import cards.models.classes.options.BlackjackPayout._
 import cards.models.classes.options.Surrender._
 import cards.models.classes.options.DealerHitLimit._
-import cards.models.classes.options.ResplitLimit._
-import cards.models.classes.actions.{ Action, BlackjackAction }
 import cards.models.classes.actions.{ Action, BlackjackAction }
 import cards.models.classes.actions.BlackjackAction._
 import cards.models.classes.state.{ BlackjackPlayerState, BlackjackGameState }

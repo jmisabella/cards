@@ -23,30 +23,18 @@ object DealerHitLimit extends Enumeration {
   implicit val format: Format[DealerHitLimit] = Json.formatEnum(this)
 }
 
-// After first initial split, if split hands initial 2 cards are also same then can these be replit, and if so, how many times
-// Zero - no replits allowed
-// One, Two, Three, Four - limitation to how many replit hands are allowed
-// Unlimitted - no limitation to number of resplit hands allowed
-object ResplitLimit extends Enumeration {
-  type ResplitLimit = Value
-  val Zero, One, Two, Three, Four, Unlimitted = Value
-  implicit val format: Format[ResplitLimit] = Json.formatEnum(this)
-}
-
 import cards.models.classes.options.BlackjackPayout._
 import cards.models.classes.options.Surrender._
 import cards.models.classes.options.DealerHitLimit._
-import cards.models.classes.options.ResplitLimit._
 
 case class BlackjackOptions(
   deckCount: Int = 1,
   dealerHitLimit: DealerHitLimit = S17,
   payout: BlackjackPayout = ThreeToTwo,
   surrenderType: Option[Surrender] = Some(LateSurrender),
-  resplitLimit: ResplitLimit = Unlimitted,
+  splitLimit: Option[Int] = Some(3),
   hitOnSplitAces: Boolean = true,
-  resplitOnSplitAces: Boolean = true,
-  splitOnRankMatchOnly: Boolean = false) {
+  resplitOnSplitAces: Boolean = true) {
   
   require(deckCount >= 1 && deckCount <= 8, s"deckCount [$deckCount] is outside of allowed range 1-8")
 }

@@ -34,7 +34,10 @@ class BlackjackNonPlayerSpec extends AnyFlatSpec with GivenWhenThen {
     override type EVAL = BlackjackHandEvaluation
     override val evaluation = _evaluation
   }
-  private [nonplayer] case object _play extends BlackjackPlay
+  private [nonplayer] case object _play extends BlackjackPlay {
+    override type C = Commons
+    override val commons = _commons
+  }
 
   case object module extends BlackjackNonPlayer {
     override type EVAL = BlackjackHandEvaluation

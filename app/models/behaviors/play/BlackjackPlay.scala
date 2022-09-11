@@ -1,13 +1,41 @@
 package cards.models.behaviors.play
 
+import cards.models.behaviors.Commons
 import cards.models.classes.state.{ BlackjackGameState, BlackjackPlayerState }
 import cards.models.classes.{ Card, Rank, Suit, Deck }
+import cards.models.classes.Rank._
+import cards.models.classes.Suit._
 import cards.models.classes.hand.Hand
 import cards.models.classes.actions.{ Action, BlackjackAction }
 import cards.models.classes.actions.BlackjackAction._
+import cards.models.classes.options.BlackjackOptions
 
 trait BlackjackPlay {
-  
+  type C <: Commons
+  val commons: C 
+  import commons._
+
+  // Only players can split on first play (only 2 cards) when both cards have same value
+  // Tens, Jacks, Queens, and Kings are all considered the same value, meaning that player can split on Ten and Queen, etc... 
+  // Dealers cannot split, but this function doesn't check for this
+  // o - game options, specifically resplitLimit and resplitOnSplitAces
+  // splitCount - number of times player has split in this turn, applicable when options.resplitLimit is specified as non-Unlimitted
+  // splitAcesCount - number of times player has split aces in this turn, applicable when options.resplitOnSplitAces is false
+  def canSplit(cards: Seq[Card], o: BlackjackOptions = BlackjackOptions(), splitCount: Int = 0, splitAcesCount: Int = 0): Boolean = {
+    val pairMatchingRank: Boolean = cards.length == 2 && countRank(cards).values.toSeq.contains(2)
+    val pairOfAces: Boolean = pairMatchingRank && cards.head.rank == Ace
+    
+    (splitCount, o.splitLimit, o.resplitOnSplitAces, pairOfAces, splitAcesCount) match {
+      case (count, Some(limit), _, _, _) if (count >= limit) => false
+      case (_, _, false, true, n) if (n > 0) => false // cannot split aces more than once per turn, unless variation on options allows it
+      case (_, _, _, _, _) => {
+        val tens: Seq[Rank] = Seq(Ten, Jack, Queen, King) // split is by value and not by rank: Ten and Jack can split even though they differ in rank
+        cards.length == 2 && 
+          (tens.contains(cards.head.rank) && tens.contains(cards.tail.head.rank) || pairMatchingRank)
+      }
+    }
+  }
+
   def getPlayerBet(playerState: BlackjackPlayerState, playerId: String): Option[(Seq[Card], Int)] = { 
     (for {
       x <- playerState.handsAndBets
@@ -39,27 +67,30 @@ trait BlackjackPlay {
       (game.players.flatMap(_.handsAndBets.map(h => h.wins)).count(w => w.isDefined) != game.players.length)
   }
 
-  def playFirstHand(game: BlackjackGameState): BlackjackGameState = {
+  // current player plays current hand
+  def playHand(game: BlackjackGameState): BlackjackGameState = {
     if (game.players == Nil) {
-      throw new IllegalArgumentException("Cannot play first hand because there are no players") 
+      throw new IllegalArgumentException("Cannot play current hand because there are no players") 
     }
     if (game.currentPlayerIndex.isEmpty) {
-      throw new IllegalArgumentException("Cannot play first hand because current player is not specified")
+      throw new IllegalArgumentException("Cannot play current hand because current player is not specified")
     }
     if (game.currentHandIndex.isEmpty) {
-      throw new IllegalArgumentException("Cannot play first hand because current hand is not specified")
+      throw new IllegalArgumentException("Cannot play current hand because current hand is not specified")
     }
-    if (game.currentHand().length != 2) {
-      throw new IllegalArgumentException(s"Cannot play first hand because current hand length [${game.currentHand().length}] is not length 2")
+    if (game.currentHand().length < 2) {
+      throw new IllegalArgumentException(s"Cannot play current hand because current hand length [${game.currentHand().length}] is less than length 2")
     }
     if (game.dealerHand.hand.length != 2) {
-      throw new IllegalArgumentException(s"Cannot play first hand because dealer's hand length [${game.dealerHand.hand.length}] is not length 2")
+      throw new IllegalArgumentException(s"Cannot play current hand because dealer's hand length [${game.dealerHand.hand.length}] is not length 2")
     }
     // TODO: test edge cases above
-    val action: Action[BlackjackAction] = (game.currentHand().sorted, game.dealerHand.hand) match {
+    // player's first turn, based on player's 2 cards and dealers face up card, decide which action to take
+    val action: Action[BlackjackAction] = (game.currentHand().sorted, game.dealerHand.hand.head) match {
       // TODO: implement 
       case (_, _) => ???
     }
+    // perform the action
     action match {
       // TODO: implement 
       case (_) => ???
