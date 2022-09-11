@@ -15,6 +15,9 @@ trait BlackjackPlay {
   val commons: C 
   import commons._
 
+  private def pairMatchingRank(cards: Seq[Card]): Boolean = cards.length == 2 && countRank(cards).values.toSeq.contains(2)
+  private def pairOfAces(cards: Seq[Card]): Boolean = pairMatchingRank(cards) && cards.head.rank == Ace
+
   // Only players can split on first play (only 2 cards) when both cards have same value
   // Tens, Jacks, Queens, and Kings are all considered the same value, meaning that player can split on Ten and Queen, etc... 
   // Dealers cannot split, but this function doesn't check for this
@@ -22,16 +25,14 @@ trait BlackjackPlay {
   // splitCount - number of times player has split in this turn, applicable when options.resplitLimit is specified as non-Unlimitted
   // splitAcesCount - number of times player has split aces in this turn, applicable when options.resplitOnSplitAces is false
   def canSplit(cards: Seq[Card], o: BlackjackOptions = BlackjackOptions(), splitCount: Int = 0, splitAcesCount: Int = 0): Boolean = {
-    val pairMatchingRank: Boolean = cards.length == 2 && countRank(cards).values.toSeq.contains(2)
-    val pairOfAces: Boolean = pairMatchingRank && cards.head.rank == Ace
     
-    (splitCount, o.splitLimit, o.resplitOnSplitAces, pairOfAces, splitAcesCount) match {
+    (splitCount, o.splitLimit, o.resplitOnSplitAces, pairOfAces(cards), splitAcesCount) match {
       case (count, Some(limit), _, _, _) if (count >= limit) => false
       case (_, _, false, true, n) if (n > 0) => false // cannot split aces more than once per turn, unless variation on options allows it
       case (_, _, _, _, _) => {
         val tens: Seq[Rank] = Seq(Ten, Jack, Queen, King) // split is by value and not by rank: Ten and Jack can split even though they differ in rank
         cards.length == 2 && 
-          (tens.contains(cards.head.rank) && tens.contains(cards.tail.head.rank) || pairMatchingRank)
+          (tens.contains(cards.head.rank) && tens.contains(cards.tail.head.rank) || pairMatchingRank(cards))
       }
     }
   }
@@ -85,10 +86,20 @@ trait BlackjackPlay {
       throw new IllegalArgumentException(s"Cannot play current hand because dealer's hand length [${game.dealerHand.hand.length}] is not length 2")
     }
     // TODO: test edge cases above
-    // player's first turn, based on player's 2 cards and dealers face up card, decide which action to take
-    val action: Action[BlackjackAction] = (game.currentHand().sorted, game.dealerHand.hand.head) match {
+    val canDoubleDown: Boolean = game.currentHand().length == 2
+    // we only care about this current player's actions
+    val previousActions: Seq[Action[BlackjackAction]] = game.history.filter(_.playerId == game.currentPlayer().id)
+    // current player's split count from history
+    val splitCount: Int = previousActions.count(a => a.action == Split)
+    // current player's aces split count from history
+    val acesSplitCount: Int = previousActions.count(a => pairOfAces(a.beforeCards) && a.action == Split) 
+    val eligibleToSplit: Boolean = canSplit(game.currentHand(), game.options, splitCount, acesSplitCount)
+    
+    // player's turn: based on player's cards and dealers face up card, decide which action to take
+    // looking at cards in reverse order so aces are at head, and changed to list in order to pattern match on head :: tail
+    val action: Action[BlackjackAction] = (game.currentHand().sorted.reverse.toList, game.dealerHand.hand.head, canDoubleDown, eligibleToSplit) match {
       // TODO: implement 
-      case (_, _) => ???
+      case (_, _, _, _) => ???
     }
     // perform the action
     action match {

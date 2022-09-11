@@ -150,19 +150,19 @@ class BlackjackStateSpec extends AnyFlatSpec with GivenWhenThen {
         action = Hit, 
         actionCards = Seq(Card(Two, Hearts)), 
         beforeCards = Seq(Card(Three, Clubs), Card(Ten, Diamonds)), 
-        afterCards = Seq(Card(Three, Clubs), Card(Ten, Diamonds), Card(Two, Hearts))),
+        afterCards = Seq(Seq(Card(Three, Clubs), Card(Ten, Diamonds), Card(Two, Hearts)))),
       Action(
         playerId = "Jeffrey", 
         action = Stand, 
         actionCards = Nil,
         beforeCards = Seq(Card(Three, Clubs), Card(Ten, Diamonds), Card(Two, Hearts)),
-        afterCards = Seq(Card(Three, Clubs), Card(Ten, Diamonds), Card(Two, Hearts))),
+        afterCards = Seq(Seq(Card(Three, Clubs), Card(Ten, Diamonds), Card(Two, Hearts)))),
       Action(
         playerId = "DEALER",
         action = Stand,
         actionCards = Nil,
         beforeCards = dealerHand.hand,
-        afterCards = dealerHand.hand
+        afterCards = Seq(dealerHand.hand)
       ),
       Action("Jeffrey", Win))  
     val state: BlackjackGameState = 
