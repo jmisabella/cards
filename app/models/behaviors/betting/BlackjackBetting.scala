@@ -203,7 +203,7 @@ trait BlackjackBetting {
   // returns: tuple with first item being the adjusted player states, and the 2nd item being the adjusted dealer's hand 
   private def adjustBetPayouts(players: Seq[BlackjackPlayerState], dealerHand: Hand, options: BlackjackOptions): (Seq[BlackjackPlayerState], Hand) = {
     val playerBlackjackWinAdjustedPayout: Hand => Hand = {
-      val (numerator, denominator): (Int, Int) = options.payout match {
+      val (numerator, denominator): (Int, Int) = options.blackjackPayout match {
         case OneToOne => (1, 1)
         case ThreeToTwo => (3, 2) 
         case SixToFive => (6, 5) 

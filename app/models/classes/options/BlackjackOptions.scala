@@ -29,7 +29,7 @@ import cards.models.classes.options.DealerHitLimit._
 case class BlackjackOptions(
   deckCount: Int = 1,
   dealerHitLimit: DealerHitLimit = S17,
-  payout: BlackjackPayout = ThreeToTwo,
+  blackjackPayout: BlackjackPayout = ThreeToTwo,
   allowSurrender: Boolean = true, 
   splitLimit: Option[Int] = Some(3),
   hitOnSplitAces: Boolean = true,

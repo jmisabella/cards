@@ -198,7 +198,7 @@ class BlackjackNonPlayerSpec extends AnyFlatSpec with GivenWhenThen {
         wins = Some(true))))
     val dealerCards: Seq[Card] = Seq(Card(Ten, Diamonds), Card(Nine, Spades))
     val gameState = BlackjackGameState(
-      options = BlackjackOptions(payout = SixToFive), 
+      options = BlackjackOptions(blackjackPayout = SixToFive), 
       dealerHand = Hand(dealerCards), 
       players = Seq(player1),
       currentPlayerIndex = Some(0))
@@ -219,7 +219,7 @@ class BlackjackNonPlayerSpec extends AnyFlatSpec with GivenWhenThen {
         wins = Some(true))))
     val dealerCards: Seq[Card] = Seq(Card(Ten, Diamonds), Card(Nine, Spades))
     val gameState = BlackjackGameState(
-      options = BlackjackOptions(payout = OneToOne), 
+      options = BlackjackOptions(blackjackPayout = OneToOne), 
       dealerHand = Hand(dealerCards), 
       players = Seq(player1),
       currentPlayerIndex = Some(0))
