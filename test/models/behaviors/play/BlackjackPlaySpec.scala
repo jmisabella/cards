@@ -2,6 +2,7 @@ package cards.models.behaviors.play
 
 import cards.models.behaviors.play.BlackjackPlay
 import cards.models.behaviors.Commons
+import cards.models.behaviors.evaluation.BlackjackHandEvaluation
 import cards.models.classes.{ Card, Rank, Suit, Deck, DeckType }
 import cards.models.classes.DeckType._
 import cards.models.classes.Rank._
@@ -18,9 +19,16 @@ import org.scalatest.GivenWhenThen
 
 class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
   private case object _commons extends Commons
-  private case object _play extends BlackjackPlay {
+  private case object _evaluation extends BlackjackHandEvaluation {
     override type C = Commons
     override val commons = _commons
+  }
+
+  private case object _play extends BlackjackPlay {
+    override type COMMONS = Commons
+    override val commons = _commons
+    override type EVAL = BlackjackHandEvaluation
+    override val evaluation: EVAL = _evaluation 
   }
   import _play._
 

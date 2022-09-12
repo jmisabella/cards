@@ -4,7 +4,6 @@ import cards.models.classes.{ Card, Rank, Suit, Deck }
 import cards.models.classes.hand.Hand
 import cards.models.classes.options.BlackjackOptions
 import cards.models.classes.options.BlackjackPayout._
-import cards.models.classes.options.Surrender._
 import cards.models.classes.options.DealerHitLimit._
 import cards.models.classes.actions.{ Action, BlackjackAction }
 import cards.models.classes.actions.BlackjackAction._

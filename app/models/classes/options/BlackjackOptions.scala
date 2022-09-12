@@ -8,13 +8,13 @@ object BlackjackPayout extends Enumeration {
   val ThreeToTwo, SixToFive, OneToOne = Value
   implicit val format: Format[BlackjackPayout] = Json.formatEnum(this)
 }
-// late - if dealer 1st card ace or ten, then make sure no blackjack before surrender is offered to player
-// early - player can surrender BEFORE dealer checks for blackjack
-object Surrender extends Enumeration {
-  type Surrender = Value
-  val LateSurrender, EarlySurrender = Value
-  implicit val format: Format[Surrender] = Json.formatEnum(this)
-}
+// // late - if dealer 1st card ace or ten, then make sure no blackjack before surrender is offered to player
+// // early - player can surrender BEFORE dealer checks for blackjack
+// object Surrender extends Enumeration {
+//   type Surrender = Value
+//   val LateSurrender, EarlySurrender = Value
+//   implicit val format: Format[Surrender] = Json.formatEnum(this)
+// }
 // S17 - dealer stands on soft 17
 // H17 - dealer hits on soft 17
 object DealerHitLimit extends Enumeration {
@@ -24,14 +24,13 @@ object DealerHitLimit extends Enumeration {
 }
 
 import cards.models.classes.options.BlackjackPayout._
-import cards.models.classes.options.Surrender._
 import cards.models.classes.options.DealerHitLimit._
 
 case class BlackjackOptions(
   deckCount: Int = 1,
   dealerHitLimit: DealerHitLimit = S17,
   payout: BlackjackPayout = ThreeToTwo,
-  surrenderType: Option[Surrender] = Some(LateSurrender),
+  allowSurrender: Boolean = true, 
   splitLimit: Option[Int] = Some(3),
   hitOnSplitAces: Boolean = true,
   resplitOnSplitAces: Boolean = true) {
