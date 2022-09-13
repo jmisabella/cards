@@ -72,8 +72,8 @@ trait BlackjackPlay {
       (game.players.flatMap(_.handsAndBets.map(h => h.wins)).count(w => w.isDefined) != game.players.length)
   }
 
-  // current player plays current hand
-  def playHand(game: BlackjackGameState): BlackjackGameState = {
+  // Basic Strategy in Blackjack 
+  def nextAction(game: BlackjackGameState): BlackjackAction = {
     if (game.players == Nil) {
       throw new IllegalArgumentException("Cannot play current hand because there are no players") 
     }
@@ -88,6 +88,9 @@ trait BlackjackPlay {
     }
     if (game.dealerHand.hand.length != 2) {
       throw new IllegalArgumentException(s"Cannot play current hand because dealer's hand length [${game.dealerHand.hand.length}] is not length 2")
+    }
+    if (!isTimeToPlay(game)) {
+      throw new IllegalArgumentException(s"Cannot play current hand because it's not currently time to play hand")
     }
     val canDoubleDown: Boolean = game.currentHand().length == 2
     // we only care about this current player's actions
@@ -107,8 +110,8 @@ trait BlackjackPlay {
     val surrenderOffered: Boolean = game.options.allowSurrender 
     val tens: Seq[Rank] = Seq(Ten, Jack, Queen, King) // ranks which have value of 10
 
-    val action: BlackjackAction = (highestRank, tailScore, totalScore, dealerFaceUpRank, canDoubleDown, eligibleToSplit, surrenderOffered) match {
-      // this logic is Basic Strategy in Blackjack 
+    // this logic is Basic Strategy in Blackjack 
+    (highestRank, tailScore, totalScore, dealerFaceUpRank, canDoubleDown, eligibleToSplit, surrenderOffered) match {
       // **** case 1: pairs
       // eligible to split on aces, do it regardless of dealer's showing card
       case (Ace, _, _, _, _, true, _) => Split
@@ -223,15 +226,58 @@ trait BlackjackPlay {
       case (_, _, 9, dealer, true, _, _) if (Seq(Three, Four, Five, Six).contains(dealer)) => DoubleDown
       // else if Double-down option is unavailable then hit on 9 
       case (_, _, 9, _, _, _, _) => Hit
-      // else hit on 8 or lower 
+      // else hit on 8 or lower
       case (_, _, _, _, _, _, _) => Hit
     }
+  }
+
+  // current player plays current hand
+  def playHand(game: BlackjackGameState): BlackjackGameState = {
+    if (game.players == Nil) {
+      throw new IllegalArgumentException("Cannot play current hand because there are no players") 
+    }
+    if (game.currentPlayerIndex.isEmpty) {
+      throw new IllegalArgumentException("Cannot play current hand because current player is not specified")
+    }
+    if (game.currentHandIndex.isEmpty) {
+      throw new IllegalArgumentException("Cannot play current hand because current hand is not specified")
+    }
+    if (game.currentHand().length < 2) {
+      throw new IllegalArgumentException(s"Cannot play current hand because current hand length [${game.currentHand().length}] is less than length 2")
+    }
+    if (game.dealerHand.hand.length != 2) {
+      throw new IllegalArgumentException(s"Cannot play current hand because dealer's hand length [${game.dealerHand.hand.length}] is not length 2")
+    }
+    if (!isTimeToPlay(game)) {
+      throw new IllegalArgumentException(s"Cannot play current hand because it's not currently time to play hand")
+    }
     
+    // next action based on Basic Strategy in Blackjack 
+    val action: BlackjackAction = nextAction(game)
+
     // perform the action
-    action match {
-      // TODO: implement 
-      case (_) => ???
-    } 
+    val (outcomeHands, updatedDeck, newHistory): (Seq[Seq[Card]], Deck, Seq[Action[BlackjackAction]]) = 
+      performPlayAction(game.currentPlayer().id, action, game.currentHand(), game.deck)
+    
+    val (updatedCurrentHand, newSplitHand): (Seq[Card], Seq[Card]) = outcomeHands.length match {
+      case 1 => (outcomeHands.head, Nil)
+      case _ => (outcomeHands.head, outcomeHands.tail.head)
+    }
+
     ???
-  } 
+  }
+
+  // returns updated cards (seq of hands to account for Splits), updated deck, and new history
+  def performPlayAction(
+    playerId: String, 
+    action: BlackjackAction, 
+    cards: Seq[Card], 
+    deck: Deck): (Seq[Seq[Card]], Deck, Seq[Action[BlackjackAction]]) = action match {
+      case Hit => ???
+      case Stand => ???
+      case DoubleDown => ???
+      case Split => ???
+      case Surrender => ???
+      case a => throw new IllegalArgumentException(s"Unexpected BlackjackAction [$a], at this phase the only expected actions are [Hit, Stand, DoubleDown, Split, Surrender]")
+    }
 }
