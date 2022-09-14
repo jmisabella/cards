@@ -72,6 +72,7 @@ trait BlackjackPlay {
       (game.players.flatMap(_.handsAndBets.map(h => h.wins)).count(w => w.isDefined) != game.players.length)
   }
 
+  // TODO: test
   // Basic Strategy in Blackjack 
   def nextAction(game: BlackjackGameState): BlackjackAction = {
     if (game.players == Nil) {
@@ -231,6 +232,7 @@ trait BlackjackPlay {
     }
   }
 
+  // TODO: test
   // current player plays current hand
   def playHand(game: BlackjackGameState): BlackjackGameState = {
     if (game.players == Nil) {
@@ -256,23 +258,37 @@ trait BlackjackPlay {
     val action: BlackjackAction = nextAction(game)
 
     // perform the action
-    val (outcomeHands, updatedDeck, newHistory): (Seq[Seq[Card]], Deck, Seq[Action[BlackjackAction]]) = 
+    val (outcomeHands, updatedDeck, newHistory): (Seq[Hand], Deck, Seq[Action[BlackjackAction]]) = 
       performPlayAction(game.currentPlayer().id, action, game.currentHand(), game.deck)
     
-    val (updatedCurrentHand, newSplitHand): (Seq[Card], Seq[Card]) = outcomeHands.length match {
-      case 1 => (outcomeHands.head, Nil)
-      case _ => (outcomeHands.head, outcomeHands.tail.head)
+    val (updatedCurrentHand, splitHand): (Hand, Option[Hand]) = outcomeHands.length match {
+      case 1 => (outcomeHands.head, None)
+      case _ => (outcomeHands.head, Some(outcomeHands.tail.head))
     }
-
-    ???
+    var updatedHands: Seq[Hand] = 
+      game.currentPlayer().handsAndBets.map { hand => hand.hand match {
+        case cs if (cs == game.currentHand()) => updatedCurrentHand
+        case _ => hand
+      }
+    }
+    updatedHands = splitHand match {
+      case Some(h) => updatedHands ++ Seq(h) // split occurred, add new hand
+      case None => updatedHands 
+    }
+    game.copy(deck = updatedDeck, history = game.history ++ newHistory, players = for (p <- game.players) yield {
+      if (p == game.currentPlayer())
+        p.copy(handsAndBets = updatedHands)
+      else p 
+    })
   }
 
+  // TODO: implement 
   // returns updated cards (seq of hands to account for Splits), updated deck, and new history
   def performPlayAction(
     playerId: String, 
     action: BlackjackAction, 
     cards: Seq[Card], 
-    deck: Deck): (Seq[Seq[Card]], Deck, Seq[Action[BlackjackAction]]) = action match {
+    deck: Deck): (Seq[Hand], Deck, Seq[Action[BlackjackAction]]) = action match {
       case Hit => ???
       case Stand => ???
       case DoubleDown => ???
