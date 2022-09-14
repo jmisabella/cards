@@ -32,7 +32,7 @@ class BlackjackStateSpec extends AnyFlatSpec with GivenWhenThen {
     currentPlayer should equal (player1)
     When("retrieving current player's current hand")
     Then("an illegal state exception should be thrown, since no players have any hands yet")
-    an [IllegalStateException] shouldBe thrownBy (state.currentHand())
+    an [IllegalStateException] shouldBe thrownBy (state.currentCards())
   }
 
   it should "retrieve current player's only hand" in {
@@ -51,7 +51,7 @@ class BlackjackStateSpec extends AnyFlatSpec with GivenWhenThen {
     Then("Avery should be retrieved")
     currentPlayer should equal (player2)
     When("retrieving current hand")
-    val currentHand = state.currentHand()
+    val currentHand = state.currentCards()
     Then("Avery's cards should be retrieved")
     currentHand should equal (player2.hands.head)
   }

@@ -69,9 +69,11 @@ case class BlackjackGameState(
   minimumBet: Int = 1,
   maximumBet: Int = 999999) extends GameState[BlackjackPlayerState, BlackjackAction] {
 
-    def currentHand(): Seq[Card] = current(currentPlayer().hands, currentHandIndex)
+    def currentCards(): Seq[Card] = current(currentPlayer().hands, currentHandIndex)
     def nextHandIndex(): Int = nextIndex(currentPlayer().hands, currentHandIndex)
     def isLastHand(): Boolean = currentHandIndex == Some(currentPlayer().hands.length - 1)
+    // TODO: test 
+    def currentHand(): Hand = players.flatMap(_.handsAndBets).filter(_.hand == currentCards()).head
 
     // true indicates a win, false indicates a loss; order is in the original order played, so most recent is last item
     def winningHistory(playerId: String): Seq[Boolean] = {

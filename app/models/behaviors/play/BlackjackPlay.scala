@@ -84,8 +84,8 @@ trait BlackjackPlay {
     if (game.currentHandIndex.isEmpty) {
       throw new IllegalArgumentException("Cannot play current hand because current hand is not specified")
     }
-    if (game.currentHand().length < 2) {
-      throw new IllegalArgumentException(s"Cannot play current hand because current hand length [${game.currentHand().length}] is less than length 2")
+    if (game.currentCards().length < 2) {
+      throw new IllegalArgumentException(s"Cannot play current hand because current hand length [${game.currentCards().length}] is less than length 2")
     }
     if (game.dealerHand.hand.length != 2) {
       throw new IllegalArgumentException(s"Cannot play current hand because dealer's hand length [${game.dealerHand.hand.length}] is not length 2")
@@ -93,20 +93,20 @@ trait BlackjackPlay {
     if (!isTimeToPlay(game)) {
       throw new IllegalArgumentException(s"Cannot play current hand because it's not currently time to play hand")
     }
-    val canDoubleDown: Boolean = game.currentHand().length == 2
+    val canDoubleDown: Boolean = game.currentCards().length == 2
     // we only care about this current player's actions
     val previousActions: Seq[Action[BlackjackAction]] = game.history.filter(_.playerId == game.currentPlayer().id)
     // current player's split count from history
     val splitCount: Int = previousActions.count(a => a.action == Split)
     // current player's aces split count from history
     val acesSplitCount: Int = previousActions.count(a => pairOfAces(a.beforeCards) && a.action == Split) 
-    val eligibleToSplit: Boolean = canSplit(game.currentHand(), game.options, splitCount, acesSplitCount)
+    val eligibleToSplit: Boolean = canSplit(game.currentCards(), game.options, splitCount, acesSplitCount)
     
     // player's turn: based on player's cards and dealers face up card, decide which action to take
     // looking at cards in reverse order so aces are at head, and changed to list in order to pattern match on head :: tail
-    val highestRank: Rank = game.currentHand().sorted.reverse.head.rank
-    val totalScore: Int = eval(game.currentHand())
-    val tailScore: Int = eval(game.currentHand().tail)
+    val highestRank: Rank = game.currentCards().sorted.reverse.head.rank
+    val totalScore: Int = eval(game.currentCards())
+    val tailScore: Int = eval(game.currentCards().tail)
     val dealerFaceUpRank: Rank = game.dealerHand.hand.head.rank
     val surrenderOffered: Boolean = game.options.allowSurrender 
     val tens: Seq[Rank] = Seq(Ten, Jack, Queen, King) // ranks which have value of 10
@@ -244,8 +244,8 @@ trait BlackjackPlay {
     if (game.currentHandIndex.isEmpty) {
       throw new IllegalArgumentException("Cannot play current hand because current hand is not specified")
     }
-    if (game.currentHand().length < 2) {
-      throw new IllegalArgumentException(s"Cannot play current hand because current hand length [${game.currentHand().length}] is less than length 2")
+    if (game.currentCards().length < 2) {
+      throw new IllegalArgumentException(s"Cannot play current hand because current hand length [${game.currentCards().length}] is less than length 2")
     }
     if (game.dealerHand.hand.length != 2) {
       throw new IllegalArgumentException(s"Cannot play current hand because dealer's hand length [${game.dealerHand.hand.length}] is not length 2")
@@ -267,7 +267,7 @@ trait BlackjackPlay {
     }
     var updatedHands: Seq[Hand] = 
       game.currentPlayer().handsAndBets.map { hand => hand.hand match {
-        case cs if (cs == game.currentHand()) => updatedCurrentHand
+        case cs if (cs == game.currentCards()) => updatedCurrentHand
         case _ => hand
       }
     }
@@ -280,6 +280,8 @@ trait BlackjackPlay {
         p.copy(handsAndBets = updatedHands)
       else p 
     })
+  
+      ???
   }
 
   // TODO: implement 
@@ -287,10 +289,10 @@ trait BlackjackPlay {
   def performPlayAction(
     playerId: String, 
     action: BlackjackAction, 
-    cards: Seq[Card], 
+    hand: Hand, 
     deck: Deck): (Seq[Hand], Deck, Seq[Action[BlackjackAction]]) = action match {
+      case Stand => ??? //()
       case Hit => ???
-      case Stand => ???
       case DoubleDown => ???
       case Split => ???
       case Surrender => ???
