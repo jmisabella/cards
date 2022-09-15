@@ -5,13 +5,14 @@ import cards.models.classes.actions.ThirtyOneAction._
 import cards.models.classes.actions.BlackjackAction._
 import play.api.libs.json. { Json, Format }
 
+// afterCards is seq of seq of cards, since cards could be split
 case class Action[A <: Enumeration#Value](
   playerId: String, 
   action: A, 
   actionCards: Seq[Card] = Nil, 
   actionTokens: Int = 0, 
   beforeCards: Seq[Card] = Nil, 
-  afterCards: Seq[Card] = Nil) {
+  afterCards: Seq[Seq[Card]] = Nil) {
   
     override def toString(): String = 
       (Json.obj(

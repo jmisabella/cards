@@ -21,28 +21,26 @@ import org.scalatest.matchers.should.Matchers._
 import org.scalatest.GivenWhenThen
 
 class BlackjackNonPlayerSpec extends AnyFlatSpec with GivenWhenThen {
+  private [nonplayer] case object _betting extends BlackjackBetting {
+    override type EVAL = BlackjackHandEvaluation
+    override val evaluation = _evaluation
+  }
+
   private [nonplayer] case object _commons extends Commons
   private [nonplayer] case object _evaluation extends BlackjackHandEvaluation {
     override type C = Commons
     override val commons = _commons
   }
-  private [nonplayer] case object _predicates extends BlackjackPredicates {
-    override type CB = Commons
+  private [nonplayer] case object _play extends BlackjackPlay {
+    override type COMMONS = Commons
     override val commons = _commons
-  }
-  private [nonplayer] case object _betting extends BlackjackBetting {
     override type EVAL = BlackjackHandEvaluation
-    override val evaluation = _evaluation
+    override val evaluation: EVAL = _evaluation 
   }
-  private [nonplayer] case object _play extends BlackjackPlay
 
   case object module extends BlackjackNonPlayer {
-    override type EVAL = BlackjackHandEvaluation
-    override type PREDICATES = BlackjackPredicates
     override type BETTING = BlackjackBetting
     override type PLAY = BlackjackPlay
-    override val evaluation = _evaluation
-    override val predicates = _predicates
     override val betting = _betting
     override val play = _play
   }
@@ -200,7 +198,7 @@ class BlackjackNonPlayerSpec extends AnyFlatSpec with GivenWhenThen {
         wins = Some(true))))
     val dealerCards: Seq[Card] = Seq(Card(Ten, Diamonds), Card(Nine, Spades))
     val gameState = BlackjackGameState(
-      options = BlackjackOptions(payout = SixToFive), 
+      options = BlackjackOptions(blackjackPayout = SixToFive), 
       dealerHand = Hand(dealerCards), 
       players = Seq(player1),
       currentPlayerIndex = Some(0))
@@ -221,7 +219,7 @@ class BlackjackNonPlayerSpec extends AnyFlatSpec with GivenWhenThen {
         wins = Some(true))))
     val dealerCards: Seq[Card] = Seq(Card(Ten, Diamonds), Card(Nine, Spades))
     val gameState = BlackjackGameState(
-      options = BlackjackOptions(payout = OneToOne), 
+      options = BlackjackOptions(blackjackPayout = OneToOne), 
       dealerHand = Hand(dealerCards), 
       players = Seq(player1),
       currentPlayerIndex = Some(0))

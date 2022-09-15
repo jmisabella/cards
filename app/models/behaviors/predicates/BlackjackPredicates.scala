@@ -10,19 +10,11 @@ trait BlackjackPredicates {
   type CB <: Commons
   val commons: CB 
 
-  // Only players can split on first play (only 2 cards) when both cards have same value
-  // Tens, Jacks, Queens, and Kings are all considered the same value, meaning that player can split on Ten and Queen, etc... 
-  // Dealers cannot split, but this function doesn't check for this
-  // TODO: need to check blackjack options regarding resplitLimit and resplitOnSplitAces
-  def canSplit(cards: Seq[Card], options: BlackjackOptions = BlackjackOptions()): Boolean = options.splitOnRankMatchOnly match {
-    case true => cards.length == 2 && commons.countRank(cards).values.toSeq.contains(2)
-    case false => {
-      val tens: Seq[Rank] = Seq(Ten, Jack, Queen, King)
-      cards.length == 2 && 
-        (tens.contains(cards.head.rank) && tens.contains(cards.tail.head.rank) || commons.countRank(cards).values.toSeq.contains(2))
-    }
-  }
-  
+  // TODO: to avoid unnecessary coupling this behavior should be eliminated and move the predicate functions into the single specific behavior from which they are used
+
+  // TODO: move this function to BlackjackPlay
+
+  // TODO: move this function to BlackjackBetting  
   // Players eligible for insurance only if dealer's first hand (only 2 cards) shows an ace as the face-up card  
   // Dealer's first card in hand is considered the face-up card 
   def eligibleForInstance(dealerCards: Seq[Card]): Boolean =

@@ -1,7 +1,6 @@
 package cards.models.behaviors.nonplayer
 
 import cards.models.behaviors.evaluation.BlackjackHandEvaluation
-import cards.models.behaviors.predicates.BlackjackPredicates
 import cards.models.behaviors.betting.BlackjackBetting
 import cards.models.behaviors.play.BlackjackPlay
 import cards.models.classes.state.{ BlackjackPlayerState, BlackjackGameState }
@@ -10,12 +9,8 @@ import cards.models.classes.actions.{ Action, BlackjackAction }
 import cards.models.classes.actions.BlackjackAction._
 
 trait BlackjackNonPlayer { 
-  type EVAL <: BlackjackHandEvaluation 
-  type PREDICATES <: BlackjackPredicates
   type BETTING <: BlackjackBetting
   type PLAY <: BlackjackPlay
-  val evaluation: EVAL
-  val predicates: PREDICATES
   val betting: BETTING
   val play: PLAY
 

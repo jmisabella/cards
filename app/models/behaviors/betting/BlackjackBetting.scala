@@ -4,10 +4,7 @@ import cards.models.classes.{ Card, Rank, Suit, Deck }
 import cards.models.classes.hand.Hand
 import cards.models.classes.options.BlackjackOptions
 import cards.models.classes.options.BlackjackPayout._
-import cards.models.classes.options.Surrender._
 import cards.models.classes.options.DealerHitLimit._
-import cards.models.classes.options.ResplitLimit._
-import cards.models.classes.actions.{ Action, BlackjackAction }
 import cards.models.classes.actions.{ Action, BlackjackAction }
 import cards.models.classes.actions.BlackjackAction._
 import cards.models.classes.state.{ BlackjackPlayerState, BlackjackGameState }
@@ -206,7 +203,7 @@ trait BlackjackBetting {
   // returns: tuple with first item being the adjusted player states, and the 2nd item being the adjusted dealer's hand 
   private def adjustBetPayouts(players: Seq[BlackjackPlayerState], dealerHand: Hand, options: BlackjackOptions): (Seq[BlackjackPlayerState], Hand) = {
     val playerBlackjackWinAdjustedPayout: Hand => Hand = {
-      val (numerator, denominator): (Int, Int) = options.payout match {
+      val (numerator, denominator): (Int, Int) = options.blackjackPayout match {
         case OneToOne => (1, 1)
         case ThreeToTwo => (3, 2) 
         case SixToFive => (6, 5) 
