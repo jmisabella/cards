@@ -22,9 +22,9 @@ trait BlackjackPlay {
   private def pairMatchingRank(cards: Seq[Card]): Boolean = cards.length == 2 && countRank(cards).values.toSeq.contains(2)
   private def pairOfAces(cards: Seq[Card]): Boolean = pairMatchingRank(cards) && cards.head.rank == Ace
 
-  // Only players can split on first play (only 2 cards) when both cards have same value
+  // Players can only split on first play (only 2 cards) when both cards have same value
   // Tens, Jacks, Queens, and Kings are all considered the same value, meaning that player can split on Ten and Queen, etc... 
-  // Dealers cannot split, but this function doesn't check for this
+  // Dealers cannot split (but this function doesn't check for this)
   // o - game options, specifically resplitLimit and resplitOnSplitAces
   // splitCount - number of times player has split in this turn, applicable when options.resplitLimit is specified as non-Unlimitted
   // splitAcesCount - number of times player has split aces in this turn, applicable when options.resplitOnSplitAces is false
@@ -233,7 +233,8 @@ trait BlackjackPlay {
   }
 
   // TODO: test
-  // current player plays current hand
+  // Current player plays current hand
+  // Note that this does not increment game's player index nor the current player's hand index (not this function's responsibility) 
   def playHand(game: BlackjackGameState): BlackjackGameState = {
     if (game.players == Nil) {
       throw new IllegalArgumentException("Cannot play current hand because there are no players") 
@@ -253,35 +254,35 @@ trait BlackjackPlay {
     if (!isTimeToPlay(game)) {
       throw new IllegalArgumentException(s"Cannot play current hand because it's not currently time to play hand")
     }
-    
     // next action based on Basic Strategy in Blackjack 
     val action: BlackjackAction = nextAction(game)
-
     // perform the action
     val (outcomeHands, updatedDeck, newHistory): (Seq[Hand], Deck, Seq[Action[BlackjackAction]]) = 
       performPlayAction(game.currentPlayer().id, action, game.currentHand(), game.deck)
     
+    // check for an additional hand (from splitting)  
     val (updatedCurrentHand, splitHand): (Hand, Option[Hand]) = outcomeHands.length match {
       case 1 => (outcomeHands.head, None)
       case _ => (outcomeHands.head, Some(outcomeHands.tail.head))
     }
+    // current player's updated hands (hand added via split will be added momentarly, hence the mutable)
     var updatedHands: Seq[Hand] = 
       game.currentPlayer().handsAndBets.map { hand => hand.hand match {
         case cs if (cs == game.currentCards()) => updatedCurrentHand
         case _ => hand
       }
     }
+    // check whether an additional hand needs to be added (due to split)
     updatedHands = splitHand match {
       case Some(h) => updatedHands ++ Seq(h) // split occurred, add new hand
       case None => updatedHands 
     }
+    // yield updated game state (but player's current hand or current player will not increment; not this function's responsibility) 
     game.copy(deck = updatedDeck, history = game.history ++ newHistory, players = for (p <- game.players) yield {
       if (p == game.currentPlayer())
         p.copy(handsAndBets = updatedHands)
       else p 
     })
-  
-      ???
   }
 
   // TODO: implement 
