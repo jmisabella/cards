@@ -24,7 +24,7 @@ trait BlackjackPlay {
 
   // Players can only split on first play (only 2 cards) when both cards have same value
   // Tens, Jacks, Queens, and Kings are all considered the same value, meaning that player can split on Ten and Queen, etc... 
-  // Dealers cannot split (but this function doesn't check for this)
+  // Dealers cannot split but this function doesn't check for this
   // o - game options, specifically resplitLimit and resplitOnSplitAces
   // splitCount - number of times player has split in this turn, applicable when options.resplitLimit is specified as non-Unlimitted
   // splitAcesCount - number of times player has split aces in this turn, applicable when options.resplitOnSplitAces is false
@@ -285,18 +285,60 @@ trait BlackjackPlay {
     })
   }
 
-  // TODO: implement 
+  // TODO: test 
   // returns updated cards (seq of hands to account for Splits), updated deck, and new history
   def performPlayAction(
     playerId: String, 
     action: BlackjackAction, 
     hand: Hand, 
     deck: Deck): (Seq[Hand], Deck, Seq[Action[BlackjackAction]]) = action match {
-      case Stand => ??? //()
-      case Hit => ???
-      case DoubleDown => ???
-      case Split => ???
-      case Surrender => ???
+      case Stand => (Seq(hand), deck, Seq(Action(playerId, Stand, Nil, 0, hand.hand, Seq(hand.hand))))
+      case a if (a == Hit || a == DoubleDown) => {
+        // Hit and DoubleDown both deal 1 card 
+        val (dealt, nextDeck): (Seq[Card], Deck) = deck.deal()
+        // bets is potentially modified (if player doubled-down) 
+        val (additionalBet, nextBets): (Int, Map[String, Int]) = a match {
+          case DoubleDown => {
+            ( // additional bet is same that player already had bet (doubling it)
+              hand.bets(playerId),
+              // bets adjusted to double player's bet 
+              (for ((player, bet) <- hand.bets) yield {
+                if (player == playerId)
+                  player -> bet * 2
+                else 
+                  player -> bet
+              }).toMap)
+          }
+          case _ => (0, hand.bets)
+        }
+        val updatedHand: Hand = hand.copy(hand = hand.hand ++ dealt, bets = nextBets)
+        (Seq(updatedHand), nextDeck, Seq(Action(playerId, a, dealt, additionalBet, hand.hand, Seq(updatedHand.hand))))
+      }
+      case Split => {
+        // deal 2 cards, 1 for each split hand 
+        val (dealt, nextDeck): (Seq[Card], Deck) = deck.deal(2)
+        val hand1: Hand = Hand(Seq(hand.hand.head, dealt.head), hand.bets)
+        val hand2: Hand = Hand(Seq(hand.hand.tail.head, dealt.tail.head), hand.bets)
+        // original bet amount is added as as new bet to the new hand 
+        val additionalBet: Int = hand.bets(playerId)
+        (Seq(hand1, hand2), nextDeck, Seq(Action(playerId, Split, dealt, additionalBet, hand.hand, Seq(hand1, hand2).map(_.hand)))) 
+      }
+      case Surrender => {
+        val (surrenderAmount, nextBets): (Int, Map[String, Int]) = {
+          (
+            hand.bets(playerId) / 2, // surrender bet is half original bet
+            // bets adjusted to halve player's bet 
+            (for ((player, bet) <- hand.bets) yield {
+              if (player == playerId)
+                player -> bet / 2 // halved 
+              else 
+                player -> bet
+            }).toMap
+          )
+        }
+        // afterwards player does not have any cards in the hand since player has surrendered; bet is adjusted so player only pays half
+        (Seq(hand.copy(hand = Nil, bets = nextBets)), deck, Seq(Action(playerId, Surrender, Nil, surrenderAmount, hand.hand, Nil)))
+      }
       case a => throw new IllegalArgumentException(s"Unexpected BlackjackAction [$a], at this phase the only expected actions are [Hit, Stand, DoubleDown, Split, Surrender]")
     }
 }
