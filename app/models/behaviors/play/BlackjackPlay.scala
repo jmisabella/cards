@@ -22,9 +22,9 @@ trait BlackjackPlay {
   private def pairMatchingRank(cards: Seq[Card]): Boolean = cards.length == 2 && countRank(cards).values.toSeq.contains(2)
   private def pairOfAces(cards: Seq[Card]): Boolean = pairMatchingRank(cards) && cards.head.rank == Ace
 
-  // Only players can split on first play (only 2 cards) when both cards have same value
+  // Players can only split on first play (only 2 cards) when both cards have same value
   // Tens, Jacks, Queens, and Kings are all considered the same value, meaning that player can split on Ten and Queen, etc... 
-  // Dealers cannot split, but this function doesn't check for this
+  // Dealers cannot split but this function doesn't check for this
   // o - game options, specifically resplitLimit and resplitOnSplitAces
   // splitCount - number of times player has split in this turn, applicable when options.resplitLimit is specified as non-Unlimitted
   // splitAcesCount - number of times player has split aces in this turn, applicable when options.resplitOnSplitAces is false
@@ -233,7 +233,8 @@ trait BlackjackPlay {
   }
 
   // TODO: test
-  // current player plays current hand
+  // Current player plays current hand
+  // Note that this does not increment game's player index nor the current player's hand index (not this function's responsibility) 
   def playHand(game: BlackjackGameState): BlackjackGameState = {
     if (game.players == Nil) {
       throw new IllegalArgumentException("Cannot play current hand because there are no players") 
@@ -253,49 +254,91 @@ trait BlackjackPlay {
     if (!isTimeToPlay(game)) {
       throw new IllegalArgumentException(s"Cannot play current hand because it's not currently time to play hand")
     }
-    
     // next action based on Basic Strategy in Blackjack 
     val action: BlackjackAction = nextAction(game)
-
     // perform the action
     val (outcomeHands, updatedDeck, newHistory): (Seq[Hand], Deck, Seq[Action[BlackjackAction]]) = 
       performPlayAction(game.currentPlayer().id, action, game.currentHand(), game.deck)
     
+    // check for an additional hand (from splitting)  
     val (updatedCurrentHand, splitHand): (Hand, Option[Hand]) = outcomeHands.length match {
       case 1 => (outcomeHands.head, None)
       case _ => (outcomeHands.head, Some(outcomeHands.tail.head))
     }
+    // current player's updated hands (hand added via split will be added momentarly, hence the mutable)
     var updatedHands: Seq[Hand] = 
       game.currentPlayer().handsAndBets.map { hand => hand.hand match {
         case cs if (cs == game.currentCards()) => updatedCurrentHand
         case _ => hand
       }
     }
+    // check whether an additional hand needs to be added (due to split)
     updatedHands = splitHand match {
       case Some(h) => updatedHands ++ Seq(h) // split occurred, add new hand
       case None => updatedHands 
     }
+    // yield updated game state (but player's current hand or current player will not increment; not this function's responsibility) 
     game.copy(deck = updatedDeck, history = game.history ++ newHistory, players = for (p <- game.players) yield {
       if (p == game.currentPlayer())
         p.copy(handsAndBets = updatedHands)
       else p 
     })
-  
-      ???
   }
 
-  // TODO: implement 
+  // TODO: test 
   // returns updated cards (seq of hands to account for Splits), updated deck, and new history
   def performPlayAction(
     playerId: String, 
     action: BlackjackAction, 
     hand: Hand, 
     deck: Deck): (Seq[Hand], Deck, Seq[Action[BlackjackAction]]) = action match {
-      case Stand => ??? //()
-      case Hit => ???
-      case DoubleDown => ???
-      case Split => ???
-      case Surrender => ???
+      case Stand => (Seq(hand), deck, Seq(Action(playerId, Stand, Nil, 0, hand.hand, Seq(hand.hand))))
+      case a if (a == Hit || a == DoubleDown) => {
+        // Hit and DoubleDown both deal 1 card 
+        val (dealt, nextDeck): (Seq[Card], Deck) = deck.deal()
+        // bets is potentially modified (if player doubled-down) 
+        val (additionalBet, nextBets): (Int, Map[String, Int]) = a match {
+          case DoubleDown => {
+            ( // additional bet is same that player already had bet (doubling it)
+              hand.bets(playerId),
+              // bets adjusted to double player's bet 
+              (for ((player, bet) <- hand.bets) yield {
+                if (player == playerId)
+                  player -> bet * 2
+                else 
+                  player -> bet
+              }).toMap)
+          }
+          case _ => (0, hand.bets)
+        }
+        val updatedHand: Hand = hand.copy(hand = hand.hand ++ dealt, bets = nextBets)
+        (Seq(updatedHand), nextDeck, Seq(Action(playerId, a, dealt, additionalBet, hand.hand, Seq(updatedHand.hand))))
+      }
+      case Split => {
+        // deal 2 cards, 1 for each split hand 
+        val (dealt, nextDeck): (Seq[Card], Deck) = deck.deal(2)
+        val hand1: Hand = Hand(Seq(hand.hand.head, dealt.head), hand.bets)
+        val hand2: Hand = Hand(Seq(hand.hand.tail.head, dealt.tail.head), hand.bets)
+        // original bet amount is added as as new bet to the new hand 
+        val additionalBet: Int = hand.bets(playerId)
+        (Seq(hand1, hand2), nextDeck, Seq(Action(playerId, Split, dealt, additionalBet, hand.hand, Seq(hand1, hand2).map(_.hand)))) 
+      }
+      case Surrender => {
+        val (surrenderAmount, nextBets): (Int, Map[String, Int]) = {
+          (
+            hand.bets(playerId) / 2, // surrender bet is half original bet
+            // bets adjusted to halve player's bet 
+            (for ((player, bet) <- hand.bets) yield {
+              if (player == playerId)
+                player -> bet / 2 // halved 
+              else 
+                player -> bet
+            }).toMap
+          )
+        }
+        // afterwards player does not have any cards in the hand since player has surrendered; bet is adjusted so player only pays half
+        (Seq(hand.copy(hand = Nil, bets = nextBets)), deck, Seq(Action(playerId, Surrender, Nil, surrenderAmount, hand.hand, Nil)))
+      }
       case a => throw new IllegalArgumentException(s"Unexpected BlackjackAction [$a], at this phase the only expected actions are [Hit, Stand, DoubleDown, Split, Surrender]")
     }
 }
