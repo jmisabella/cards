@@ -20,19 +20,19 @@ class BlackJackPredicatesSpec extends AnyFlatSpec with GivenWhenThen {
 
   "BlackjackPredicates" should "not allow players insurance if dealer's hand is an empty list" in {
     val dealerCards: Seq[Card] = Nil
-    val result: Boolean = module.eligibleForInstance(dealerCards)
+    val result: Boolean = module.eligibleForInsurance(dealerCards)
     result should be (false)
   }
   
   it should "not allow players insurance if dealer's hand has more than 1 card" in {
     val dealerCards: Seq[Card] = Seq(Card(Ace, Spades), Card(Seven, Hearts), Card(Three, Spades)) 
-    val result: Boolean = module.eligibleForInstance(dealerCards)
+    val result: Boolean = module.eligibleForInsurance(dealerCards)
     result should be (false)
   }
 
   it should "allow players insurance if dealer's hand has exactly 2 cards and its face-up card (first card) is an Ace" in {
     val dealerCards: Seq[Card] = Seq(Card(Ace, Hearts), Card(Two, Clubs))
-    val result: Boolean = module.eligibleForInstance(dealerCards)
+    val result: Boolean = module.eligibleForInsurance(dealerCards)
     result should be (true)
   }
 

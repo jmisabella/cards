@@ -10,14 +10,10 @@ trait BlackjackPredicates {
   type CB <: Commons
   val commons: CB 
 
-  // TODO: to avoid unnecessary coupling this behavior should be eliminated and move the predicate functions into the single specific behavior from which they are used
-
-  // TODO: move this function to BlackjackPlay
-
   // TODO: move this function to BlackjackBetting  
   // Players eligible for insurance only if dealer's first hand (only 2 cards) shows an ace as the face-up card  
   // Dealer's first card in hand is considered the face-up card 
-  def eligibleForInstance(dealerCards: Seq[Card]): Boolean =
+  def eligibleForInsurance(dealerCards: Seq[Card]): Boolean =
     // only eligible if first turn (dealer only has 2 cards) and the face up card (first card) is an Ace 
     dealerCards.length == 2 && dealerCards.head.rank == Ace
 

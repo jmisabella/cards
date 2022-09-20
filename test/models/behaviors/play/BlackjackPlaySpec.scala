@@ -23,7 +23,6 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
     override type C = Commons
     override val commons = _commons
   }
-
   private case object _play extends BlackjackPlay {
     override type COMMONS = Commons
     override val commons = _commons
@@ -116,6 +115,54 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
     When("determining whether it's time to play game")
     Then("an illegal state exception should be thrown")
     an [IllegalArgumentException] shouldBe thrownBy (isTimeToPlay(game))
+    When("attempting to play")
+    Then("an illegal state exception should be thrown")
+    an [IllegalArgumentException] shouldBe thrownBy (playHand(game))
+  }
+
+  it should "throw an illegal argument exception when attempting to play but current player is not specified" in {
+    Given("a game with 2 players who each have 2 cards and whose hand his not flagged as 'won' or 'lost', and current player is not specified")
+    val player1 = BlackjackPlayerState(
+      "Jeffrey", 
+      25, 
+      Seq( 
+        Hand(hand = Seq(Card(Two, Hearts), Card(Ten, Diamonds)), bets = Map("Jeffrey" -> 5), wins = None)))
+    val player2 = BlackjackPlayerState(
+      "Alice", 
+      50, 
+      Seq( 
+        Hand(hand = Seq(Card(Nine, Clubs), Card(Jack, Clubs)), bets = Map("Alice" -> 5), wins = None)))
+    // current player is not specified
+    val game = BlackjackGameState(options = BlackjackOptions(), minimumBet = 5, dealerHand = Hand(), players = Seq(player1, player2), currentPlayerIndex = None)
+    When("attempting to play")
+    Then("an illegal state exception should be thrown")
+    an [IllegalArgumentException] shouldBe thrownBy (playHand(game))
+  }
+
+  it should "throw an illegal argument exception when attempting to play but current player's hand is of length 1" in {
+    Given("a game with 1 player who has only 1 card his not flagged as 'won' or 'lost'")
+    val player1 = BlackjackPlayerState(
+      "Jeffrey", 
+      25, 
+      Seq( 
+        Hand(hand = Seq(Card(Two, Hearts)), bets = Map("Jeffrey" -> 5), wins = None)))
+    val game = BlackjackGameState(options = BlackjackOptions(), minimumBet = 5, dealerHand = Hand(hand = Seq(Card(Three, Hearts), Card(Two, Hearts))), players = Seq(player1), currentPlayerIndex = Some(0))
+    When("attempting to play")
+    Then("an illegal state exception should be thrown")
+    an [IllegalArgumentException] shouldBe thrownBy (playHand(game))
+  }
+
+  it should "throw an illegal argument exception when attempting to player for a single player with 2 cards but dealer only has 1 card" in {
+    Given("a game with 1 player who has 2 cards and his not flagged as 'won' or 'lost' and a dealer who has only 1 card")
+    val player1 = BlackjackPlayerState(
+      "Jeffrey", 
+      25,
+      Seq( 
+        Hand(hand = Seq(Card(Two, Hearts), Card(Ten, Diamonds)), bets = Map("Jeffrey" -> 5), wins = None)))
+    val game = BlackjackGameState(options = BlackjackOptions(), minimumBet = 5, dealerHand = Hand(hand = Seq(Card(Ace, Spades))), players = Seq(player1), currentPlayerIndex = Some(0))
+    When("attempting to play")
+    Then("an illegal state exception should be thrown")
+    an [IllegalArgumentException] shouldBe thrownBy (playHand(game))
   }
 
   it should "not allow split for an empty hand" in {
