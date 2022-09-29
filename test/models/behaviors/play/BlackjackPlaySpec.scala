@@ -243,5 +243,538 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
     result should be (false)
   }
 
+  it should "always split player's aces for first time regardless dealer's face up card" in {
+    Given("a player with pair of aces and has not yet split any cards and who has bet minimum bet on his hand")
+    val player1 = BlackjackPlayerState(
+      "Jeffrey", 
+      25, 
+      Seq( 
+        Hand(hand = Seq(Card(Ace, Hearts), Card(Ace, Clubs)), bets = Map("Jeffrey" -> 5), wins = None)))
+    Given("dealer hand of 2 cards and two is face up card")
+    var dealer = Hand(Seq(Card(Two, Hearts), Card(Two, Clubs)))
+    var game = BlackjackGameState(
+      options = BlackjackOptions(), 
+      minimumBet = 5, 
+      dealerHand = dealer, 
+      players = Seq(player1), 
+      currentPlayerIndex = Some(0), 
+      currentHandIndex = Some(0))
+    When("playing player's hand")
+    var result = playHand(game)
+    Then("player should split")
+    assert(result.history.count(a => a.playerId == "Jeffrey" && a.action == Split && a.actionTokens == 5) >= 1)  
+    Given("dealer 2-card hand with face up card three")
+    dealer = Hand(Seq(Card(Three, Hearts), Card(Two, Clubs)))
+    game = BlackjackGameState(
+      options = BlackjackOptions(), 
+      minimumBet = 5, 
+      dealerHand = dealer, 
+      players = Seq(player1), 
+      currentPlayerIndex = Some(0), 
+      currentHandIndex = Some(0))
+    When("playing player's hand")
+    result = playHand(game)
+    Then("player should split")
+    assert(result.history.count(a => a.playerId == "Jeffrey" && a.action == Split && a.actionTokens == 5) >= 1)  
+
+    Given("dealer 2-card hand with face up card Four")
+    dealer = Hand(Seq(Card(Four, Hearts), Card(Two, Clubs)))
+    game = BlackjackGameState(
+      options = BlackjackOptions(), 
+      minimumBet = 5, 
+      dealerHand = dealer, 
+      players = Seq(player1), 
+      currentPlayerIndex = Some(0), 
+      currentHandIndex = Some(0))
+    When("playing player's hand")
+    result = playHand(game)
+    Then("player should split")
+    assert(result.history.count(a => a.playerId == "Jeffrey" && a.action == Split && a.actionTokens == 5) >= 1)  
+
+    Given("dealer 2-card hand with face up card Five")
+    dealer = Hand(Seq(Card(Five, Hearts), Card(Two, Clubs)))
+    game = BlackjackGameState(
+      options = BlackjackOptions(), 
+      minimumBet = 5, 
+      dealerHand = dealer, 
+      players = Seq(player1), 
+      currentPlayerIndex = Some(0), 
+      currentHandIndex = Some(0))
+    When("playing player's hand")
+    result = playHand(game)
+    Then("player should split")
+    assert(result.history.count(a => a.playerId == "Jeffrey" && a.action == Split && a.actionTokens == 5) >= 1)  
+  
+    Given("dealer 2-card hand with face up card Six")
+    dealer = Hand(Seq(Card(Six, Hearts), Card(Two, Clubs)))
+    game = BlackjackGameState(
+      options = BlackjackOptions(), 
+      minimumBet = 5, 
+      dealerHand = dealer, 
+      players = Seq(player1), 
+      currentPlayerIndex = Some(0), 
+      currentHandIndex = Some(0))
+    When("playing player's hand")
+    result = playHand(game)
+    Then("player should split")
+    assert(result.history.count(a => a.playerId == "Jeffrey" && a.action == Split && a.actionTokens == 5) >= 1)  
+  
+    Given("dealer 2-card hand with face up card Seven")
+    dealer = Hand(Seq(Card(Seven, Hearts), Card(Two, Clubs)))
+    game = BlackjackGameState(
+      options = BlackjackOptions(), 
+      minimumBet = 5, 
+      dealerHand = dealer, 
+      players = Seq(player1), 
+      currentPlayerIndex = Some(0), 
+      currentHandIndex = Some(0))
+    When("playing player's hand")
+    result = playHand(game)
+    Then("player should split")
+    assert(result.history.count(a => a.playerId == "Jeffrey" && a.action == Split && a.actionTokens == 5) >= 1)  
+  
+    Given("dealer 2-card hand with face up card Eight")
+    dealer = Hand(Seq(Card(Eight, Hearts), Card(Two, Clubs)))
+    game = BlackjackGameState(
+      options = BlackjackOptions(), 
+      minimumBet = 5, 
+      dealerHand = dealer, 
+      players = Seq(player1), 
+      currentPlayerIndex = Some(0), 
+      currentHandIndex = Some(0))
+    When("playing player's hand")
+    result = playHand(game)
+    Then("player should split")
+    assert(result.history.count(a => a.playerId == "Jeffrey" && a.action == Split && a.actionTokens == 5) >= 1)  
+  
+    Given("dealer 2-card hand with face up card Nine")
+    dealer = Hand(Seq(Card(Nine, Hearts), Card(Two, Clubs)))
+    game = BlackjackGameState(
+      options = BlackjackOptions(), 
+      minimumBet = 5, 
+      dealerHand = dealer, 
+      players = Seq(player1), 
+      currentPlayerIndex = Some(0), 
+      currentHandIndex = Some(0))
+    When("playing player's hand")
+    result = playHand(game)
+    Then("player should split")
+    assert(result.history.count(a => a.playerId == "Jeffrey" && a.action == Split && a.actionTokens == 5) >= 1)  
+  
+    Given("dealer 2-card hand with face up card Ten")
+    dealer = Hand(Seq(Card(Ten, Hearts), Card(Two, Clubs)))
+    game = BlackjackGameState(
+      options = BlackjackOptions(), 
+      minimumBet = 5, 
+      dealerHand = dealer, 
+      players = Seq(player1), 
+      currentPlayerIndex = Some(0), 
+      currentHandIndex = Some(0))
+    When("playing player's hand")
+    result = playHand(game)
+    Then("player should split")
+    assert(result.history.count(a => a.playerId == "Jeffrey" && a.action == Split && a.actionTokens == 5) >= 1)  
+  
+    Given("dealer 2-card hand with face up card Ace")
+    dealer = Hand(Seq(Card(Ace, Hearts), Card(Two, Clubs)))
+    game = BlackjackGameState(
+      options = BlackjackOptions(), 
+      minimumBet = 5, 
+      dealerHand = dealer, 
+      players = Seq(player1), 
+      currentPlayerIndex = Some(0), 
+      currentHandIndex = Some(0))
+    When("playing player's hand")
+    result = playHand(game)
+    Then("player should split")
+    assert(result.history.count(a => a.playerId == "Jeffrey" && a.action == Split && a.actionTokens == 5) >= 1)  
+  }
+
+  it should "always stand on player's 2-card hand of two cards valued at 10 each (score of 20) and never split, regardless dealer's showing card" in {
+    Given("a player with pair of 10s and has not yet split any cards and who has bet minimum bet on his hand")
+    val player1 = BlackjackPlayerState(
+      "Jeffrey", 
+      25, 
+      Seq( 
+        Hand(hand = Seq(Card(Queen, Hearts), Card(King, Clubs)), bets = Map("Jeffrey" -> 5), wins = None)))
+    Given("dealer hand of 2 cards and Two is face up card")
+    var dealer = Hand(Seq(Card(Two, Hearts), Card(Two, Clubs)))
+    var game = BlackjackGameState(
+      options = BlackjackOptions(), 
+      minimumBet = 5, 
+      dealerHand = dealer, 
+      players = Seq(player1), 
+      currentPlayerIndex = Some(0), 
+      currentHandIndex = Some(0))
+    When("playing player's hand")
+    var result = playHand(game)
+    Then("player should Stand")
+    assert(result.history.count(a => a.playerId == "Jeffrey" && a.action == Stand && a.actionTokens == 0 && a.actionCards == Nil) >= 1)  
+
+    Given("dealer hand of 2 cards and Three is face up card")
+    dealer = Hand(Seq(Card(Three, Hearts), Card(Two, Clubs)))
+    game = BlackjackGameState(
+      options = BlackjackOptions(), 
+      minimumBet = 5, 
+      dealerHand = dealer, 
+      players = Seq(player1), 
+      currentPlayerIndex = Some(0), 
+      currentHandIndex = Some(0))
+    When("playing player's hand")
+    result = playHand(game)
+    Then("player should Stand")
+    assert(result.history.count(a => a.playerId == "Jeffrey" && a.action == Stand && a.actionTokens == 0 && a.actionCards == Nil) >= 1)  
+
+    Given("dealer hand of 2 cards and Four is face up card")
+    dealer = Hand(Seq(Card(Four, Hearts), Card(Two, Clubs)))
+    game = BlackjackGameState(
+      options = BlackjackOptions(), 
+      minimumBet = 5, 
+      dealerHand = dealer, 
+      players = Seq(player1), 
+      currentPlayerIndex = Some(0), 
+      currentHandIndex = Some(0))
+    When("playing player's hand")
+    result = playHand(game)
+    Then("player should Stand")
+    assert(result.history.count(a => a.playerId == "Jeffrey" && a.action == Stand && a.actionTokens == 0 && a.actionCards == Nil) >= 1)  
+
+    Given("dealer hand of 2 cards and Five is face up card")
+    dealer = Hand(Seq(Card(Five, Hearts), Card(Two, Clubs)))
+    game = BlackjackGameState(
+      options = BlackjackOptions(), 
+      minimumBet = 5, 
+      dealerHand = dealer, 
+      players = Seq(player1), 
+      currentPlayerIndex = Some(0), 
+      currentHandIndex = Some(0))
+    When("playing player's hand")
+    result = playHand(game)
+    Then("player should Stand")
+    assert(result.history.count(a => a.playerId == "Jeffrey" && a.action == Stand && a.actionTokens == 0 && a.actionCards == Nil) >= 1)  
+
+    Given("dealer hand of 2 cards and Six is face up card")
+    dealer = Hand(Seq(Card(Six, Hearts), Card(Two, Clubs)))
+    game = BlackjackGameState(
+      options = BlackjackOptions(), 
+      minimumBet = 5, 
+      dealerHand = dealer, 
+      players = Seq(player1), 
+      currentPlayerIndex = Some(0), 
+      currentHandIndex = Some(0))
+    When("playing player's hand")
+    result = playHand(game)
+    Then("player should Stand")
+    assert(result.history.count(a => a.playerId == "Jeffrey" && a.action == Stand && a.actionTokens == 0 && a.actionCards == Nil) >= 1)  
+
+    Given("dealer hand of 2 cards and Seven is face up card")
+    dealer = Hand(Seq(Card(Seven, Hearts), Card(Two, Clubs)))
+    game = BlackjackGameState(
+      options = BlackjackOptions(), 
+      minimumBet = 5, 
+      dealerHand = dealer, 
+      players = Seq(player1), 
+      currentPlayerIndex = Some(0), 
+      currentHandIndex = Some(0))
+    When("playing player's hand")
+    result = playHand(game)
+    Then("player should Stand")
+    assert(result.history.count(a => a.playerId == "Jeffrey" && a.action == Stand && a.actionTokens == 0 && a.actionCards == Nil) >= 1)  
+
+    Given("dealer hand of 2 cards and Eight is face up card")
+    dealer = Hand(Seq(Card(Eight, Hearts), Card(Two, Clubs)))
+    game = BlackjackGameState(
+      options = BlackjackOptions(), 
+      minimumBet = 5, 
+      dealerHand = dealer, 
+      players = Seq(player1), 
+      currentPlayerIndex = Some(0), 
+      currentHandIndex = Some(0))
+    When("playing player's hand")
+    result = playHand(game)
+    Then("player should Stand")
+    assert(result.history.count(a => a.playerId == "Jeffrey" && a.action == Stand && a.actionTokens == 0 && a.actionCards == Nil) >= 1)  
+
+    Given("dealer hand of 2 cards and Nine is face up card")
+    dealer = Hand(Seq(Card(Nine, Hearts), Card(Two, Clubs)))
+    game = BlackjackGameState(
+      options = BlackjackOptions(), 
+      minimumBet = 5, 
+      dealerHand = dealer, 
+      players = Seq(player1), 
+      currentPlayerIndex = Some(0), 
+      currentHandIndex = Some(0))
+    When("playing player's hand")
+    result = playHand(game)
+    Then("player should Stand")
+    assert(result.history.count(a => a.playerId == "Jeffrey" && a.action == Stand && a.actionTokens == 0 && a.actionCards == Nil) >= 1)  
+
+    Given("dealer hand of 2 cards and Jack is face up card")
+    dealer = Hand(Seq(Card(Jack, Hearts), Card(Two, Clubs)))
+    game = BlackjackGameState(
+      options = BlackjackOptions(), 
+      minimumBet = 5, 
+      dealerHand = dealer, 
+      players = Seq(player1), 
+      currentPlayerIndex = Some(0), 
+      currentHandIndex = Some(0))
+    When("playing player's hand")
+    result = playHand(game)
+    Then("player should Stand")
+    assert(result.history.count(a => a.playerId == "Jeffrey" && a.action == Stand && a.actionTokens == 0 && a.actionCards == Nil) >= 1)  
+
+    Given("dealer hand of 2 cards and Ace is face up card")
+    dealer = Hand(Seq(Card(Ace, Hearts), Card(Two, Clubs)))
+    game = BlackjackGameState(
+      options = BlackjackOptions(), 
+      minimumBet = 5, 
+      dealerHand = dealer, 
+      players = Seq(player1), 
+      currentPlayerIndex = Some(0), 
+      currentHandIndex = Some(0))
+    When("playing player's hand")
+    result = playHand(game)
+    Then("player should Stand")
+    assert(result.history.count(a => a.playerId == "Jeffrey" && a.action == Stand && a.actionTokens == 0 && a.actionCards == Nil) >= 1)  
+  }
+
+  it should "know it's time to deal when bets have been accepted for a 1 player game but neither player nor dealer have any cards" in {
+    Given("a game with 1 player who has bet but has no cards, and a dealer who also has no cards")
+    val player1 = BlackjackPlayerState(
+      "Jeffrey", 
+      25, 
+      Seq( 
+        Hand(hand = Nil, bets = Map("Jeffrey" -> 5), wins = None)))
+    val game = BlackjackGameState(options = BlackjackOptions(), minimumBet = 5, dealerHand = Hand(), players = Seq(player1), currentPlayerIndex = Some(0))
+    When("determining whether it's time to deal cards")
+    val result = isTimeToDeal(game)
+    Then("it's determined that yes, it is in fact time to deal")
+    result shouldBe (true)
+  }
+
+  it should "know it's time to deal when bets have been accepted for a 1 player game and player has cards but dealer does not" in {
+    Given("a game with 1 player who has two cards and a dealer who has no cards")
+    val player1 = BlackjackPlayerState(
+      "Jeffrey", 
+      25, 
+      Seq( 
+        Hand(hand = Seq(Card(Three, Hearts), Card(Seven, Clubs)), bets = Map("Jeffrey" -> 5), wins = None)))
+    val game = BlackjackGameState(options = BlackjackOptions(), minimumBet = 5, dealerHand = Hand(), players = Seq(player1), currentPlayerIndex = Some(0))
+    When("determining whether it's time to deal cards")
+    val result = isTimeToDeal(game)
+    Then("it's determined that yes, it is in fact time to deal")
+    result shouldBe (true)
+  }
+
+  it should "know it's time to deal when bets have been accepted for a 1 player game and player no cards but dealer has 2 cards" in {
+    Given("a game with 1 player who has no cards and a dealer who has two cards")
+    val player1 = BlackjackPlayerState(
+      "Jeffrey", 
+      25, 
+      Seq( 
+        Hand(hand = Nil, bets = Map("Jeffrey" -> 5), wins = None)))
+    val game = BlackjackGameState(options = BlackjackOptions(), minimumBet = 5, dealerHand = Hand(hand = Seq(Card(Three, Hearts), Card(Seven, Clubs))), players = Seq(player1), currentPlayerIndex = Some(0))
+    When("determining whether it's time to deal cards")
+    val result = isTimeToDeal(game)
+    Then("it's determined that yes, it is in fact time to deal")
+    result shouldBe (true)
+  }
+
+  it should "know it's time to deal when bets have been accepted for a 1 player game and player has 2 cards but dealer has only 1 cards" in {
+    Given("a game with 1 player who has two cards and a dealer who has only one card")
+    val player1 = BlackjackPlayerState(
+      "Jeffrey", 
+      25, 
+      Seq( 
+        Hand(hand = Seq(Card(Three, Hearts), Card(Seven, Clubs)), bets = Map("Jeffrey" -> 5), wins = None)) )
+    val game = BlackjackGameState(options = BlackjackOptions(), minimumBet = 5, dealerHand = Hand(hand = Seq(Card(Four, Clubs))), players = Seq(player1), currentPlayerIndex = Some(0))
+    When("determining whether it's time to deal cards")
+    val result = isTimeToDeal(game)
+    Then("it's determined that yes, it is in fact time to deal")
+    result shouldBe (true)
+  }
+
+  it should "know it's not time to deal when bets have been accepted for a 1 player game and player has 3 cards and the dealer 2" in {
+    Given("a game with 1 player who has three cards and a dealer who has two cards")
+    val player1 = BlackjackPlayerState(
+      "Jeffrey", 
+      25, 
+      Seq( 
+        Hand(hand = Seq(Card(Three, Hearts), Card(Seven, Clubs), Card(Ace, Clubs)), bets = Map("Jeffrey" -> 5), wins = None)) )
+    val game = BlackjackGameState(options = BlackjackOptions(), minimumBet = 5, dealerHand = Hand(hand = Seq(Card(Four, Clubs), Card(Ten, Clubs))), players = Seq(player1), currentPlayerIndex = Some(0))
+    When("determining whether it's time to deal cards")
+    val result = isTimeToDeal(game)
+    Then("it's determined that it's not time to deal")
+    result shouldBe (false)
+  }
+
+
+  it should "know it's time to deal when bets have been accepted for a 1 player game and player has 3 cards and the dealer only has 1 card" in {
+    Given("a game with 1 player who has three cards and a dealer who has only one card")
+    val player1 = BlackjackPlayerState(
+      "Jeffrey", 
+      25, 
+      Seq( 
+        Hand(hand = Seq(Card(Three, Hearts), Card(Seven, Clubs), Card(Ace, Clubs)), bets = Map("Jeffrey" -> 5), wins = None)) )
+    val game = BlackjackGameState(options = BlackjackOptions(), minimumBet = 5, dealerHand = Hand(hand = Seq(Card(Four, Clubs))), players = Seq(player1), currentPlayerIndex = Some(0))
+    When("determining whether it's time to deal cards")
+    val result = isTimeToDeal(game)
+    Then("it's determined that yes, it is in fact time to deal")
+    result shouldBe (true)
+  }
+
+  it should "know it's time to deal when bets have been accepted for a 2 player game with 1 player having 2 cards and the other player having no cards" in {
+    Given("a game with 2 players, one having 2 cards and another with no cards, and a dealer with 2 cards")
+    val player1 = BlackjackPlayerState(
+      "Jeffrey", 
+      25, 
+      Seq( 
+        Hand(hand = Seq(Card(Three, Hearts), Card(Seven, Clubs)), bets = Map("Jeffrey" -> 5), wins = None)) )
+    val player2 = BlackjackPlayerState(
+      "Brandon", 
+      25, 
+      Seq( 
+        Hand(hand = Nil, bets = Map("Brandon" -> 5), wins = None)) )
+    val game = BlackjackGameState(options = BlackjackOptions(), minimumBet = 5, dealerHand = Hand(hand = Seq(Card(Four, Clubs), Card(Nine, Clubs))), players = Seq(player1, player2), currentPlayerIndex = Some(0))
+    When("determining whether it's time to deal cards")
+    val result = isTimeToDeal(game)
+    Then("it's determined that yes, it is in fact time to deal")
+    result shouldBe (true)
+  }
+
+  it should "know it's time for dealer to play when only player has selected to Stand" in {
+    Given("a game with 1 player having 2 cards, a dealer with 2 cards, and a history showing the player is Standing")
+    val player1 = BlackjackPlayerState(
+      "Jeffrey", 
+      25, 
+      Seq( 
+        Hand(hand = Seq(Card(Ten, Hearts), Card(Eight, Clubs)), bets = Map("Jeffrey" -> 5), wins = None)) )
+    val history = Seq(Action("Jeffrey", Stand, Nil, 0, Seq(Card(Ten, Hearts), Card(Eight, Clubs)), Seq(Seq(Card(Ten, Hearts), Card(Eight, Clubs)))))
+    val game = BlackjackGameState(
+      options = BlackjackOptions(), 
+      minimumBet = 5, 
+      dealerHand = Hand(hand = Seq(Card(Four, Clubs), Card(Nine, Clubs))), 
+      players = Seq(player1), 
+      history = history, 
+      currentPlayerIndex = Some(0))
+    When("determining whether it's time to deal cards")
+    Then("it's determined that it's not time to deal")
+    isTimeToDeal(game) shouldBe (false)
+    When("determining whether it's time for dealer to play")
+    Then("it's determined that yes, it is in fact time for dealer to play")
+    isTimeForDealerToPlay(game) shouldBe (true)
+  }
+
+  it should "know it's time for dealer to play when only player has busted" in {
+    Given("a game with 1 player having 3 cards and whose hand is busted, a dealer with 2 cards")
+    val player1 = BlackjackPlayerState(
+      "Jeffrey", 
+      25, 
+      Seq( 
+        Hand(hand = Seq(Card(Ten, Hearts), Card(Eight, Clubs), Card(Four, Clubs)), bets = Map("Jeffrey" -> 5), wins = None)) )
+    val history = Seq(Action("Jeffrey", Hit, Seq(Card(Four, Clubs)), 0, Seq(Card(Ten, Hearts), Card(Eight, Clubs)), Seq(Seq(Card(Ten, Hearts), Card(Eight, Clubs), Card(Four, Clubs)))))
+    val game = BlackjackGameState(
+      options = BlackjackOptions(), 
+      minimumBet = 5, 
+      dealerHand = Hand(hand = Seq(Card(Four, Clubs), Card(Nine, Clubs))), 
+      players = Seq(player1), 
+      history = history, 
+      currentPlayerIndex = Some(0))
+    When("determining whether it's time to deal cards")
+    Then("it's determined that it's not time to deal")
+    isTimeToDeal(game) shouldBe (false)
+    When("determining whether it's time for dealer to play")
+    Then("it's determined that yes, it is in fact time for dealer to play")
+    isTimeForDealerToPlay(game) shouldBe (true)
+  }
+
+  it should "know it's time for dealer to play when 2 players have played (one busts, another Stands)" in {
+    Given("a game with 2 players, one who busts and another who Stands, and a dealer with 2 cards")
+    val player1 = BlackjackPlayerState(
+      "Jeffrey", 
+      25, 
+      Seq( 
+        Hand(hand = Seq(Card(Ten, Hearts), Card(Seven, Clubs)), bets = Map("Jeffrey" -> 5), wins = None)) )
+    val player2 = BlackjackPlayerState(
+      "Brandon", 
+      25, 
+      Seq( 
+        Hand(hand = Seq(Card(Five, Diamonds), Card(Nine, Hearts), Card(Eight, Diamonds)), bets = Map("Brandon" -> 5), wins = None)) )
+    val history = Seq(
+      Action("Brandon", Hit, Seq(Card(Eight, Diamonds)), 0, Seq(Card(Five, Diamonds), Card(Nine, Hearts)), Seq(Seq(Card(Five, Diamonds), Card(Nine, Hearts), Card(Eight, Diamonds)))),
+      Action("Jeffrey", Stand, Nil, 0, Seq(Card(Ten, Hearts), Card(Seven, Clubs)), Seq(Seq(Card(Ten, Hearts), Card(Seven, Clubs)))) )
+    val game = BlackjackGameState(
+      options = BlackjackOptions(), 
+      minimumBet = 5, 
+      dealerHand = Hand(hand = Seq(Card(Four, Clubs), Card(Nine, Clubs))), 
+      players = Seq(player1, player2), 
+      history = history, 
+      currentPlayerIndex = Some(1))
+    When("determining whether it's time to deal cards")
+    Then("it's determined that it's not time to deal")
+    isTimeToDeal(game) shouldBe (false)
+    When("determining whether it's time for dealer to play")
+    Then("it's determined that yes, it is in fact time for dealer to play")
+    isTimeForDealerToPlay(game) shouldBe (true)
+  }
+
+  it should "know it's not time for dealer to play when only 1 of 2 players has finished playing (busted)" in {
+    Given("a game with 2 players, one who busts and another hasn't busted nor Standed, and a dealer with 2 cards")
+    val player1 = BlackjackPlayerState(
+      "Jeffrey", 
+      25, 
+      Seq( 
+        Hand(hand = Seq(Card(Ten, Hearts), Card(Seven, Clubs)), bets = Map("Jeffrey" -> 5), wins = None)) )
+    val player2 = BlackjackPlayerState(
+      "Brandon", 
+      25, 
+      Seq( 
+        Hand(hand = Seq(Card(Five, Diamonds), Card(Nine, Hearts), Card(Eight, Diamonds)), bets = Map("Brandon" -> 5), wins = None)) )
+    val history = Seq(
+      Action("Brandon", Hit, Seq(Card(Eight, Diamonds)), 0, Seq(Card(Five, Diamonds), Card(Nine, Hearts)), Seq(Seq(Card(Five, Diamonds), Card(Nine, Hearts), Card(Eight, Diamonds)))))
+    val game = BlackjackGameState(
+      options = BlackjackOptions(), 
+      minimumBet = 5, 
+      dealerHand = Hand(hand = Seq(Card(Four, Clubs), Card(Nine, Clubs))), 
+      players = Seq(player1, player2), 
+      history = history, 
+      currentPlayerIndex = Some(0))
+    When("determining whether it's time to deal cards")
+    Then("it's determined that it's not time to deal")
+    isTimeToDeal(game) shouldBe (false)
+    When("determining whether it's time for dealer to play")
+    Then("it's determined that it's not time for dealer to play")
+    isTimeForDealerToPlay(game) shouldBe (false)
+  }
+
+  it should "know it's not time for dealer to play when 2 players have played (one busts, another Stands) but dealer only has 1 card" in {
+    Given("a game with 2 players, one who busts and another who Stands, and a dealer with only 1 card")
+    val player1 = BlackjackPlayerState(
+      "Jeffrey", 
+      25, 
+      Seq( 
+        Hand(hand = Seq(Card(Ten, Hearts), Card(Seven, Clubs)), bets = Map("Jeffrey" -> 5), wins = None)) )
+    val player2 = BlackjackPlayerState(
+      "Brandon", 
+      25, 
+      Seq( 
+        Hand(hand = Seq(Card(Five, Diamonds), Card(Nine, Hearts), Card(Eight, Diamonds)), bets = Map("Brandon" -> 5), wins = None)) )
+    val history = Seq(
+      Action("Brandon", Hit, Seq(Card(Eight, Diamonds)), 0, Seq(Card(Five, Diamonds), Card(Nine, Hearts)), Seq(Seq(Card(Five, Diamonds), Card(Nine, Hearts), Card(Eight, Diamonds)))),
+      Action("Jeffrey", Stand, Nil, 0, Seq(Card(Ten, Hearts), Card(Seven, Clubs)), Seq(Seq(Card(Ten, Hearts), Card(Seven, Clubs)))) )
+    val game = BlackjackGameState(
+      options = BlackjackOptions(), 
+      minimumBet = 5, 
+      dealerHand = Hand(hand = Seq(Card(Nine, Clubs))), 
+      players = Seq(player1, player2), 
+      history = history, 
+      currentPlayerIndex = Some(1))
+    When("determining whether it's time to deal cards")
+    Then("it's determined that it's time to deal")
+    isTimeToDeal(game) shouldBe (true)
+    When("determining whether it's time for dealer to play")
+    Then("it's determined that it's not time for dealer to play")
+    isTimeForDealerToPlay(game) shouldBe (false)
+  }
+
 }
- 

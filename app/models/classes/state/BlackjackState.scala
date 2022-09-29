@@ -49,6 +49,11 @@ case class BlackjackPlayerState(
     val oscarsGoalMet: Boolean = bank >= oscarsGoal 
     require(minBetMultiplier >= 1.0)
     require(oscarsGoalMultiplier >= 1.0)
+
+    // TODO: test
+    def updateHand(beforeCards: Seq[Card], updatedCards: Seq[Card]): BlackjackPlayerState = {
+      this.copy(handsAndBets = handsAndBets.map(h => if (h.hand == beforeCards) h.copy(hand = updatedCards) else h))
+    }
 }
 
 object BlackjackPlayerState {
@@ -71,9 +76,34 @@ case class BlackjackGameState(
 
     def currentCards(): Seq[Card] = current(currentPlayer().hands, currentHandIndex)
     def nextHandIndex(): Int = nextIndex(currentPlayer().hands, currentHandIndex)
-    def isLastHand(): Boolean = currentHandIndex == Some(currentPlayer().hands.length - 1)
     // TODO: test 
+    def isLastHand(): Boolean = 
+      currentPlayerIndex.isDefined && currentPlayer().hands.length > 0 && currentHandIndex == Some(currentPlayer().hands.length - 1)
     def currentHand(): Hand = players.flatMap(_.handsAndBets).filter(_.hand == currentCards()).head
+
+    // TODO: test
+    // to next hand (or player) based on whether current action is Stand or Surrender, or if current hand busted
+    def toNextHand(action: BlackjackAction, busted: Boolean): BlackjackGameState = {
+      if (!busted || !Seq(Stand, Surrender).contains(action)) {
+        // no bust and last action was not Stand or Surrender, so no change
+        this
+      }
+      // else bust occurred or last action was Stand or Surrender, so iterate to the next hand
+      (currentPlayerIndex, currentHandIndex, isLastHand()) match {
+        case (None, _, _) => this // no current player, nothing to iterate
+        // current hand index is undefined, and we're not yet at the last player, so iterate to next player
+        case (Some(n), None, _) if (n < players.length - 1) => this.copy(currentPlayerIndex = Some(n + 1))
+        // current hand index is undefined and we're at last player, so current player index is now undefined 
+        case (Some(_), None, _) => this.copy(currentPlayerIndex = None)
+        // player's last hand, and this is not the last player so iterate to next player and set current hand index to 0
+        case (Some(n), Some(h), true) if (n < players.length - 1) => this.copy(currentPlayerIndex = Some(n + 1), currentHandIndex = Some(0))
+        // player's last hand, and this the last player, so current player index is now undefined 
+        case (Some(_), Some(h), true) => this.copy(currentPlayerIndex = None, currentHandIndex = None)
+        // player's not yet at last hand, so iterate to the next hand
+        case (Some(_), Some(h), false) => this.copy(currentHandIndex = Some(h + 1))
+      }
+    }
+    def playerHistory(playerId: String): Seq[Action[BlackjackAction]] = history.filter(a => a.playerId == playerId)
 
     // true indicates a win, false indicates a loss; order is in the original order played, so most recent is last item
     def winningHistory(playerId: String): Seq[Boolean] = {

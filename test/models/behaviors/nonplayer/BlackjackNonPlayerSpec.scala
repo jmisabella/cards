@@ -2,7 +2,6 @@ package cards.models.behaviors.nonplayer
 
 import cards.models.behaviors.Commons
 import cards.models.behaviors.evaluation.BlackjackHandEvaluation
-import cards.models.behaviors.predicates.BlackjackPredicates
 import cards.models.behaviors.betting.BlackjackBetting
 import cards.models.behaviors.nonplayer.BlackjackNonPlayer
 import cards.models.behaviors.play.BlackjackPlay

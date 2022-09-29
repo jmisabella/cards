@@ -34,7 +34,17 @@ trait BlackjackNonPlayer {
       val adjustedStrategy: BlackjackGameState = betting.alterBettingStrategy(game.currentPlayer(), game) 
       val adjustedBetting: BlackjackGameState = betting.alterMinBet(adjustedStrategy.currentPlayer(), adjustedStrategy)
       return betting.placeBet(adjustedBetting) // TODO: test
-    } 
+    }
+    if (play.isTimeToPlay(game)) {
+      return play.playHand(game) // TODO: test
+    }
+    if (play.isTimeToDeal(game)) {
+      return play.deal(game) // TODO: test
+    }
+    if (play.isTimeForDealerToPlay(game)) {
+      return play.dealerPlay(game) // TODO: test
+    }
+
 
     ???
   }
