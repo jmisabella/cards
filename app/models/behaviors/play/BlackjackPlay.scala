@@ -10,6 +10,7 @@ import cards.models.classes.hand.Hand
 import cards.models.classes.actions.{ Action, BlackjackAction }
 import cards.models.classes.actions.BlackjackAction._
 import cards.models.classes.options.BlackjackOptions
+import cards.models.classes.options.DealerHitLimit._
 
 trait BlackjackPlay {
   type EVAL <: BlackjackHandEvaluation 
@@ -62,17 +63,92 @@ trait BlackjackPlay {
   def handsCompleted(player: BlackjackPlayerState) = player.handsAndBets.count(h => handCompleted(h)) == player.hands.length
   def isFirstRound(hand: Hand): Boolean = hand.wins.isEmpty && hand.hand.length == 2
 
+  def betsHaveBeenPlaced(game: BlackjackGameState): Boolean = {
+    (for {
+      player <- game.players
+    } yield hasPlayerBet(game, player.id)).count(p => p) == game.players.length
+  }
+
   def isTimeToPlay(game: BlackjackGameState): Boolean = {
     if (game.players == Nil)
       throw new IllegalArgumentException("cannot determine whether isTimeToPlay when there are no players")
-    (for {
-      player <- game.players
-    } yield hasPlayerBet(game, player.id))
-      .count(p => p) == game.players.length && 
+    betsHaveBeenPlaced(game) && 
       (game.players.flatMap(_.handsAndBets.map(h => h.wins)).count(w => w.isDefined) != game.players.length)
   }
 
+  def isTimeToDeal(game: BlackjackGameState): Boolean = {
+    // time to deal if either dealer doesn't have all cards or 1 or more players doesn't have all cards
+    isTimeToPlay(game) && 
+      (game.dealerHand.hand.length < 2 ||
+        game.players.count(p => p.hands == Nil || p.hands.count(_.length < 2) > 0) > 0  ) // then it's time to deal
+  }
+
   // TODO: test
+  def deal(game: BlackjackGameState): BlackjackGameState = {
+    if (!isTimeToDeal(game)) {
+      throw new IllegalArgumentException("cannot deal cards because it's not currently time to deal")
+    }
+    var deck = game.deck
+    val updatedPlayers: Seq[BlackjackPlayerState] = (for {
+      player <- game.players
+      hand <- player.handsAndBets
+    } yield {
+      val (updatedCards, updatedDeck): (Seq[Card], Deck) = game.deck.deal(2 - hand.hand.length)
+      player.updateHand(hand.hand, updatedCards)
+      // if (hand.hand.length < 2) {
+      //   val (updatedCards, updatedDeck): (Seq[Card], Deck) = game.deck.deal(2 - hand.hand.length)
+      //   deck = updatedDeck
+      //   player.updateHand(hand.hand, updatedCards)
+      // } else {
+      //   player
+      // }
+    })
+    game.copy(players = updatedPlayers, deck = deck) 
+  }
+
+  def isTimeForDealerToPlay(game: BlackjackGameState): Boolean = {
+    if (game.players == Nil)
+      throw new IllegalArgumentException("cannot determine whether isTimeForDealerToPlay when there are no players")
+    // play time, all cards have been dealt, and all players have either busted, or they are either Standing or Surrendering 
+    val playerHandCounts: Map[String, Int] = game.players.map(p => p.id -> p.hands.length).toMap
+    val playerStandAndSurrenderCounts: Map[String, Int] = 
+      game.players.map(p => p.id -> game.playerHistory(p.id).count(a => Seq(Stand, Surrender).contains(a.action))).toMap
+    val playerBustedCounts: Map[String, Int] = 
+      game.players.map(p => p.id -> p.hands.count(cs => evaluation.eval(cs) > 21)).toMap
+    
+    val playerCompletedHandCounts: Map[String, Int] = 
+      (for (((k1, v1), (k2, v2)) <- playerStandAndSurrenderCounts zip playerBustedCounts) yield (k1 -> (v1 + v2))).toMap
+
+    game.currentHandIndex.isEmpty && // only time for dealer to play when no current player is still playing his or her hand
+      isTimeToPlay(game) && // play time
+      !isTimeToDeal(game) && // not time to deal
+      playerHandCounts == playerCompletedHandCounts // all hands have either busted or are standing or surrendering
+  }
+
+  // TODO: test
+  def dealerPlay(game: BlackjackGameState): BlackjackGameState = {
+    if (!isTimeForDealerToPlay(game)) {
+      throw new IllegalArgumentException("dealer cannot play hand because it's not currently time for dealer to play")
+    }
+    val action: BlackjackAction = 
+      (evaluation.eval(game.dealerHand.hand), game.options.dealerHitLimit, game.dealerHand.hand.map(_.rank).contains(Ace)) match {
+        case (17, H17, true) => Hit // dealer hits on soft 17
+        case (17, S17, true) => Stand // dealer stands on soft 17
+        case (n, _, _) if (n > 17) => Stand
+        case (_, _, _) => Hit
+      }
+    val (newHistory, newDeck): (Seq[Action[BlackjackAction]], Deck) = action match {
+      case Stand => (Seq(Action("dealer", Stand, Nil, 0, game.dealerHand.hand, Seq(game.dealerHand.hand))), game.deck)
+      case Hit => {
+        // Hit deals 1 card 
+        val (dealt, nextDeck): (Seq[Card], Deck) = game.deck.deal()
+        (Seq(Action("dealer", Hit, dealt, 0, game.dealerHand.hand, Seq(game.dealerHand.hand ++ dealt))), nextDeck)
+      }
+      case a => throw new IllegalArgumentException(s"Unexpected dealer action [$a]; dealer can only ever Hit or Stand")
+    }
+    game.copy(deck = newDeck, history = game.history ++ newHistory)
+  }
+
   // Basic Strategy in Blackjack 
   def nextAction(game: BlackjackGameState): BlackjackAction = {
     if (game.players == Nil) {
@@ -232,7 +308,6 @@ trait BlackjackPlay {
     }
   }
 
-  // TODO: test
   // Current player plays current hand
   // Note that this does not increment game's player index nor the current player's hand index (not this function's responsibility) 
   def playHand(game: BlackjackGameState): BlackjackGameState = {
@@ -277,15 +352,16 @@ trait BlackjackPlay {
       case Some(h) => updatedHands ++ Seq(h) // split occurred, add new hand
       case None => updatedHands 
     }
+
     // yield updated game state (but player's current hand or current player will not increment; not this function's responsibility) 
     game.copy(deck = updatedDeck, history = game.history ++ newHistory, players = for (p <- game.players) yield {
       if (p == game.currentPlayer())
         p.copy(handsAndBets = updatedHands)
       else p 
-    })
+    }).toNextHand(action, evaluation.eval(outcomeHands.head.hand) > 21)
+    // if player Stands or Surrenders, or if current hand busted, then iterate to next hand, or if it doesn't exist then to the next player
   }
 
-  // TODO: test 
   // returns updated cards (seq of hands to account for Splits), updated deck, and new history
   def performPlayAction(
     playerId: String, 
