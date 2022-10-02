@@ -592,6 +592,19 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
     val result = isTimeToDeal(game)
     Then("it's determined that yes, it is in fact time to deal")
     result shouldBe (true)
+    When("dealing cards")
+    val cardsDealtState = deal(game) 
+    Then("1 card should be dealt to the player having only 1 card, resulting in each player having exactly 2 cards, including the dealer")
+    val allHands: Seq[Seq[Card]] = cardsDealtState.players.map(_.hands).flatten ++ Seq(cardsDealtState.dealerHand.hand)
+    allHands should have length (2)
+    info("player 1 should have 2 cards")
+    allHands.head should have length (2)
+    info("dealer should have 2 cards")
+    allHands.tail.head should have length (2)
+
+    // allHands.count(_.length == 2) should equal (2)
+
+    // val x: Int = cardsDealtState.players.count(p => p.hands)
   }
 
   it should "know it's not time to deal when bets have been accepted for a 1 player game and player has 3 cards and the dealer 2" in {
@@ -606,8 +619,21 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
     val result = isTimeToDeal(game)
     Then("it's determined that it's not time to deal")
     result shouldBe (false)
+    When("attempting to deal")
+    Then("an illegal argument exception should be thrown")
+    an [IllegalArgumentException] shouldBe thrownBy (deal(game))
   }
 
+  it should "know it's not time to deal in a game with no players" in {
+    Given("a game with no players")
+    val game = BlackjackGameState(options = BlackjackOptions(), minimumBet = 5, dealerHand = Hand(hand = Seq(Card(Four, Clubs), Card(Ten, Clubs))), players = Nil, currentPlayerIndex = None)
+    When("determining whether it's time to deal cards")
+    Then("an illegal argument exception should be thrown")
+    an [IllegalArgumentException] shouldBe thrownBy (isTimeToDeal(game))
+    When("attempting to deal")
+    Then("an illegal argument exception should be thrown")
+    an [IllegalArgumentException] shouldBe thrownBy (deal(game))
+  }
 
   it should "know it's time to deal when bets have been accepted for a 1 player game and player has 3 cards and the dealer only has 1 card" in {
     Given("a game with 1 player who has three cards and a dealer who has only one card")
@@ -641,7 +667,7 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
     Then("it's determined that yes, it is in fact time to deal")
     result shouldBe (true)
   }
-
+  
   it should "know it's time for dealer to play when only player has selected to Stand" in {
     Given("a game with 1 player having 2 cards, a dealer with 2 cards, and a history showing the player is Standing")
     val player1 = BlackjackPlayerState(

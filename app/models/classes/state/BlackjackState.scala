@@ -51,9 +51,17 @@ case class BlackjackPlayerState(
     require(oscarsGoalMultiplier >= 1.0)
 
     // TODO: test
-    def updateHand(beforeCards: Seq[Card], updatedCards: Seq[Card]): BlackjackPlayerState = {
-      this.copy(handsAndBets = handsAndBets.map(h => if (h.hand == beforeCards) h.copy(hand = updatedCards) else h))
+    def updateHand(beforeCards: Seq[Card], updatedCards: Seq[Card]): BlackjackPlayerState = updatedCards match {
+      case Nil => this // in blackjack, cards are only ever added but are never discarded, so don't allow update to empty hand
+      case _ => this.copy(handsAndBets = handsAndBets.map { h => 
+        if (h.hand.sorted == beforeCards.sorted) 
+          h.copy(hand = updatedCards) 
+        else 
+          h
+      })
     }
+
+    def clearHands(): BlackjackPlayerState = this.copy(handsAndBets = Nil)
 }
 
 object BlackjackPlayerState {

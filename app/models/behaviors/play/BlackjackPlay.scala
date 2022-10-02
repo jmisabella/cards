@@ -84,6 +84,7 @@ trait BlackjackPlay {
   }
 
   // TODO: test
+  // TODO: should also update history so it indicates that player has been dealt N cards
   def deal(game: BlackjackGameState): BlackjackGameState = {
     if (!isTimeToDeal(game)) {
       throw new IllegalArgumentException("cannot deal cards because it's not currently time to deal")
@@ -94,16 +95,14 @@ trait BlackjackPlay {
       hand <- player.handsAndBets
     } yield {
       val (updatedCards, updatedDeck): (Seq[Card], Deck) = game.deck.deal(2 - hand.hand.length)
-      player.updateHand(hand.hand, updatedCards)
-      // if (hand.hand.length < 2) {
-      //   val (updatedCards, updatedDeck): (Seq[Card], Deck) = game.deck.deal(2 - hand.hand.length)
-      //   deck = updatedDeck
-      //   player.updateHand(hand.hand, updatedCards)
-      // } else {
-      //   player
-      // }
+      deck = updatedDeck 
+      player.updateHand(hand.hand, updatedCards) // only updates hand when updatedCards isn't empty
     })
-    game.copy(players = updatedPlayers, deck = deck) 
+    val (newlyDealtDealerCards, updatedDeck): (Seq[Card], Deck) = game.dealerHand.hand.length match {
+      case n if (n < 2) => deck.deal(2 - n)
+      case _ => (game.dealerHand.hand, deck)
+    }
+    game.copy(players = updatedPlayers, deck = updatedDeck, dealerHand = game.dealerHand.copy(hand = game.dealerHand.hand ++ newlyDealtDealerCards)) 
   }
 
   def isTimeForDealerToPlay(game: BlackjackGameState): Boolean = {
@@ -183,7 +182,8 @@ trait BlackjackPlay {
     val highestRank: Rank = game.currentCards().sorted.reverse.head.rank
     val totalScore: Int = eval(game.currentCards())
     val tailScore: Int = eval(game.currentCards().tail)
-    val dealerFaceUpRank: Rank = game.dealerHand.hand.head.rank
+    // val dealerFaceUpRank: Rank = game.dealerHand.hand.head.rank
+    val dealerFaceUpRank: Rank = game.dealerHand.hand.tail.head.rank
     val surrenderOffered: Boolean = game.options.allowSurrender 
     val tens: Seq[Rank] = Seq(Ten, Jack, Queen, King) // ranks which have value of 10
 
