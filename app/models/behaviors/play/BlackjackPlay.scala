@@ -84,25 +84,31 @@ trait BlackjackPlay {
   }
 
   // TODO: test
-  // TODO: should also update history so it indicates that player has been dealt N cards
+  // TODO: test that history is updated so it indicates that player has been dealt N cards
   def deal(game: BlackjackGameState): BlackjackGameState = {
     if (!isTimeToDeal(game)) {
       throw new IllegalArgumentException("cannot deal cards because it's not currently time to deal")
     }
     var deck = game.deck
-    val updatedPlayers: Seq[BlackjackPlayerState] = (for {
+    val (updatedPlayersAndHistories): Seq[(BlackjackPlayerState, Action[BlackjackAction])] = (for {
       player <- game.players
       hand <- player.handsAndBets
     } yield {
       val (updatedCards, updatedDeck): (Seq[Card], Deck) = game.deck.deal(2 - hand.hand.length)
-      deck = updatedDeck 
-      player.updateHand(hand.hand, updatedCards) // only updates hand when updatedCards isn't empty
+      deck = updatedDeck
+      val history = Action(player.id, IsDealt, updatedCards, 0, hand.hand, Seq(hand.hand ++ updatedCards) )
+      (player.updateHand(hand.hand, updatedCards), history) // only updates hand when updatedCards isn't empty
     })
     val (newlyDealtDealerCards, updatedDeck): (Seq[Card], Deck) = game.dealerHand.hand.length match {
       case n if (n < 2) => deck.deal(2 - n)
       case _ => (game.dealerHand.hand, deck)
     }
-    game.copy(players = updatedPlayers, deck = updatedDeck, dealerHand = game.dealerHand.copy(hand = game.dealerHand.hand ++ newlyDealtDealerCards)) 
+    val updatedDealerHand: Seq[Card] = game.dealerHand.hand ++ newlyDealtDealerCards
+    val dealerHandWithFirstCardFaceDown: Seq[Card] = Seq(Card(FaceDown, Unknown)) ++ updatedDealerHand.tail
+    val dealerHistory: Seq[Action[BlackjackAction]] = Seq(Action("dealer", IsDealt, newlyDealtDealerCards, 0, game.dealerHand.hand, Seq(dealerHandWithFirstCardFaceDown)))
+    val history: Seq[Action[BlackjackAction]] = updatedPlayersAndHistories.map(_._2) ++ dealerHistory
+    val updatedPlayers: Seq[BlackjackPlayerState] = updatedPlayersAndHistories.map(_._1) 
+    game.copy(players = updatedPlayers, deck = updatedDeck, dealerHand = game.dealerHand.copy(hand = updatedDealerHand), history = game.history ++ history) 
   }
 
   def isTimeForDealerToPlay(game: BlackjackGameState): Boolean = {
