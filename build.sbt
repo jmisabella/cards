@@ -1,9 +1,11 @@
 name := """cards"""
-organization := "com.jmisabella"
+organization := "io.github.jmisabella"
 
 version := "0.1"
 
 scalaVersion := "2.13.6"
+
+publishTo := sonatypePublishTo.value
 
 libraryDependencies ++= Seq(
   "com.typesafe.play" %% "play-json" % "2.9.3",
