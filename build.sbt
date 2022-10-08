@@ -10,4 +10,3 @@ libraryDependencies ++= Seq(
   "com.fasterxml.jackson.core" % "jackson-core" % "2.13.4",
   "org.scalatest" %% "scalatest" % "3.2.9" % "test"
 )
-
