@@ -9,6 +9,7 @@ import cards.models.classes.Rank._
 import cards.models.classes.Suit._
 import cards.models.classes.hand.Hand
 import cards.models.classes.options.BlackjackOptions
+import cards.models.classes.options.DealerHitLimit._
 import cards.models.classes.state.{ BlackjackGameState, BlackjackPlayerState }
 import cards.models.classes.options.BlackjackPayout._
 import cards.models.classes.actions.{ Action, BlackjackAction }
@@ -743,7 +744,7 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
         Hand(hand = Seq(Card(Ten, Hearts), Card(Eight, Clubs)), bets = Map("Jeffrey" -> 5), wins = None)) )
     val history = Seq(Action("Jeffrey", Stand, Nil, 0, Seq(Card(Ten, Hearts), Card(Eight, Clubs)), Seq(Seq(Card(Ten, Hearts), Card(Eight, Clubs)))))
     val game = BlackjackGameState(
-      options = BlackjackOptions(), 
+      options = BlackjackOptions(dealerHitLimit = S17), 
       minimumBet = 5, 
       dealerHand = Hand(hand = Seq(Card(Four, Clubs), Card(Nine, Clubs))), 
       players = Seq(player1), 
@@ -755,6 +756,7 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
     When("determining whether it's time for dealer to play")
     Then("it's determined that yes, it is in fact time for dealer to play")
     isTimeForDealerToPlay(game) shouldBe (true)
+  
   }
 
   it should "know it's time for dealer to play when only player has busted" in {
@@ -766,7 +768,7 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
         Hand(hand = Seq(Card(Ten, Hearts), Card(Eight, Clubs), Card(Four, Clubs)), bets = Map("Jeffrey" -> 5), wins = None)) )
     val history = Seq(Action("Jeffrey", Hit, Seq(Card(Four, Clubs)), 0, Seq(Card(Ten, Hearts), Card(Eight, Clubs)), Seq(Seq(Card(Ten, Hearts), Card(Eight, Clubs), Card(Four, Clubs)))))
     val game = BlackjackGameState(
-      options = BlackjackOptions(), 
+      options = BlackjackOptions(dealerHitLimit = H17), 
       minimumBet = 5, 
       dealerHand = Hand(hand = Seq(Card(Four, Clubs), Card(Nine, Clubs))), 
       players = Seq(player1), 
