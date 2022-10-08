@@ -1600,8 +1600,8 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     result should be (false)
   }
 
-  it should "allow players insurance if dealer's hand has exactly 2 cards and its face-up card (first card) is an Ace" in {
-    val dealerCards: Seq[Card] = Seq(Card(Ace, Hearts), Card(Two, Clubs))
+  it should "allow players insurance if dealer's hand has exactly 2 cards and its face-up card (second card) is an Ace" in {
+    val dealerCards: Seq[Card] = Seq(Card(Two, Clubs), Card(Ace, Hearts))
     val result: Boolean = eligibleForInsurance(dealerCards)
     result should be (true)
   }
