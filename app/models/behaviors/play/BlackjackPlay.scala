@@ -83,30 +83,39 @@ trait BlackjackPlay {
         game.players.count(p => p.hands == Nil || p.hands.count(_.length < 2) > 0) > 0  ) // then it's time to deal
   }
 
-  // TODO: test
-  // TODO: test that history is updated so it indicates that player has been dealt N cards
   def deal(game: BlackjackGameState): BlackjackGameState = {
     if (!isTimeToDeal(game)) {
       throw new IllegalArgumentException("cannot deal cards because it's not currently time to deal")
     }
     var deck = game.deck
-    val (updatedPlayersAndHistories): Seq[(BlackjackPlayerState, Action[BlackjackAction])] = (for {
+    val (updatedPlayersAndHistories): Seq[(BlackjackPlayerState, Option[Action[BlackjackAction]])] = (for {
       player <- game.players
       hand <- player.handsAndBets
     } yield {
       val (updatedCards, updatedDeck): (Seq[Card], Deck) = game.deck.deal(2 - hand.hand.length)
       deck = updatedDeck
-      val history = Action(player.id, IsDealt, updatedCards, 0, hand.hand, Seq(hand.hand ++ updatedCards) )
+      val history = if (hand.hand.length < 2) 
+        Some(Action(player.id, IsDealt, updatedCards, 0, hand.hand, Seq(hand.hand ++ updatedCards) ))
+      else
+        None
       (player.updateHand(hand.hand, updatedCards), history) // only updates hand when updatedCards isn't empty
     })
     val (newlyDealtDealerCards, updatedDeck): (Seq[Card], Deck) = game.dealerHand.hand.length match {
       case n if (n < 2) => deck.deal(2 - n)
-      case _ => (game.dealerHand.hand, deck)
-    }
+      case _ => (Nil, deck)
+    } 
     val updatedDealerHand: Seq[Card] = game.dealerHand.hand ++ newlyDealtDealerCards
-    val dealerHandWithFirstCardFaceDown: Seq[Card] = Seq(Card(FaceDown, Unknown)) ++ updatedDealerHand.tail
-    val dealerHistory: Seq[Action[BlackjackAction]] = Seq(Action("dealer", IsDealt, newlyDealtDealerCards, 0, game.dealerHand.hand, Seq(dealerHandWithFirstCardFaceDown)))
-    val history: Seq[Action[BlackjackAction]] = updatedPlayersAndHistories.map(_._2) ++ dealerHistory
+    val originalDealerWithFaceDown: Seq[Card] = game.dealerHand.hand.length match {
+      case 0 => Nil
+      case 1 => Seq(Card(FaceDown, Unknown))
+      case _ => Seq(Card(FaceDown, Unknown)) ++ game.dealerHand.hand.tail
+    }
+    val newDealerWithFaceDown: Seq[Card] = Seq(Card(FaceDown, Unknown)) ++ updatedDealerHand.tail
+    val dealerHistory: Seq[Action[BlackjackAction]] = newlyDealtDealerCards.length match {
+      case 0 => Nil
+      case _ => Seq(Action("dealer", IsDealt, newlyDealtDealerCards, 0, originalDealerWithFaceDown, Seq(newDealerWithFaceDown)))
+    }
+    val history: Seq[Action[BlackjackAction]] = updatedPlayersAndHistories.filter(_._2.isDefined).map(_._2.get) ++ dealerHistory
     val updatedPlayers: Seq[BlackjackPlayerState] = updatedPlayersAndHistories.map(_._1) 
     game.copy(players = updatedPlayers, deck = updatedDeck, dealerHand = game.dealerHand.copy(hand = updatedDealerHand), history = game.history ++ history) 
   }

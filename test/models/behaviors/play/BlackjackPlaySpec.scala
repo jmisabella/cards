@@ -550,6 +550,31 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
     val result = isTimeToDeal(game)
     Then("it's determined that yes, it is in fact time to deal")
     result shouldBe (true)
+    When("dealing cards")
+    val cardsDealtState = deal(game) 
+    Then("2 cards should be dealt to player and 2 cards should be dealt to the dealer, resulting in both player and dealer having exactly 2 cards")
+    val allHands: Seq[Seq[Card]] = cardsDealtState.players.map(_.hands).flatten ++ Seq(cardsDealtState.dealerHand.hand)
+    allHands should have length (2)
+    info("player should have 2 cards")
+    allHands.head should have length (2)
+    info("dealer should have 2 cards")
+    allHands.tail.head should have length (2)
+    info("original game's history is empty")
+    game.history shouldBe empty
+    info("updated history should have length 2")
+    cardsDealtState.history should have length (2)
+    info("history should show player 1 being dealt 2 cards")
+    cardsDealtState.history.count(a => a.playerId == player1.id && a.action == IsDealt && a.actionCards.length == 2) should equal (1)
+    info("history should show dealer being dealt 2 cards")
+    cardsDealtState.history.count(a => a.playerId == "dealer" && a.action == IsDealt && a.actionCards.length == 2) should equal (1)
+    info("first history item is the player being dealt 2 cards, neither being face down")
+    cardsDealtState.history.head.playerId should equal (player1.id)
+    cardsDealtState.history.head.afterCards.head.map(_.rank) should not contain (FaceDown)
+    cardsDealtState.history.head.beforeCards.map(_.rank) should not contain (FaceDown)
+    info("2nd history item is the dealer being dealt 2 cards, the first card being face down") 
+    info("dealer's hand in history should show first card being face-down")
+    cardsDealtState.history.tail.head.afterCards.head.head.rank should equal (FaceDown)
+    cardsDealtState.history.tail.head.beforeCards should have length 0
   }
 
   it should "know it's time to deal when bets have been accepted for a 1 player game and player has cards but dealer does not" in {
@@ -564,6 +589,24 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
     val result = isTimeToDeal(game)
     Then("it's determined that yes, it is in fact time to deal")
     result shouldBe (true)
+    When("dealing cards")
+    val cardsDealtState = deal(game) 
+    Then("0 cards should be dealt to player and 2 cards should be dealt to the dealer, resulting in both player and dealer having exactly 2 cards")
+    val allHands: Seq[Seq[Card]] = cardsDealtState.players.map(_.hands).flatten ++ Seq(cardsDealtState.dealerHand.hand)
+    allHands should have length (2)
+    info("player should have 2 cards")
+    allHands.head should have length (2)
+    info("dealer should have 2 cards")
+    allHands.tail.head should have length (2)
+    info("original game's history is empty")
+    game.history shouldBe empty
+    info("updated history should have length 1")
+    cardsDealtState.history should have length (1)
+    info("history should show dealer being dealt 2 cards")
+    cardsDealtState.history.count(a => a.playerId == "dealer" && a.action == IsDealt && a.actionCards.length == 2) should equal (1)
+    info("dealer's hand in history should show first card being face-down")
+    cardsDealtState.history.head.afterCards.head.head.rank should equal (FaceDown)
+    cardsDealtState.history.head.beforeCards should have length 0
   }
 
   it should "know it's time to deal when bets have been accepted for a 1 player game and player no cards but dealer has 2 cards" in {
@@ -578,6 +621,24 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
     val result = isTimeToDeal(game)
     Then("it's determined that yes, it is in fact time to deal")
     result shouldBe (true)
+    When("dealing cards")
+    val cardsDealtState = deal(game) 
+    Then("2 cards should be dealt to player and no cards should be dealt to the dealer, resulting in both player and dealer having exactly 2 cards")
+    val allHands: Seq[Seq[Card]] = cardsDealtState.players.map(_.hands).flatten ++ Seq(cardsDealtState.dealerHand.hand)
+    allHands should have length (2)
+    info("player should have 2 cards")
+    allHands.head should have length (2)
+    info("dealer should have 2 cards")
+    allHands.tail.head should have length (2)
+    info("original game's history is empty")
+    game.history shouldBe empty
+    info("updated history should have length 1")
+    cardsDealtState.history should have length (1)
+    info("history should show player being dealt 2 cards")
+    cardsDealtState.history.count(a => a.playerId == player1.id && a.action == IsDealt && a.actionCards.length == 2) should equal (1)
+    info("none of player's cards in history should be face-down")
+    cardsDealtState.history.head.afterCards.head.map(_.rank) should not contain (FaceDown)
+    cardsDealtState.history.head.beforeCards.map(_.rank) should not contain (FaceDown)
   }
 
   it should "know it's time to deal when bets have been accepted for a 1 player game and player has 2 cards but dealer has only 1 cards" in {
@@ -594,17 +655,22 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
     result shouldBe (true)
     When("dealing cards")
     val cardsDealtState = deal(game) 
-    Then("1 card should be dealt to the player having only 1 card, resulting in each player having exactly 2 cards, including the dealer")
+    Then("0 cards should be dealt to player and 1 card should be dealt to the dealer, resulting in both player and dealer having exactly 2 cards")
     val allHands: Seq[Seq[Card]] = cardsDealtState.players.map(_.hands).flatten ++ Seq(cardsDealtState.dealerHand.hand)
     allHands should have length (2)
-    info("player 1 should have 2 cards")
+    info("player should have 2 cards")
     allHands.head should have length (2)
     info("dealer should have 2 cards")
     allHands.tail.head should have length (2)
-
-    // allHands.count(_.length == 2) should equal (2)
-
-    // val x: Int = cardsDealtState.players.count(p => p.hands)
+    info("original game's history is empty")
+    game.history shouldBe empty
+    info("updated history should have length 1")
+    cardsDealtState.history should have length (1)
+    info("history should show dealer being dealt 1 card")
+    cardsDealtState.history.count(a => a.playerId == "dealer" && a.action == IsDealt && a.actionCards.length == 1) should equal (1)
+    info("dealer's hand in history should show first card being face-down")
+    cardsDealtState.history.head.afterCards.head.head.rank should equal (FaceDown)
+    cardsDealtState.history.head.beforeCards.head.rank should equal (FaceDown)
   }
 
   it should "know it's not time to deal when bets have been accepted for a 1 player game and player has 3 cards and the dealer 2" in {
