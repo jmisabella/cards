@@ -17,7 +17,8 @@ class CardSerializationSpec extends AnyFlatSpec {
     val cards: Seq[Card] = Nil
     val json = module.json(cards)
     val result: Either[String, Seq[Card]] = module.parse(json)
-    result should be (right) 
+    result should be (right)
+    result should equal (Right(cards))
   }
 
   it should "create valid json from a hand with a single two of spades" in {
@@ -25,6 +26,7 @@ class CardSerializationSpec extends AnyFlatSpec {
     val json = module.json(cards)
     val result: Either[String, Seq[Card]] = module.parse(json)
     result should be (right) 
+    result should equal (Right(cards))
   }
 
 
@@ -33,6 +35,7 @@ class CardSerializationSpec extends AnyFlatSpec {
     val json = module.json(cards)
     val result: Either[String, Seq[Card]] = module.parse(json)
     result should be (right) 
+    result should equal (Right(cards))
   }
 
   it should "create valid json from a three card hand with 2 suited cards and a Joker" in {
@@ -40,6 +43,7 @@ class CardSerializationSpec extends AnyFlatSpec {
     val json = module.json(cards)
     val result: Either[String, Seq[Card]] = module.parse(json)
     result should be (right) 
+    result should equal (Right(cards))
   }
 
 }

@@ -3,8 +3,8 @@ ThisBuild / name := "cards"
 ThisBuild / organization := "io.github.jmisabella"
 ThisBuild / organizationName := "jmisabella"
 ThisBuild / organizationHomepage := Some(url("https://github.com/jmisabella"))
-ThisBuild / version := "0.1.0"
-ThisBuild / scalaVersion := "2.13.6"
+ThisBuild / version := "0.1.1"
+ThisBuild / scalaVersion := "2.13.10"
 
 ThisBuild / scmInfo := Some(
   ScmInfo(
@@ -22,7 +22,7 @@ ThisBuild / developers := List(
 )
 
 ThisBuild / libraryDependencies ++= Seq(
-  "com.typesafe.play" %% "play-json" % "2.9.3",
+  "com.typesafe.play" %% "play-json" % "2.10.0-RC6",
   "com.fasterxml.jackson.core" % "jackson-core" % "2.13.4",
   "org.scalatest" %% "scalatest" % "3.2.9" % "test"
 )
