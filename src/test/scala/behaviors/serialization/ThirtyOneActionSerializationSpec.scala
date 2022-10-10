@@ -19,6 +19,7 @@ class ThirtyOneActionSerializationSpec extends AnyFlatSpec {
     val json: String = module.json(action)
     val result: Either[String, Seq[Action[ThirtyOneAction]]] = module.parse(json)
     result should be (right) 
+    result should equal (Right(action))
   }
 
   it should "create valid json from Draw action from an empty hand to a single card hand with a two of spades" in {
@@ -32,7 +33,8 @@ class ThirtyOneActionSerializationSpec extends AnyFlatSpec {
 
     val json: String = module.json(action)
     val result: Either[String, Seq[Action[ThirtyOneAction]]] = module.parse(json)
-    result should be (right) 
+    result should be (right)
+    result should equal (Right(action))
   }
 
 }
