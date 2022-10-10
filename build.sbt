@@ -22,8 +22,10 @@ ThisBuild / developers := List(
 )
 
 ThisBuild / libraryDependencies ++= Seq(
-  "com.typesafe.play" %% "play-json" % "2.9.3",
+  // "com.typesafe.play" %% "play-json" % "2.9.3",
+  "com.typesafe.play" %% "play-json" % "2.7.4",
   "com.fasterxml.jackson.core" % "jackson-core" % "2.13.4",
+  "com.google.code.gson" % "gson" % "2.9.1",
   "org.scalatest" %% "scalatest" % "3.2.9" % "test"
 )
 ThisBuild / description := "Scala library for card-playing functionality, including games Blackjack and Thirty-One"

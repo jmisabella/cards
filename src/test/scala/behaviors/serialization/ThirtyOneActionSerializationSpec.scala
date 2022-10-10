@@ -31,6 +31,7 @@ class ThirtyOneActionSerializationSpec extends AnyFlatSpec {
           actionTokens=0 ))
 
     val json: String = module.json(action)
+    println("JSON: " + json)
     val result: Either[String, Seq[Action[ThirtyOneAction]]] = module.parse(json)
     result should be (right) 
   }
