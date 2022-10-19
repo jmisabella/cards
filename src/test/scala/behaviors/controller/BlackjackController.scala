@@ -1,9 +1,9 @@
-package cards.behaviors.nonplayer
+package cards.behaviors.controller
 
 import cards.behaviors.Commons
 import cards.behaviors.evaluation.BlackjackHandEvaluation
 import cards.behaviors.betting.BlackjackBetting
-import cards.behaviors.nonplayer.BlackjackNonPlayer
+import cards.behaviors.controller.BlackjackController
 import cards.behaviors.play.BlackjackPlay
 import cards.classes.{ Card, Rank, Suit, Deck, DeckType }
 import cards.classes.DeckType._
@@ -19,32 +19,32 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 import org.scalatest.GivenWhenThen
 
-class BlackjackNonPlayerSpec extends AnyFlatSpec with GivenWhenThen {
-  private [nonplayer] case object _betting extends BlackjackBetting {
+class BlackjackControllerSpec extends AnyFlatSpec with GivenWhenThen {
+  private [controller] case object _betting extends BlackjackBetting {
     override type EVAL = BlackjackHandEvaluation
     override val evaluation = _evaluation
   }
 
-  private [nonplayer] case object _commons extends Commons
-  private [nonplayer] case object _evaluation extends BlackjackHandEvaluation {
+  private [controller] case object _commons extends Commons
+  private [controller] case object _evaluation extends BlackjackHandEvaluation {
     override type C = Commons
     override val commons = _commons
   }
-  private [nonplayer] case object _play extends BlackjackPlay {
+  private [controller] case object _play extends BlackjackPlay {
     override type COMMONS = Commons
     override val commons = _commons
     override type EVAL = BlackjackHandEvaluation
     override val evaluation: EVAL = _evaluation 
   }
 
-  case object module extends BlackjackNonPlayer {
+  case object module extends BlackjackController {
     override type BETTING = BlackjackBetting
     override type PLAY = BlackjackPlay
     override val betting = _betting
     override val play = _play
   }
 
-  "BlackjackNonPlayer" should "throw an illegal state exception when proceeding to next state from a game state without any players" in {
+  "BlackjackController" should "throw an illegal state exception when proceeding to next state from a game state without any players" in {
     Given("a blackjack game state without any players")
     val gameState = BlackjackGameState(options = BlackjackOptions(), dealerHand = Hand(), players = Nil)
     When("proceeding to the next state")
@@ -52,7 +52,7 @@ class BlackjackNonPlayerSpec extends AnyFlatSpec with GivenWhenThen {
     an [IllegalStateException] shouldBe thrownBy (module.next(gameState)) 
   }
 
-  "BlackjackNonPlayer" should "throw an illegal state exception when proceeding to next state from a game state with no designated current player" in {
+  "BlackjackController" should "throw an illegal state exception when proceeding to next state from a game state with no designated current player" in {
     Given("a blackjack game state with 3 players but with no designated current player")
     val player1 = BlackjackPlayerState(
       "Jeffrey", 

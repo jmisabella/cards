@@ -734,7 +734,7 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
     Then("it's determined that yes, it is in fact time to deal")
     result shouldBe (true)
   }
-  
+
   it should "know it's time for dealer to play when only player has selected to Stand" in {
     Given("a game with 1 player having 2 cards, a dealer with 2 cards, and a history showing the player is Standing")
     val player1 = BlackjackPlayerState(
@@ -744,9 +744,8 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
         Hand(hand = Seq(Card(Ten, Hearts), Card(Eight, Clubs)), bets = Map("Jeffrey" -> 5), wins = None)) )
     val history = Seq(Action("Jeffrey", Stand, Nil, 0, Seq(Card(Ten, Hearts), Card(Eight, Clubs)), Seq(Seq(Card(Ten, Hearts), Card(Eight, Clubs)))))
     val game = BlackjackGameState(
-      options = BlackjackOptions(dealerHitLimit = S17), 
       minimumBet = 5, 
-      dealerHand = Hand(hand = Seq(Card(Four, Clubs), Card(Nine, Clubs))), 
+      dealerHand = Hand(hand = Seq(Card(Nine, Diamonds), Card(Nine, Clubs))), 
       players = Seq(player1), 
       history = history, 
       currentPlayerIndex = Some(0))
@@ -756,7 +755,12 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
     When("determining whether it's time for dealer to play")
     Then("it's determined that yes, it is in fact time for dealer to play")
     isTimeForDealerToPlay(game) shouldBe (true)
-  
+    When("when dealer plays hand of 18")
+    val playedHand = dealerPlay(game) 
+    Then("then dealer will Stand")
+    val action = playedHand.history.reverse.head
+    action.playerId should equal ("dealer")
+    action.action should equal (Stand)
   }
 
   it should "know it's time for dealer to play when only player has busted" in {
@@ -770,7 +774,8 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
     val game = BlackjackGameState(
       options = BlackjackOptions(dealerHitLimit = H17), 
       minimumBet = 5, 
-      dealerHand = Hand(hand = Seq(Card(Four, Clubs), Card(Nine, Clubs))), 
+      // dealer has soft 17
+      dealerHand = Hand(hand = Seq(Card(Six, Clubs), Card(Ace, Clubs))), 
       players = Seq(player1), 
       history = history, 
       currentPlayerIndex = Some(0))
@@ -780,6 +785,12 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
     When("determining whether it's time for dealer to play")
     Then("it's determined that yes, it is in fact time for dealer to play")
     isTimeForDealerToPlay(game) shouldBe (true)
+    When("when dealer plays hand on an S17 board")
+    val playedHand = dealerPlay(game.copy(options = game.options.copy(dealerHitLimit = S17))) 
+    Then("then dealer will stand on soft 17")
+    val action = playedHand.history.reverse.head
+    action.playerId should equal ("dealer")
+    action.action should equal (Stand)
   }
 
   it should "know it's time for dealer to play when 2 players have played (one busts, another Stands)" in {
@@ -800,7 +811,8 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
     val game = BlackjackGameState(
       options = BlackjackOptions(), 
       minimumBet = 5, 
-      dealerHand = Hand(hand = Seq(Card(Four, Clubs), Card(Nine, Clubs))), 
+      // dealer has soft 17
+      dealerHand = Hand(hand = Seq(Card(Six, Clubs), Card(Ace, Clubs))), 
       players = Seq(player1, player2), 
       history = history, 
       currentPlayerIndex = Some(1))
@@ -810,6 +822,12 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
     When("determining whether it's time for dealer to play")
     Then("it's determined that yes, it is in fact time for dealer to play")
     isTimeForDealerToPlay(game) shouldBe (true)
+    When("when dealer plays hand on an H17 board")
+    val playedHand = dealerPlay(game.copy(options = game.options.copy(dealerHitLimit = H17))) 
+    Then("then dealer will hit on soft 17")
+    val action = playedHand.history.reverse.head
+    action.playerId should equal ("dealer")
+    action.action should equal (Hit)
   }
 
   it should "know it's not time for dealer to play when only 1 of 2 players has finished playing (busted)" in {

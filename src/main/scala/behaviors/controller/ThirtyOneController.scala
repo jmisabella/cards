@@ -1,4 +1,4 @@
-package cards.behaviors.nonplayer
+package cards.behaviors.controller
 
 import cards.behaviors.evaluation.ThirtyOneHandEvaluation
 import cards.classes.state.{ ThirtyOnePlayerState, ThirtyOneGameState }
@@ -7,7 +7,7 @@ import cards.classes.actions.{ Action, ThirtyOneAction }
 import cards.classes.actions.ThirtyOneAction._
 
 // Game play follows West Lansing Cut Throat rules
-trait ThirtyOneNonPlayer { 
+trait ThirtyOneController { 
   type EVAL <: ThirtyOneHandEvaluation 
   val evaluation: EVAL
 

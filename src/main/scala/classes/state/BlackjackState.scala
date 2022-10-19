@@ -111,6 +111,9 @@ case class BlackjackGameState(
         case (Some(_), Some(h), false) => this.copy(currentHandIndex = Some(h + 1))
       }
     }
+    
+    // TODO: know when all players as well as the dealer have all played their hands (and it's time to reset history and take new bets)
+
     def playerHistory(playerId: String): Seq[Action[BlackjackAction]] = history.filter(a => a.playerId == playerId)
 
     // true indicates a win, false indicates a loss; order is in the original order played, so most recent is last item

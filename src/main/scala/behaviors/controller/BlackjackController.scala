@@ -1,4 +1,4 @@
-package cards.behaviors.nonplayer
+package cards.behaviors.controller
 
 import cards.behaviors.evaluation.BlackjackHandEvaluation
 import cards.behaviors.betting.BlackjackBetting
@@ -8,7 +8,7 @@ import cards.classes.{ Card, Deck }
 import cards.classes.actions.{ Action, BlackjackAction }
 import cards.classes.actions.BlackjackAction._
 
-trait BlackjackNonPlayer { 
+trait BlackjackController { 
   type BETTING <: BlackjackBetting
   type PLAY <: BlackjackPlay
   val betting: BETTING
