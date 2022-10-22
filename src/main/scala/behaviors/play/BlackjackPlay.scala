@@ -113,7 +113,7 @@ trait BlackjackPlay {
     val newDealerWithFaceDown: Seq[Card] = Seq(Card(FaceDown, Unknown)) ++ updatedDealerHand.tail
     val dealerHistory: Seq[Action[BlackjackAction]] = newlyDealtDealerCards.length match {
       case 0 => Nil
-      case _ => Seq(Action("dealer", IsDealt, newlyDealtDealerCards, 0, originalDealerWithFaceDown, Seq(newDealerWithFaceDown)))
+      case _ => Seq(Action("Dealer", IsDealt, newlyDealtDealerCards, 0, originalDealerWithFaceDown, Seq(newDealerWithFaceDown)))
     }
     val history: Seq[Action[BlackjackAction]] = updatedPlayersAndHistories.filter(_._2.isDefined).map(_._2.get) ++ dealerHistory
     val updatedPlayers: Seq[BlackjackPlayerState] = updatedPlayersAndHistories.map(_._1) 
@@ -139,7 +139,6 @@ trait BlackjackPlay {
       playerHandCounts == playerCompletedHandCounts // all hands have either busted or are standing or surrendering
   }
 
-  // TODO: test
   def dealerPlay(game: BlackjackGameState): BlackjackGameState = {
     if (!isTimeForDealerToPlay(game)) {
       throw new IllegalArgumentException("dealer cannot play hand because it's not currently time for dealer to play")
@@ -152,11 +151,11 @@ trait BlackjackPlay {
         case (_, _, _) => Hit
       }
     val (newHistory, newDeck): (Seq[Action[BlackjackAction]], Deck) = action match {
-      case Stand => (Seq(Action("dealer", Stand, Nil, 0, game.dealerHand.hand, Seq(game.dealerHand.hand))), game.deck)
+      case Stand => (Seq(Action("Dealer", Stand, Nil, 0, game.dealerHand.hand, Seq(game.dealerHand.hand))), game.deck)
       case Hit => {
         // Hit deals 1 card 
         val (dealt, nextDeck): (Seq[Card], Deck) = game.deck.deal()
-        (Seq(Action("dealer", Hit, dealt, 0, game.dealerHand.hand, Seq(game.dealerHand.hand ++ dealt))), nextDeck)
+        (Seq(Action("Dealer", Hit, dealt, 0, game.dealerHand.hand, Seq(game.dealerHand.hand ++ dealt))), nextDeck)
       }
       case a => throw new IllegalArgumentException(s"Unexpected dealer action [$a]; dealer can only ever Hit or Stand")
     }

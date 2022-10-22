@@ -567,7 +567,7 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
     info("history should show player 1 being dealt 2 cards")
     cardsDealtState.history.count(a => a.playerId == player1.id && a.action == IsDealt && a.actionCards.length == 2) should equal (1)
     info("history should show dealer being dealt 2 cards")
-    cardsDealtState.history.count(a => a.playerId == "dealer" && a.action == IsDealt && a.actionCards.length == 2) should equal (1)
+    cardsDealtState.history.count(a => a.playerId == "Dealer" && a.action == IsDealt && a.actionCards.length == 2) should equal (1)
     info("first history item is the player being dealt 2 cards, neither being face down")
     cardsDealtState.history.head.playerId should equal (player1.id)
     cardsDealtState.history.head.afterCards.head.map(_.rank) should not contain (FaceDown)
@@ -604,7 +604,7 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
     info("updated history should have length 1")
     cardsDealtState.history should have length (1)
     info("history should show dealer being dealt 2 cards")
-    cardsDealtState.history.count(a => a.playerId == "dealer" && a.action == IsDealt && a.actionCards.length == 2) should equal (1)
+    cardsDealtState.history.count(a => a.playerId == "Dealer" && a.action == IsDealt && a.actionCards.length == 2) should equal (1)
     info("dealer's hand in history should show first card being face-down")
     cardsDealtState.history.head.afterCards.head.head.rank should equal (FaceDown)
     cardsDealtState.history.head.beforeCards should have length 0
@@ -668,7 +668,7 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
     info("updated history should have length 1")
     cardsDealtState.history should have length (1)
     info("history should show dealer being dealt 1 card")
-    cardsDealtState.history.count(a => a.playerId == "dealer" && a.action == IsDealt && a.actionCards.length == 1) should equal (1)
+    cardsDealtState.history.count(a => a.playerId == "Dealer" && a.action == IsDealt && a.actionCards.length == 1) should equal (1)
     info("dealer's hand in history should show first card being face-down")
     cardsDealtState.history.head.afterCards.head.head.rank should equal (FaceDown)
     cardsDealtState.history.head.beforeCards.head.rank should equal (FaceDown)
@@ -759,7 +759,7 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
     val playedHand = dealerPlay(game) 
     Then("then dealer will Stand")
     val action = playedHand.history.reverse.head
-    action.playerId should equal ("dealer")
+    action.playerId should equal ("Dealer")
     action.action should equal (Stand)
   }
 
@@ -789,7 +789,7 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
     val playedHand = dealerPlay(game.copy(options = game.options.copy(dealerHitLimit = S17))) 
     Then("then dealer will stand on soft 17")
     val action = playedHand.history.reverse.head
-    action.playerId should equal ("dealer")
+    action.playerId should equal ("Dealer")
     action.action should equal (Stand)
   }
 
@@ -826,7 +826,7 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
     val playedHand = dealerPlay(game.copy(options = game.options.copy(dealerHitLimit = H17))) 
     Then("then dealer will hit on soft 17")
     val action = playedHand.history.reverse.head
-    action.playerId should equal ("dealer")
+    action.playerId should equal ("Dealer")
     action.action should equal (Hit)
   }
 
