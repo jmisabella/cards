@@ -44,6 +44,8 @@ trait BlackjackController {
     if (play.isTimeForDealerToPlay(game)) {
       return play.dealerPlay(game) // TODO: test
     }
+    // TODO: do player rotations all work correctly?
+    // TODO: after dealer plays, should we set a flag indicating game is completed?
 
 
     ???

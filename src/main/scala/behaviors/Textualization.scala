@@ -28,7 +28,6 @@ trait Textualization {
     }
   }
 
-  // TODO: test
   def words(card: Card): String = (card.rank, card.suit) match {
     case (FaceDown, _) => "face-down card"
     case (LeftBower, _) => "left-bower Joker" 
@@ -41,14 +40,13 @@ trait Textualization {
   // TODO: test
   def words(cards: Seq[Card]): String = cards.map(words(_)).mkString("[", ", ", "]")
 
-  // TODO: test
   def words[A <: Enumeration#Value](action: Action[A], letterSVerbSuffix: Boolean = true): String = {
     val actionSentencePrefix: String = s"${action.playerId} ${words(action.action, letterSVerbSuffix)}"
     val actionSentence: String = (action.actionCards, action.actionTokens) match {
       case (Nil, 0) => actionSentencePrefix
       case (cs, 0) => actionSentencePrefix + s": ${words(cs)}"
-      case (Nil, n) => actionSentencePrefix + s": $n tokens"
-      case (cs, n) => actionSentencePrefix + s": ${words(cs)}, $n tokens"
+      case (Nil, n) => actionSentencePrefix + s": $n"
+      case (cs, n) => actionSentencePrefix + s": ${words(cs)}, $n"
     }
     val preSentence: String = action.beforeCards match {
       case Nil => ""

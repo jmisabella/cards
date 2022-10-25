@@ -5,7 +5,7 @@ import cards.behaviors.evaluation.BlackjackHandEvaluation
 import cards.behaviors.betting.BlackjackBetting
 import cards.behaviors.controller.BlackjackController
 import cards.behaviors.play.BlackjackPlay
-import cards.classes.{ Card, Rank, Suit, Deck, DeckType }
+import cards.classes.{ Card, Rank, Suit, Deck, DeckType, Outcome }
 import cards.classes.DeckType._
 import cards.classes.Rank._
 import cards.classes.Suit._
@@ -60,21 +60,21 @@ class BlackjackControllerSpec extends AnyFlatSpec with GivenWhenThen {
       Seq( 
         Hand(Seq(Card(Four, Hearts), Card(Jack, Diamonds)), 
         bets = Map("Jeffrey" -> 15, "Alice" -> 10), 
-        wins = None)))
+        outcome = None)))
     val player2 = BlackjackPlayerState(
       "Alice", 
       50, 
       Seq( 
         Hand(Seq(Card(Two, Clubs), Card(Ace, Spades)), 
         bets = Map("Jeffrey" -> 5, "Brandon" -> 10, "Alice" -> 15),
-        wins = None)))
+        outcome = None)))
     val player3 = BlackjackPlayerState(
       "Brandon", 
       40, 
       Seq( 
         Hand(Seq(Card(Three, Spades), Card(Seven, Hearts)), 
         bets = Map("Brandon" -> 20, "Alice" -> 25),
-        wins = None)))
+        outcome = None)))
     val dealerCards: Seq[Card] = Seq(Card(Ten, Diamonds), Card(Nine, Spades))
     val gameState = BlackjackGameState(options = BlackjackOptions(), dealerHand = Hand(dealerCards), players = Seq(player1, player2, player3), currentPlayerIndex = None)
     When("proceeding to the next state")
@@ -90,21 +90,21 @@ class BlackjackControllerSpec extends AnyFlatSpec with GivenWhenThen {
       Seq( 
         Hand(Seq(Card(Four, Hearts), Card(Jack, Diamonds)), 
         bets = Map("Jeffrey" -> 15, "Alice" -> 10), 
-        wins = None)))
+        outcome = None)))
     val player2 = BlackjackPlayerState(
       "Alice", 
       50, 
       Seq( 
         Hand(Seq(Card(Two, Clubs), Card(Ace, Spades)), 
         bets = Map("Jeffrey" -> 5, "Brandon" -> 10, "Alice" -> 15),
-        wins = None)))
+        outcome = None)))
     val player3 = BlackjackPlayerState(
       "Brandon", 
       40, 
       Seq( 
         Hand(Seq(Card(Three, Spades), Card(Seven, Hearts)), 
         bets = Map("Brandon" -> 20, "Alice" -> 25),
-        wins = None)))
+        outcome = None)))
     val dealerCards: Seq[Card] = Seq(Card(Ten, Diamonds), Card(Nine, Spades))
     val gameState = BlackjackGameState(
       options = BlackjackOptions(), 
@@ -125,21 +125,21 @@ class BlackjackControllerSpec extends AnyFlatSpec with GivenWhenThen {
       Seq( 
         Hand(Seq(Card(Eight, Hearts), Card(Jack, Diamonds)), 
         bets = Map("Jeffrey" -> 15, "Alice" -> 10), 
-        wins = Some(false))))
+        outcome = Some(Outcome.Lose))))
     val player2 = BlackjackPlayerState(
       "Alice", 
       50, 
       Seq( 
         Hand(Seq(Card(Ten, Clubs), Card(Ten, Hearts)), 
         bets = Map("Jeffrey" -> 5, "Brandon" -> 10, "Alice" -> 15),
-        wins = Some(true))))
+        outcome = Some(Outcome.Win))))
     val player3 = BlackjackPlayerState(
       "Brandon", 
       40, 
       Seq( 
         Hand(Seq(Card(Ten, Spades), Card(Seven, Hearts), Card(Ace, Clubs)), 
         bets = Map("Brandon" -> 20, "Alice" -> 25),
-        wins = Some(false))))
+        outcome = Some(Outcome.Lose))))
     val dealerCards: Seq[Card] = Seq(Card(Ten, Diamonds), Card(Nine, Spades))
     val gameState = BlackjackGameState(
       options = BlackjackOptions(), 
@@ -173,7 +173,7 @@ class BlackjackControllerSpec extends AnyFlatSpec with GivenWhenThen {
       Seq( 
         Hand(Seq(Card(Ace, Hearts), Card(Jack, Diamonds)), 
         bets = Map("Jeffrey" -> 2), // bet 2 on his hand 
-        wins = Some(true))))
+        outcome = Some(Outcome.Win))))
     val dealerCards: Seq[Card] = Seq(Card(Ten, Diamonds), Card(Nine, Spades))
     val gameState = BlackjackGameState(
       options = BlackjackOptions(), 
@@ -194,7 +194,7 @@ class BlackjackControllerSpec extends AnyFlatSpec with GivenWhenThen {
       Seq( 
         Hand(Seq(Card(Ace, Hearts), Card(Jack, Diamonds)), 
         bets = Map("Jeffrey" -> 5), // bet 2 on his hand 
-        wins = Some(true))))
+        outcome = Some(Outcome.Win))))
     val dealerCards: Seq[Card] = Seq(Card(Ten, Diamonds), Card(Nine, Spades))
     val gameState = BlackjackGameState(
       options = BlackjackOptions(blackjackPayout = SixToFive), 
@@ -215,7 +215,7 @@ class BlackjackControllerSpec extends AnyFlatSpec with GivenWhenThen {
       Seq( 
         Hand(Seq(Card(Ace, Hearts), Card(Jack, Diamonds)), 
         bets = Map("Jeffrey" -> 2), // bet 2 on his hand 
-        wins = Some(true))))
+        outcome = Some(Outcome.Win))))
     val dealerCards: Seq[Card] = Seq(Card(Ten, Diamonds), Card(Nine, Spades))
     val gameState = BlackjackGameState(
       options = BlackjackOptions(blackjackPayout = OneToOne), 
@@ -236,8 +236,8 @@ class BlackjackControllerSpec extends AnyFlatSpec with GivenWhenThen {
       Seq( 
         Hand(Seq(Card(Two, Hearts), Card(Jack, Diamonds)), 
         bets = Map("Jeffrey" -> 1), // bet 2 on his hand 
-        wins = Some(false))))
-    val dealerCards: Hand = Hand(Seq(Card(Ace, Diamonds), Card(Ten, Spades)), Map("Jeffrey" -> 1), Some(true))
+        outcome = Some(Outcome.Lose))))
+    val dealerCards: Hand = Hand(Seq(Card(Ace, Diamonds), Card(Ten, Spades)), Map("Jeffrey" -> 1), Some(Outcome.Win))
     val gameState = BlackjackGameState(
       dealerHand = dealerCards, 
       players = Seq(player1),
