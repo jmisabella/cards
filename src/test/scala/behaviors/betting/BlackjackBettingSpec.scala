@@ -327,12 +327,14 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
         bets = Map("Jeffrey" -> 1), // bet 2 on his hand 
         outcome = Some(Outcome.Lose))))
     val dealerCards: Hand = Hand(Seq(Card(Ace, Diamonds), Card(Ten, Spades)), Map("Jeffrey" -> 1), Some(Outcome.Win))
-    val gameState = BlackjackGameState(dealerHand = dealerCards, players = Seq(player1))
+    val gameState = BlackjackGameState(dealerHand = dealerCards, players = Seq(player1), currentPlayerIndex = Some(0))
     When("settling bets")
     isTimeToSettle(gameState) shouldBe (true)
     val settledBets = settleBets(gameState)  
     Then("player should win 2 for insurance but lose 1 for his losing hand, for a new bank total of 21")
-    settledBets.players.head.bank should equal (21) 
+    settledBets.players.head.bank should equal (21)
+    Then("previously specified current player index should now be removed")
+    settledBets.currentPlayerIndex should be (empty)
   }
 
   it should "know it's time to take new bets when no players have any cards" in {
@@ -377,7 +379,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     the [IllegalArgumentException] thrownBy (placeBet(game)) should have message "Cannot place bet because there are no players"
   }
 
-  it should "throw an illegal argument exception when attempting to place bet on a game with no designated current player" in {
+  it should "set current player index to first player when attempting to place bet on a game with no designated current player" in {
     Given("a game with 2 players, each with no cards, but neither of whom designated as the current player")
     val player1 = BlackjackPlayerState(
       "Jeffrey", 
@@ -392,9 +394,9 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     Then("it's determined that it's time to accept new bets")
     isTimeToPlaceNewBets(game) shouldBe (true)
     When("placing a new bet")
-    Then("an illegal argument exception should be thrown")
-    an [IllegalArgumentException] shouldBe thrownBy (placeBet(game))
-    the [IllegalArgumentException] thrownBy (placeBet(game)) should have message "Cannot place bet because no player is designated as the current player"
+    val result = placeBet(game) 
+    Then("no bet should be placed, but instead current player index would be set to the first player")
+    result.currentPlayerIndex should equal (Some(0)) 
   }
 
   it should "throw an illegal argument exception when attempting to place bet on a game when it is not the proper time to accept new bets" in {

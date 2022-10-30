@@ -52,7 +52,7 @@ class BlackjackControllerSpec extends AnyFlatSpec with GivenWhenThen {
     an [IllegalStateException] shouldBe thrownBy (module.next(gameState)) 
   }
 
-  "BlackjackController" should "throw an illegal state exception when proceeding to next state from a game state with no designated current player" in {
+  "BlackjackController" should "default to first player when proceeding to next state from game with players but with no designated current player" in {
     Given("a blackjack game state with 3 players but with no designated current player")
     val player1 = BlackjackPlayerState(
       "Jeffrey", 
@@ -78,8 +78,9 @@ class BlackjackControllerSpec extends AnyFlatSpec with GivenWhenThen {
     val dealerCards: Seq[Card] = Seq(Card(Ten, Diamonds), Card(Nine, Spades))
     val gameState = BlackjackGameState(options = BlackjackOptions(), dealerHand = Hand(dealerCards), players = Seq(player1, player2, player3), currentPlayerIndex = None)
     When("proceeding to the next state")
-    Then("an illegal state exception should be thrown")
-    an [IllegalStateException] shouldBe thrownBy (module.next(gameState)) 
+    val nextState = module.next(gameState) 
+    Then("the first player will have been designated as current player")
+    nextState.currentPlayerIndex should equal (Some(0))
   }
   
   it should "throw an illegal state exception when proceeding to next state from a game state whose deck is empty" in {

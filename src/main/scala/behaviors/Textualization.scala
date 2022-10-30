@@ -1,4 +1,4 @@
-package behaviors
+package cards.behaviors
 
 import cards.classes.Card
 import cards.classes.Rank._
@@ -37,7 +37,6 @@ trait Textualization {
     case (r, s) => s"$r of $s"
   }
 
-  // TODO: test
   def words(cards: Seq[Card]): String = cards.map(words(_)).mkString("[", ", ", "]")
 
   def words[A <: Enumeration#Value](action: Action[A], letterSVerbSuffix: Boolean = true): String = {

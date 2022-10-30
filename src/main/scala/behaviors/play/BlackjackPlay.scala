@@ -160,13 +160,18 @@ trait BlackjackPlay {
       }
       case a => throw new IllegalArgumentException(s"Unexpected dealer action [$a]; dealer can only ever Hit or Stand")
     }
+    val nextState: BlackjackGameState = game.copy(
+      deck = newDeck, 
+      history = game.history ++ newHistory, 
+      dealerHand = game.dealerHand.copy(hand = newDealerCards))
 
-
+    // TODO: test
     // if dealer's 21 or busted or is Standing, then game is over and bets should be settled
     val gameOver: Boolean = eval(newDealerCards) >= 21 || action == Stand
-    // IMPORTANT: // TODO: if game is over, then use eval to determine for each hand whether it Wins or is a Tie
-
-    game.copy(deck = newDeck, history = game.history ++ newHistory, dealerHand = game.dealerHand.copy(hand = newDealerCards))
+    gameOver match {
+      case false => nextState
+      case true => evaluation.outcomes(nextState) // game over: evaluate each hand against dealer's to prepare to settleBets
+    }
   }
 
   // Basic Strategy in Blackjack 

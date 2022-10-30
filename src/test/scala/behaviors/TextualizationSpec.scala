@@ -1,4 +1,4 @@
-package behaviors
+package cards.behaviors
 
 import cards.classes.Card
 import cards.classes.Rank._

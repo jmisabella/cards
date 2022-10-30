@@ -72,10 +72,12 @@ trait BlackjackBetting {
   def placeBet(game: BlackjackGameState): BlackjackGameState = {
     if (game.players == Nil)
       throw new IllegalArgumentException("Cannot place bet because there are no players")
-    if (game.currentPlayerIndex.isEmpty) 
-      throw new IllegalArgumentException("Cannot place bet because no player is designated as the current player")
+    // IMPORTANT: // TODO: if current player is not selected, then return game.copy(currentPlayer = Some(0)) 
     if (!isTimeToPlaceNewBets(game))
       throw new IllegalArgumentException("Cannot place new bets as it is not currently time to take new bets")
+    if (game.currentPlayerIndex.isEmpty)
+      // if current player is not selected, then set it to the first player 
+      return game.copy(currentPlayerIndex = Some(0))
 
     val (minBet, maxBet): (Int, Int) = getMinAndMaxBet(game.currentPlayer(), game)
     val amount: Int = {
@@ -239,7 +241,11 @@ trait BlackjackBetting {
           .map(tup => (tup._1, tup._2.foldLeft(0)((acc, x) => x._2 + acc)))
 
       val nextHistory: Seq[Action[BlackjackAction]] = game.history ++ wagers.toSeq.map(tup => {
-        val action: BlackjackAction = if (tup._2 < 0) Lose else Win
+        val action: BlackjackAction = tup._2 match {
+          case n if (n < 0) => Lose
+          case n if (n > 0) => Win
+          case _ => Tie
+        }
         val amount: Int = tup._2.abs
         Action(tup._1, action, Nil, amount) 
       }).toSeq
@@ -251,7 +257,7 @@ trait BlackjackBetting {
         }
         BlackjackPlayerState(p.id, updatedBank, Nil)
       }  
-      game.copy(players = updatedPlayers, history = nextHistory, dealerHand = Hand())
+      game.copy(players = updatedPlayers, history = nextHistory, dealerHand = Hand(), currentPlayerIndex = None, currentHandIndex = None)
     } 
   }
 
