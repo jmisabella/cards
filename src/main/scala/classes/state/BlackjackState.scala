@@ -105,8 +105,10 @@ case class BlackjackGameState(
         case (Some(_), None, _) => this.copy(currentPlayerIndex = None)
         // player's last hand, and this is not the last player so iterate to next player and set current hand index to 0
         case (Some(n), Some(h), true) if (n < players.length - 1) => this.copy(currentPlayerIndex = Some(n + 1), currentHandIndex = Some(0))
-        // player's last hand, and this the last player, so current player index is now undefined 
-        case (Some(_), Some(h), true) => this.copy(currentPlayerIndex = None, currentHandIndex = None)
+        // player's last hand, and this the last player, so current player index resets
+        case (Some(_), Some(h), true) => this.copy(currentPlayerIndex = Some(0), currentHandIndex = Some(0))
+        // // player's last hand, and this the last player, so current player index is now undefined 
+        // case (Some(_), Some(h), true) => this.copy(currentPlayerIndex = None, currentHandIndex = None)
         // player's not yet at last hand, so iterate to the next hand
         case (Some(_), Some(h), false) => this.copy(currentHandIndex = Some(h + 1))
       }

@@ -117,7 +117,10 @@ trait BlackjackPlay {
     val newDealerWithFaceDown: Seq[Card] = Seq(Card(FaceDown, Unknown)) ++ updatedDealerHand.tail
     val dealerHistory: Seq[Action[BlackjackAction]] = newlyDealtDealerCards.length match {
       case 0 => Nil
-      case _ => Seq(Action("Dealer", IsDealt, newlyDealtDealerCards, 0, originalDealerWithFaceDown, Seq(newDealerWithFaceDown)))
+      case _ => {
+        // Seq(Action("Dealer", IsDealt, newlyDealtDealerCards, 0, originalDealerWithFaceDown, Seq(newDealerWithFaceDown)))
+        Seq(Action("Dealer", IsDealt, newDealerWithFaceDown, 0, originalDealerWithFaceDown, Seq(newDealerWithFaceDown)))
+      }
     }
     val history: Seq[Action[BlackjackAction]] = updatedPlayersAndHistories.filter(_._2.isDefined).map(_._2.get) ++ dealerHistory
     val updatedPlayers: Seq[BlackjackPlayerState] = updatedPlayersAndHistories.map(_._1) 

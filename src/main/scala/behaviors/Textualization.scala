@@ -40,7 +40,7 @@ trait Textualization {
   def words(cards: Seq[Card]): String = cards.map(words(_)).mkString("[", ", ", "]")
 
   def words[A <: Enumeration#Value](action: Action[A], letterSVerbSuffix: Boolean = true): String = {
-    val actionSentencePrefix: String = s"${action.playerId} ${words(action.action, letterSVerbSuffix)}"
+    val actionSentencePrefix: String = s"${action.playerId} ${words(action.action, letterSVerbSuffix)}".replace(" iss ", " is ")
     val actionSentence: String = (action.actionCards, action.actionTokens) match {
       case (Nil, 0) => actionSentencePrefix
       case (cs, 0) => actionSentencePrefix + s": ${words(cs)}"
