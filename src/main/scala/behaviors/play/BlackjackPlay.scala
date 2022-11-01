@@ -72,13 +72,17 @@ trait BlackjackPlay {
   def isTimeToPlay(game: BlackjackGameState): Boolean = {
     if (game.players == Nil)
       throw new IllegalArgumentException("cannot determine whether isTimeToPlay when there are no players")
+
+    val hands: Seq[Seq[Card]] = game.players.flatMap(p => p.hands)
+    hands.count(cs => cs.length >= 2) == hands.length &&  // ADD 2022-10-30
     betsHaveBeenPlaced(game) && 
       (game.players.flatMap(_.handsAndBets.map(h => h.outcome)).count(w => w.isDefined) != game.players.length)
   }
 
   def isTimeToDeal(game: BlackjackGameState): Boolean = {
     // time to deal if either dealer doesn't have all cards or 1 or more players doesn't have all cards
-    isTimeToPlay(game) && 
+    // isTimeToPlay(game) && // REMOVE 2022-10-30
+    game.players.length > 0 && // ADD 2022-10-30
       (game.dealerHand.hand.length < 2 ||
         game.players.count(p => p.hands == Nil || p.hands.count(_.length < 2) > 0) > 0  ) // then it's time to deal
   }
@@ -92,7 +96,7 @@ trait BlackjackPlay {
       player <- game.players
       hand <- player.handsAndBets
     } yield {
-      val (updatedCards, updatedDeck): (Seq[Card], Deck) = game.deck.deal(2 - hand.hand.length)
+      val (updatedCards, updatedDeck): (Seq[Card], Deck) = deck.deal(2 - hand.hand.length)
       deck = updatedDeck
       val history = if (hand.hand.length < 2) 
         Some(Action(player.id, IsDealt, updatedCards, 0, hand.hand, Seq(hand.hand ++ updatedCards) ))
@@ -117,6 +121,7 @@ trait BlackjackPlay {
     }
     val history: Seq[Action[BlackjackAction]] = updatedPlayersAndHistories.filter(_._2.isDefined).map(_._2.get) ++ dealerHistory
     val updatedPlayers: Seq[BlackjackPlayerState] = updatedPlayersAndHistories.map(_._1) 
+    assert(updatedDeck != game.deck) 
     game.copy(players = updatedPlayers, deck = updatedDeck, dealerHand = game.dealerHand.copy(hand = updatedDealerHand), history = game.history ++ history) 
   }
 

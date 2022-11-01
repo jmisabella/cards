@@ -47,10 +47,10 @@ trait BlackjackController {
     //   return play.dealerPlay(game) // TODO: test
     // }
     val nextState: BlackjackGameState = 
-      if (play.isTimeToPlay(game)) {
-        play.playHand(game)
-      } else if (play.isTimeToDeal(game)) {
+      if (play.isTimeToDeal(game)) {
         play.deal(game)
+      } else if (play.isTimeToPlay(game)) {
+        play.playHand(game)
       } else if (play.isTimeForDealerToPlay(game)) {
         play.dealerPlay(game)
       } else {

@@ -71,7 +71,7 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
   }
   
   it should 
-  "know when it's time to play because player's bet has been taken but player has not yet been dealt any cards" in {
+  "know when it's time to deal because player's bet has been taken but player has not yet been dealt any cards" in {
     Given("a game with 1 player who has placed minimum bet but has not yet been dealt any cards")
     val player1 = BlackjackPlayerState(
       "Jeffrey", 
@@ -84,9 +84,9 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
       Seq( 
         Hand(hand = Nil, bets = Map("Alice" -> 5))))
     val game = BlackjackGameState(options = BlackjackOptions(), minimumBet = 5, dealerHand = Hand(), players = Seq(player1, player2), currentPlayerIndex = Some(0))
-    When("determining whether it's time to play game")
-    val timeToPlay: Boolean = isTimeToPlay(game)
-    Then("it's determined that it's indeed time to play")
+    When("determining whether it's time to deal")
+    val timeToPlay: Boolean = isTimeToDeal(game)
+    Then("it's determined that it's indeed time to deal")
     timeToPlay shouldBe (true) 
   }
   
@@ -695,8 +695,9 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
     Given("a game with no players")
     val game = BlackjackGameState(options = BlackjackOptions(), minimumBet = 5, dealerHand = Hand(hand = Seq(Card(Four, Clubs), Card(Ten, Clubs))), players = Nil, currentPlayerIndex = None)
     When("determining whether it's time to deal cards")
-    Then("an illegal argument exception should be thrown")
-    an [IllegalArgumentException] shouldBe thrownBy (isTimeToDeal(game))
+    val result = isTimeToDeal(game)
+    Then("it's determined it's not time to deal")
+    result shouldBe false
     When("attempting to deal")
     Then("an illegal argument exception should be thrown")
     an [IllegalArgumentException] shouldBe thrownBy (deal(game))
