@@ -40,20 +40,27 @@ trait Textualization {
   def words(cards: Seq[Card]): String = cards.map(words(_)).mkString("[", ", ", "]")
 
   def words[A <: Enumeration#Value](action: Action[A], letterSVerbSuffix: Boolean = true): String = {
-    val actionSentencePrefix: String = s"${action.playerId} ${words(action.action, letterSVerbSuffix)}".replace(" iss ", " is ")
+    // val actionSentencePrefix: String = s"${action.playerId} ${words(action.action, letterSVerbSuffix)}".replace(" iss ", " is ")
+
+    val actionSentencePrefix: String = (action.beforeCards match {
+      case Nil => s"${action.playerId} ${words(action.action, letterSVerbSuffix)}"
+      case cs => s", ${words(action.action, letterSVerbSuffix)}"
+    }).replace(" iss ", " is ")
+
     val actionSentence: String = (action.actionCards, action.actionTokens) match {
       case (Nil, 0) => actionSentencePrefix
-      case (cs, 0) => actionSentencePrefix + s": ${words(cs)}"
-      case (Nil, n) => actionSentencePrefix + s": $n"
-      case (cs, n) => actionSentencePrefix + s": ${words(cs)}, $n"
+      case (cs, 0) => actionSentencePrefix + s" ${words(cs)}"
+      case (Nil, n) => actionSentencePrefix + s" $n"
+      // case (cs, n) => actionSentencePrefix + s" ${words(cs)}, $n"
+      case (cs, n) => actionSentencePrefix + s" ${words(cs)} $n" // jmi
     }
     val preSentence: String = action.beforeCards match {
       case Nil => ""
-      case cs => action.playerId + s" starts with ${words(action.beforeCards)}\r\n"
+      case cs => action.playerId + s", starting with ${words(action.beforeCards)}"
     }
     val postSentence: String = action.afterCards match {
       case Nil => ""
-      case cs => s"\r\n${action.playerId} ends with ${words(action.afterCards.head)}"
+      case cs => s", ending with ${words(action.afterCards.head)}"
     }
     preSentence + actionSentence + postSentence 
   }

@@ -99,7 +99,8 @@ trait BlackjackPlay {
       val (updatedCards, updatedDeck): (Seq[Card], Deck) = deck.deal(2 - hand.hand.length)
       deck = updatedDeck
       val history = if (hand.hand.length < 2) 
-        Some(Action(player.id, IsDealt, updatedCards, 0, hand.hand, Seq(hand.hand ++ updatedCards) ))
+        // Some(Action(player.id, IsDealt, updatedCards, 0, hand.hand, Seq(hand.hand ++ updatedCards) ))
+        Some(Action(player.id, IsDealt, updatedCards, 0 ))
       else
         None
       (player.updateHand(hand.hand, updatedCards), history) // only updates hand when updatedCards isn't empty
@@ -119,7 +120,8 @@ trait BlackjackPlay {
       case 0 => Nil
       case _ => {
         // Seq(Action("Dealer", IsDealt, newlyDealtDealerCards, 0, originalDealerWithFaceDown, Seq(newDealerWithFaceDown)))
-        Seq(Action("Dealer", IsDealt, newDealerWithFaceDown, 0, originalDealerWithFaceDown, Seq(newDealerWithFaceDown)))
+        // Seq(Action("Dealer", IsDealt, newDealerWithFaceDown, 0, originalDealerWithFaceDown, Seq(newDealerWithFaceDown)))
+        Seq(Action("Dealer", IsDealt, newDealerWithFaceDown, 0))
       }
     }
     val history: Seq[Action[BlackjackAction]] = updatedPlayersAndHistories.filter(_._2.isDefined).map(_._2.get) ++ dealerHistory
@@ -424,7 +426,8 @@ trait BlackjackPlay {
           case _ => (0, hand.bets)
         }
         val updatedHand: Hand = hand.copy(hand = hand.hand ++ dealt, bets = nextBets)
-        (Seq(updatedHand), nextDeck, Seq(Action(playerId, a, dealt, additionalBet, hand.hand, Seq(updatedHand.hand))))
+        // (Seq(updatedHand), nextDeck, Seq(Action(playerId, a, dealt, additionalBet, hand.hand, Seq(updatedHand.hand))))
+        (Seq(updatedHand), nextDeck, Seq(Action(playerId, a, dealt, additionalBet, Nil, Seq(updatedHand.hand))))
       }
       case Split => {
         // deal 2 cards, 1 for each split hand 
@@ -433,7 +436,8 @@ trait BlackjackPlay {
         val hand2: Hand = Hand(Seq(hand.hand.tail.head, dealt.tail.head), hand.bets)
         // original bet amount is added as as new bet to the new hand 
         val additionalBet: Int = hand.bets(playerId)
-        (Seq(hand1, hand2), nextDeck, Seq(Action(playerId, Split, dealt, additionalBet, hand.hand, Seq(hand1, hand2).map(_.hand)))) 
+        // (Seq(hand1, hand2), nextDeck, Seq(Action(playerId, Split, dealt, additionalBet, hand.hand, Seq(hand1, hand2).map(_.hand)))) 
+        (Seq(hand1, hand2), nextDeck, Seq(Action(playerId, Split, dealt, additionalBet, Nil, Seq(hand1, hand2).map(_.hand)))) 
       }
       case Surrender => {
         val (surrenderAmount, nextBets): (Int, Map[String, Int]) = {
