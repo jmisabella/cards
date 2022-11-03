@@ -133,19 +133,20 @@ trait BlackjackPlay {
       throw new IllegalArgumentException("cannot determine whether isTimeForDealerToPlay when there are no players")
     // play time, all cards have been dealt, and all players have either busted, or they are either Standing or Surrendering
     // IMPORTANT: // TODO: dealer should NOT play if all players have either Busted or are Surrendering... when this happens, bets should be settled and game is over
-    val playerHandCounts: Map[String, Int] = game.players.map(p => p.id -> p.hands.length).toMap
-    val playerStandAndSurrenderCounts: Map[String, Int] = 
-      game.players.map(p => p.id -> game.playerHistory(p.id).count(a => Seq(Stand, Surrender).contains(a.action))).toMap
-    val playerBustedCounts: Map[String, Int] = 
-      game.players.map(p => p.id -> p.hands.count(cs => evaluation.eval(cs) > 21)).toMap
+    // val playerHandCounts: Map[String, Int] = game.players.map(p => p.id -> p.hands.length).toMap
+    // val playerStandAndSurrenderCounts: Map[String, Int] = 
+    //   game.players.map(p => p.id -> game.playerHistory(p.id).count(a => Seq(Stand, Surrender).contains(a.action))).toMap
+    // val playerBustedCounts: Map[String, Int] = 
+    //   game.players.map(p => p.id -> p.hands.count(cs => evaluation.eval(cs) > 21)).toMap
     
-    val playerCompletedHandCounts: Map[String, Int] = 
-      (for (((k1, v1), (k2, v2)) <- playerStandAndSurrenderCounts zip playerBustedCounts) yield (k1 -> (v1 + v2))).toMap
+    // val playerCompletedHandCounts: Map[String, Int] = 
+    //   (for (((k1, v1), (k2, v2)) <- playerStandAndSurrenderCounts zip playerBustedCounts) yield (k1 -> (v1 + v2))).toMap
 
-    game.currentHandIndex.isEmpty && // only time for dealer to play when no current player is still playing his or her hand
+    // game.currentHandIndex.isEmpty && // only time for dealer to play when no current player is still playing his or her hand
+    game.currentPlayerIndex.isEmpty && // only time for dealer to play when no current player is still playing his or her hand
       isTimeToPlay(game) && // play time
-      !isTimeToDeal(game) && // not time to deal
-      playerHandCounts == playerCompletedHandCounts // all hands have either busted or are standing or surrendering
+      !isTimeToDeal(game) // && // not time to deal
+      // playerHandCounts == playerCompletedHandCounts // all hands have either busted or are standing or surrendering
   }
 
   def dealerPlay(game: BlackjackGameState): BlackjackGameState = {
@@ -180,6 +181,7 @@ trait BlackjackPlay {
       case false => nextState
       case true => evaluation.outcomes(nextState) // game over: evaluate each hand against dealer's to prepare to settleBets
     }
+    // nextState
   }
 
   // Basic Strategy in Blackjack 
