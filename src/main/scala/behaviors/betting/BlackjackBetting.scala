@@ -37,7 +37,8 @@ trait BlackjackBetting {
 
   def isTimeToSettle(game: BlackjackGameState): Boolean = {
     val handCount: Int = game.players.map(p => p.handsAndBets.map(_.hand)).length
-    game.players != Nil && game.players.flatMap(p => p.handsAndBets.filter(h => h.outcome.isDefined)).length == handCount
+    // game.players != Nil && game.players.flatMap(p => p.handsAndBets.filter(h => h.outcome.isDefined)).length == handCount
+    game.players != Nil && game.players.flatMap(p => p.handsAndBets.filter(h => h.outcome.isDefined)).length >= handCount
   }
 
   // IMPORTANT: // TODO: this doesn't work correctly (e.g. 2 player game, after first player has placed bet but 2nd player has not)
@@ -46,7 +47,6 @@ trait BlackjackBetting {
     game.players.count(_.hands != Nil) < game.players.length
   }
   
-
   def getMinAndMaxBet(player: BlackjackPlayerState, game: BlackjackGameState): (Int, Int) =  {
     val minBet: Int = (game.minimumBet * player.minBetMultiplier).toInt 
     val maxBet: Int = (player.maxBet, game.maximumBet) match {
