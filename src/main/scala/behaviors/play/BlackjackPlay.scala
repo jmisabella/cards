@@ -163,11 +163,15 @@ trait BlackjackPlay {
         case (_, _, _) => Hit
       }
     val (newDealerCards, newHistory, newDeck): (Seq[Card], Seq[Action[BlackjackAction]], Deck) = action match {
-      case Stand => (game.dealerHand.hand, Seq(Action("Dealer", Stand, Nil, 0, game.dealerHand.hand, Seq(game.dealerHand.hand))), game.deck)
+      //// case Stand => (game.dealerHand.hand, Seq(Action("Dealer", Stand, Nil, 0, game.dealerHand.hand, Seq(game.dealerHand.hand))), game.deck)
+      // case Stand => (game.dealerHand.hand, Seq(Action("Dealer", Stand, Nil, 0, Nil, Seq(game.dealerHand.hand))), game.deck)
+      case Stand => (game.dealerHand.hand, Seq(Action("Dealer", Stand, Nil, 0, Nil, Seq(Seq(Card(FaceDown, Unknown)) ++ game.dealerHand.hand.tail))), game.deck)
       case Hit => {
         // Hit deals 1 card 
         val (dealt, nextDeck): (Seq[Card], Deck) = game.deck.deal()
-        (game.dealerHand.hand ++ dealt, Seq(Action("Dealer", Hit, dealt, 0, game.dealerHand.hand, Seq(game.dealerHand.hand ++ dealt))), nextDeck)
+        //// (game.dealerHand.hand ++ dealt, Seq(Action("Dealer", Hit, dealt, 0, game.dealerHand.hand, Seq(game.dealerHand.hand ++ dealt))), nextDeck)
+        // (game.dealerHand.hand ++ dealt, Seq(Action("Dealer", Hit, dealt, 0, Nil, Seq(game.dealerHand.hand ++ dealt))), nextDeck)
+        (game.dealerHand.hand ++ dealt, Seq(Action("Dealer", Hit, dealt, 0, Nil, Seq(Seq(Card(FaceDown, Unknown)) ++ (game.dealerHand.hand ++ dealt).tail))), nextDeck)
       }
       case a => throw new IllegalArgumentException(s"Unexpected dealer action [$a]; dealer can only ever Hit or Stand")
     }
@@ -181,7 +185,10 @@ trait BlackjackPlay {
     val gameOver: Boolean = eval(newDealerCards) >= 21 || action == Stand
     gameOver match {
       case false => nextState
-      case true => evaluation.outcomes(nextState) // game over: evaluate each hand against dealer's to prepare to settleBets
+      case true => { 
+        val dealerShowCards = Action("Dealer", ShowCards, newDealerCards) 
+        evaluation.outcomes(nextState.copy(history = nextState.history ++ Seq(dealerShowCards))) // game over: evaluate each hand against dealer's to prepare to settleBets
+      }
     }
     // nextState
   }
@@ -406,7 +413,8 @@ trait BlackjackPlay {
     action: BlackjackAction, 
     hand: Hand, 
     deck: Deck): (Seq[Hand], Deck, Seq[Action[BlackjackAction]]) = action match {
-      case Stand => (Seq(hand), deck, Seq(Action(playerId, Stand, Nil, 0, hand.hand, Seq(hand.hand))))
+      // case Stand => (Seq(hand), deck, Seq(Action(playerId, Stand, Nil, 0, hand.hand, Seq(hand.hand))))
+      case Stand => (Seq(hand), deck, Seq(Action(playerId, Stand, Nil, 0, Nil, Seq(hand.hand))))
       case a if (a == Hit || a == DoubleDown) => {
         // Hit and DoubleDown both deal 1 card 
         val (dealt, nextDeck): (Seq[Card], Deck) = deck.deal()
