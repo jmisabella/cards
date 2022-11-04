@@ -87,6 +87,7 @@ case class BlackjackGameState(
     // TODO: test 
     def isLastHand(): Boolean = 
       currentPlayerIndex.isDefined && currentPlayer().hands.length > 0 && currentHandIndex == Some(currentPlayer().hands.length - 1)
+    
     def currentHand(): Hand = players.flatMap(_.handsAndBets).filter(_.hand == currentCards()).head
 
     // TODO: test

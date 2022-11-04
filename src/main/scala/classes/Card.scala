@@ -35,6 +35,7 @@ case class Card(rank: Rank, suit: Suit) {
   }
 }
 object Card {
+  val FaceDownCard: Card = Card(FaceDown, Unknown)
   implicit val format: Format[Card] = Json.format[Card]
   implicit def ordering[A <: Card]: Ordering[A] = Ordering.by(_.rank.id)
 }

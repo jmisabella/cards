@@ -112,10 +112,10 @@ trait BlackjackPlay {
     val updatedDealerHand: Seq[Card] = game.dealerHand.hand ++ newlyDealtDealerCards
     val originalDealerWithFaceDown: Seq[Card] = game.dealerHand.hand.length match {
       case 0 => Nil
-      case 1 => Seq(Card(FaceDown, Unknown))
-      case _ => Seq(Card(FaceDown, Unknown)) ++ game.dealerHand.hand.tail
+      case 1 => Seq(Card.FaceDownCard)
+      case _ => Seq(Card.FaceDownCard) ++ game.dealerHand.hand.tail
     }
-    val newDealerWithFaceDown: Seq[Card] = Seq(Card(FaceDown, Unknown)) ++ updatedDealerHand.tail
+    val newDealerWithFaceDown: Seq[Card] = Seq(Card.FaceDownCard) ++ updatedDealerHand.tail
     val dealerHistory: Seq[Action[BlackjackAction]] = newlyDealtDealerCards.length match {
       case 0 => Nil
       case _ => {
@@ -165,13 +165,13 @@ trait BlackjackPlay {
     val (newDealerCards, newHistory, newDeck): (Seq[Card], Seq[Action[BlackjackAction]], Deck) = action match {
       //// case Stand => (game.dealerHand.hand, Seq(Action("Dealer", Stand, Nil, 0, game.dealerHand.hand, Seq(game.dealerHand.hand))), game.deck)
       // case Stand => (game.dealerHand.hand, Seq(Action("Dealer", Stand, Nil, 0, Nil, Seq(game.dealerHand.hand))), game.deck)
-      case Stand => (game.dealerHand.hand, Seq(Action("Dealer", Stand, Nil, 0, Nil, Seq(Seq(Card(FaceDown, Unknown)) ++ game.dealerHand.hand.tail))), game.deck)
+      case Stand => (game.dealerHand.hand, Seq(Action("Dealer", Stand, Nil, 0, Nil, Seq(Seq(Card.FaceDownCard) ++ game.dealerHand.hand.tail))), game.deck)
       case Hit => {
         // Hit deals 1 card 
         val (dealt, nextDeck): (Seq[Card], Deck) = game.deck.deal()
         //// (game.dealerHand.hand ++ dealt, Seq(Action("Dealer", Hit, dealt, 0, game.dealerHand.hand, Seq(game.dealerHand.hand ++ dealt))), nextDeck)
         // (game.dealerHand.hand ++ dealt, Seq(Action("Dealer", Hit, dealt, 0, Nil, Seq(game.dealerHand.hand ++ dealt))), nextDeck)
-        (game.dealerHand.hand ++ dealt, Seq(Action("Dealer", Hit, dealt, 0, Nil, Seq(Seq(Card(FaceDown, Unknown)) ++ (game.dealerHand.hand ++ dealt).tail))), nextDeck)
+        (game.dealerHand.hand ++ dealt, Seq(Action("Dealer", Hit, dealt, 0, Nil, Seq(Seq(Card.FaceDownCard) ++ (game.dealerHand.hand ++ dealt).tail))), nextDeck)
       }
       case a => throw new IllegalArgumentException(s"Unexpected dealer action [$a]; dealer can only ever Hit or Stand")
     }
@@ -182,7 +182,8 @@ trait BlackjackPlay {
 
     // TODO: test
     // if dealer's 21 or busted or is Standing, then game is over and bets should be settled
-    val gameOver: Boolean = eval(newDealerCards) >= 21 || action == Stand
+    // val gameOver: Boolean = eval(newDealerCards) >= 21 || action == Stand
+    val gameOver: Boolean = eval(newDealerCards) >= 21 || action == Stand || nextState.history.reverse.head.action == ShowCards
     gameOver match {
       case false => nextState
       case true => { 
