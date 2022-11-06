@@ -37,7 +37,7 @@ class TextualizationSpec extends AnyFlatSpec with GivenWhenThen {
     When("converting action to words")
     val result = words(action)
     Then(s"""One complete sentence should be rendered""")
-    result should equal ("Jeffrey hits: [Nine of Clubs]")
+    result should equal ("Jeffrey hits [Nine of Clubs]")
   }
 
   it should "make three sentences for a BlackjackAction involving action cards with before and after hands both specified" in {
@@ -53,7 +53,7 @@ class TextualizationSpec extends AnyFlatSpec with GivenWhenThen {
     When("converting action to words")
     val result = words(action)
     Then(s"""Three complete sentences should be rendered""")
-    result should equal ("Jeffrey starts with [Two of Hearts, Eight of Clubs]\r\nJeffrey hits: [Ten of Diamonds]\r\nJeffrey ends with [Two of Hearts, Eight of Clubs, Ten of Diamonds]")
+    result should equal ("Jeffrey, starting with [Two of Hearts, Eight of Clubs], hits [Ten of Diamonds], ending with [Two of Hearts, Eight of Clubs, Ten of Diamonds]")
   }
 
   it should "make a sentence for a BlackjackAction Bet involving an action amount" in {
@@ -67,7 +67,7 @@ class TextualizationSpec extends AnyFlatSpec with GivenWhenThen {
     When("converting action to words")
     val result = words(action)
     Then(s"""One complete sentence should be rendered, specifying an action amount""")
-    result should equal ("Jeffrey bets: 200")
+    result should equal ("Jeffrey bets 200")
   }
 
 }

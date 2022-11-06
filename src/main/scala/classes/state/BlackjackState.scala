@@ -38,11 +38,11 @@ case class BlackjackPlayerState(
   handsAndBets: Seq[Hand] = Nil, 
   minBetMultiplier: Double = 1.0, 
   maxBet: Option[Int] = None,
-  bettingStrategy: BlackjackBettingStrategy = Steady,
+  bettingStrategy: BlackjackBettingStrategy = NegativeProgression,
   oscarsGoalMultiplier: Double = 1.25, 
   oscarsGoal: Int = 0,
-  bankEvery25Hands: Int = 0,
-  bankEvery250Hands: Int = 0,
+  bankEvery25Hands: Int = 1,
+  bankEvery250Hands: Int = 1,
   completedHands: Int = 0) extends PlayerState {
   
     val hands: Seq[Seq[Card]] = handsAndBets.map(_.hand)
