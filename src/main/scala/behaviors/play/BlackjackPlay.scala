@@ -59,9 +59,9 @@ trait BlackjackPlay {
 
   def hasPlayerBet(game: BlackjackGameState, playerId: String): Boolean = getPlayerBets(game, playerId) != Nil
 
-  def handCompleted(hand: Hand): Boolean = hand.wins.isDefined
+  def handCompleted(hand: Hand): Boolean = hand.outcome.isDefined
   def handsCompleted(player: BlackjackPlayerState) = player.handsAndBets.count(h => handCompleted(h)) == player.hands.length
-  def isFirstRound(hand: Hand): Boolean = hand.wins.isEmpty && hand.hand.length == 2
+  def isFirstRound(hand: Hand): Boolean = hand.outcome.isEmpty && hand.hand.length == 2
 
   def betsHaveBeenPlaced(game: BlackjackGameState): Boolean = {
     (for {
@@ -72,13 +72,17 @@ trait BlackjackPlay {
   def isTimeToPlay(game: BlackjackGameState): Boolean = {
     if (game.players == Nil)
       throw new IllegalArgumentException("cannot determine whether isTimeToPlay when there are no players")
+
+    val hands: Seq[Seq[Card]] = game.players.flatMap(p => p.hands)
+    hands.count(cs => cs.length >= 2) == hands.length &&  // ADD 2022-10-30
     betsHaveBeenPlaced(game) && 
-      (game.players.flatMap(_.handsAndBets.map(h => h.wins)).count(w => w.isDefined) != game.players.length)
+      (game.players.flatMap(_.handsAndBets.map(h => h.outcome)).count(w => w.isDefined) != game.players.length)
   }
 
   def isTimeToDeal(game: BlackjackGameState): Boolean = {
     // time to deal if either dealer doesn't have all cards or 1 or more players doesn't have all cards
-    isTimeToPlay(game) && 
+    // isTimeToPlay(game) && // REMOVE 2022-10-30
+    game.players.length > 0 && // ADD 2022-10-30
       (game.dealerHand.hand.length < 2 ||
         game.players.count(p => p.hands == Nil || p.hands.count(_.length < 2) > 0) > 0  ) // then it's time to deal
   }
@@ -92,10 +96,11 @@ trait BlackjackPlay {
       player <- game.players
       hand <- player.handsAndBets
     } yield {
-      val (updatedCards, updatedDeck): (Seq[Card], Deck) = game.deck.deal(2 - hand.hand.length)
+      val (updatedCards, updatedDeck): (Seq[Card], Deck) = deck.deal(2 - hand.hand.length)
       deck = updatedDeck
       val history = if (hand.hand.length < 2) 
-        Some(Action(player.id, IsDealt, updatedCards, 0, hand.hand, Seq(hand.hand ++ updatedCards) ))
+        // Some(Action(player.id, IsDealt, updatedCards, 0, hand.hand, Seq(hand.hand ++ updatedCards) ))
+        Some(Action(player.id, IsDealt, updatedCards, 0 ))
       else
         None
       (player.updateHand(hand.hand, updatedCards), history) // only updates hand when updatedCards isn't empty
@@ -107,39 +112,45 @@ trait BlackjackPlay {
     val updatedDealerHand: Seq[Card] = game.dealerHand.hand ++ newlyDealtDealerCards
     val originalDealerWithFaceDown: Seq[Card] = game.dealerHand.hand.length match {
       case 0 => Nil
-      case 1 => Seq(Card(FaceDown, Unknown))
-      case _ => Seq(Card(FaceDown, Unknown)) ++ game.dealerHand.hand.tail
+      case 1 => Seq(Card.FaceDownCard)
+      case _ => Seq(Card.FaceDownCard) ++ game.dealerHand.hand.tail
     }
-    val newDealerWithFaceDown: Seq[Card] = Seq(Card(FaceDown, Unknown)) ++ updatedDealerHand.tail
+    val newDealerWithFaceDown: Seq[Card] = Seq(Card.FaceDownCard) ++ updatedDealerHand.tail
     val dealerHistory: Seq[Action[BlackjackAction]] = newlyDealtDealerCards.length match {
       case 0 => Nil
-      case _ => Seq(Action("dealer", IsDealt, newlyDealtDealerCards, 0, originalDealerWithFaceDown, Seq(newDealerWithFaceDown)))
+      case _ => {
+        // Seq(Action("Dealer", IsDealt, newlyDealtDealerCards, 0, originalDealerWithFaceDown, Seq(newDealerWithFaceDown)))
+        // Seq(Action("Dealer", IsDealt, newDealerWithFaceDown, 0, originalDealerWithFaceDown, Seq(newDealerWithFaceDown)))
+        Seq(Action("Dealer", IsDealt, newDealerWithFaceDown, 0))
+      }
     }
     val history: Seq[Action[BlackjackAction]] = updatedPlayersAndHistories.filter(_._2.isDefined).map(_._2.get) ++ dealerHistory
     val updatedPlayers: Seq[BlackjackPlayerState] = updatedPlayersAndHistories.map(_._1) 
+    assert(updatedDeck != game.deck) 
     game.copy(players = updatedPlayers, deck = updatedDeck, dealerHand = game.dealerHand.copy(hand = updatedDealerHand), history = game.history ++ history) 
   }
 
   def isTimeForDealerToPlay(game: BlackjackGameState): Boolean = {
     if (game.players == Nil)
       throw new IllegalArgumentException("cannot determine whether isTimeForDealerToPlay when there are no players")
-    // play time, all cards have been dealt, and all players have either busted, or they are either Standing or Surrendering 
-    val playerHandCounts: Map[String, Int] = game.players.map(p => p.id -> p.hands.length).toMap
-    val playerStandAndSurrenderCounts: Map[String, Int] = 
-      game.players.map(p => p.id -> game.playerHistory(p.id).count(a => Seq(Stand, Surrender).contains(a.action))).toMap
-    val playerBustedCounts: Map[String, Int] = 
-      game.players.map(p => p.id -> p.hands.count(cs => evaluation.eval(cs) > 21)).toMap
+    // play time, all cards have been dealt, and all players have either busted, or they are either Standing or Surrendering
+    // IMPORTANT: // TODO: dealer should NOT play if all players have either Busted or are Surrendering... when this happens, bets should be settled and game is over
+    // val playerHandCounts: Map[String, Int] = game.players.map(p => p.id -> p.hands.length).toMap
+    // val playerStandAndSurrenderCounts: Map[String, Int] = 
+    //   game.players.map(p => p.id -> game.playerHistory(p.id).count(a => Seq(Stand, Surrender).contains(a.action))).toMap
+    // val playerBustedCounts: Map[String, Int] = 
+    //   game.players.map(p => p.id -> p.hands.count(cs => evaluation.eval(cs) > 21)).toMap
     
-    val playerCompletedHandCounts: Map[String, Int] = 
-      (for (((k1, v1), (k2, v2)) <- playerStandAndSurrenderCounts zip playerBustedCounts) yield (k1 -> (v1 + v2))).toMap
+    // val playerCompletedHandCounts: Map[String, Int] = 
+    //   (for (((k1, v1), (k2, v2)) <- playerStandAndSurrenderCounts zip playerBustedCounts) yield (k1 -> (v1 + v2))).toMap
 
-    game.currentHandIndex.isEmpty && // only time for dealer to play when no current player is still playing his or her hand
+    // game.currentHandIndex.isEmpty && // only time for dealer to play when no current player is still playing his or her hand
+    game.currentPlayerIndex.isEmpty && // only time for dealer to play when no current player is still playing his or her hand
       isTimeToPlay(game) && // play time
-      !isTimeToDeal(game) && // not time to deal
-      playerHandCounts == playerCompletedHandCounts // all hands have either busted or are standing or surrendering
+      !isTimeToDeal(game) // && // not time to deal
+      // playerHandCounts == playerCompletedHandCounts // all hands have either busted or are standing or surrendering
   }
 
-  // TODO: test
   def dealerPlay(game: BlackjackGameState): BlackjackGameState = {
     if (!isTimeForDealerToPlay(game)) {
       throw new IllegalArgumentException("dealer cannot play hand because it's not currently time for dealer to play")
@@ -151,16 +162,36 @@ trait BlackjackPlay {
         case (n, _, _) if (n > 17) => Stand
         case (_, _, _) => Hit
       }
-    val (newHistory, newDeck): (Seq[Action[BlackjackAction]], Deck) = action match {
-      case Stand => (Seq(Action("dealer", Stand, Nil, 0, game.dealerHand.hand, Seq(game.dealerHand.hand))), game.deck)
+    val (newDealerCards, newHistory, newDeck): (Seq[Card], Seq[Action[BlackjackAction]], Deck) = action match {
+      //// case Stand => (game.dealerHand.hand, Seq(Action("Dealer", Stand, Nil, 0, game.dealerHand.hand, Seq(game.dealerHand.hand))), game.deck)
+      // case Stand => (game.dealerHand.hand, Seq(Action("Dealer", Stand, Nil, 0, Nil, Seq(game.dealerHand.hand))), game.deck)
+      case Stand => (game.dealerHand.hand, Seq(Action("Dealer", Stand, Nil, 0, Nil, Seq(Seq(Card.FaceDownCard) ++ game.dealerHand.hand.tail))), game.deck)
       case Hit => {
         // Hit deals 1 card 
         val (dealt, nextDeck): (Seq[Card], Deck) = game.deck.deal()
-        (Seq(Action("dealer", Hit, dealt, 0, game.dealerHand.hand, Seq(game.dealerHand.hand ++ dealt))), nextDeck)
+        //// (game.dealerHand.hand ++ dealt, Seq(Action("Dealer", Hit, dealt, 0, game.dealerHand.hand, Seq(game.dealerHand.hand ++ dealt))), nextDeck)
+        // (game.dealerHand.hand ++ dealt, Seq(Action("Dealer", Hit, dealt, 0, Nil, Seq(game.dealerHand.hand ++ dealt))), nextDeck)
+        (game.dealerHand.hand ++ dealt, Seq(Action("Dealer", Hit, dealt, 0, Nil, Seq(Seq(Card.FaceDownCard) ++ (game.dealerHand.hand ++ dealt).tail))), nextDeck)
       }
       case a => throw new IllegalArgumentException(s"Unexpected dealer action [$a]; dealer can only ever Hit or Stand")
     }
-    game.copy(deck = newDeck, history = game.history ++ newHistory)
+    val nextState: BlackjackGameState = game.copy(
+      deck = newDeck, 
+      history = game.history ++ newHistory, 
+      dealerHand = game.dealerHand.copy(hand = newDealerCards))
+
+    // TODO: test
+    // if dealer's 21 or busted or is Standing, then game is over and bets should be settled
+    // val gameOver: Boolean = eval(newDealerCards) >= 21 || action == Stand
+    val gameOver: Boolean = eval(newDealerCards) >= 21 || action == Stand || nextState.history.reverse.head.action == ShowCards
+    gameOver match {
+      case false => nextState
+      case true => { 
+        val dealerShowCards = Action("Dealer", ShowCards, newDealerCards) 
+        evaluation.outcomes(nextState.copy(history = nextState.history ++ Seq(dealerShowCards))) // game over: evaluate each hand against dealer's to prepare to settleBets
+      }
+    }
+    // nextState
   }
 
   // Basic Strategy in Blackjack 
@@ -383,7 +414,8 @@ trait BlackjackPlay {
     action: BlackjackAction, 
     hand: Hand, 
     deck: Deck): (Seq[Hand], Deck, Seq[Action[BlackjackAction]]) = action match {
-      case Stand => (Seq(hand), deck, Seq(Action(playerId, Stand, Nil, 0, hand.hand, Seq(hand.hand))))
+      // case Stand => (Seq(hand), deck, Seq(Action(playerId, Stand, Nil, 0, hand.hand, Seq(hand.hand))))
+      case Stand => (Seq(hand), deck, Seq(Action(playerId, Stand, Nil, 0, Nil, Seq(hand.hand))))
       case a if (a == Hit || a == DoubleDown) => {
         // Hit and DoubleDown both deal 1 card 
         val (dealt, nextDeck): (Seq[Card], Deck) = deck.deal()
@@ -403,7 +435,8 @@ trait BlackjackPlay {
           case _ => (0, hand.bets)
         }
         val updatedHand: Hand = hand.copy(hand = hand.hand ++ dealt, bets = nextBets)
-        (Seq(updatedHand), nextDeck, Seq(Action(playerId, a, dealt, additionalBet, hand.hand, Seq(updatedHand.hand))))
+        // (Seq(updatedHand), nextDeck, Seq(Action(playerId, a, dealt, additionalBet, hand.hand, Seq(updatedHand.hand))))
+        (Seq(updatedHand), nextDeck, Seq(Action(playerId, a, dealt, additionalBet, Nil, Seq(updatedHand.hand))))
       }
       case Split => {
         // deal 2 cards, 1 for each split hand 
@@ -412,7 +445,8 @@ trait BlackjackPlay {
         val hand2: Hand = Hand(Seq(hand.hand.tail.head, dealt.tail.head), hand.bets)
         // original bet amount is added as as new bet to the new hand 
         val additionalBet: Int = hand.bets(playerId)
-        (Seq(hand1, hand2), nextDeck, Seq(Action(playerId, Split, dealt, additionalBet, hand.hand, Seq(hand1, hand2).map(_.hand)))) 
+        // (Seq(hand1, hand2), nextDeck, Seq(Action(playerId, Split, dealt, additionalBet, hand.hand, Seq(hand1, hand2).map(_.hand)))) 
+        (Seq(hand1, hand2), nextDeck, Seq(Action(playerId, Split, dealt, additionalBet, Nil, Seq(hand1, hand2).map(_.hand)))) 
       }
       case Surrender => {
         val (surrenderAmount, nextBets): (Int, Map[String, Int]) = {
@@ -432,4 +466,7 @@ trait BlackjackPlay {
       }
       case a => throw new IllegalArgumentException(s"Unexpected BlackjackAction [$a], at this phase the only expected actions are [Hit, Stand, DoubleDown, Split, Surrender]")
     }
+
+
+
 }

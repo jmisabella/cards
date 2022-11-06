@@ -3,7 +3,7 @@ package cards.behaviors.play
 import cards.behaviors.play.BlackjackPlay
 import cards.behaviors.Commons
 import cards.behaviors.evaluation.BlackjackHandEvaluation
-import cards.classes.{ Card, Rank, Suit, Deck, DeckType }
+import cards.classes.{ Card, Rank, Suit, Deck, DeckType, Outcome }
 import cards.classes.DeckType._
 import cards.classes.Rank._
 import cards.classes.Suit._
@@ -71,7 +71,7 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
   }
   
   it should 
-  "know when it's time to play because player's bet has been taken but player has not yet been dealt any cards" in {
+  "know when it's time to deal because player's bet has been taken but player has not yet been dealt any cards" in {
     Given("a game with 1 player who has placed minimum bet but has not yet been dealt any cards")
     val player1 = BlackjackPlayerState(
       "Jeffrey", 
@@ -84,9 +84,9 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
       Seq( 
         Hand(hand = Nil, bets = Map("Alice" -> 5))))
     val game = BlackjackGameState(options = BlackjackOptions(), minimumBet = 5, dealerHand = Hand(), players = Seq(player1, player2), currentPlayerIndex = Some(0))
-    When("determining whether it's time to play game")
-    val timeToPlay: Boolean = isTimeToPlay(game)
-    Then("it's determined that it's indeed time to play")
+    When("determining whether it's time to deal")
+    val timeToPlay: Boolean = isTimeToDeal(game)
+    Then("it's determined that it's indeed time to deal")
     timeToPlay shouldBe (true) 
   }
   
@@ -97,12 +97,12 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
       "Jeffrey", 
       25, 
       Seq( 
-        Hand(hand = Seq(Card(Two, Hearts), Card(Ten, Diamonds)), bets = Map("Jeffrey" -> 5), wins = None)))
+        Hand(hand = Seq(Card(Two, Hearts), Card(Ten, Diamonds)), bets = Map("Jeffrey" -> 5), outcome = None)))
     val player2 = BlackjackPlayerState(
       "Alice", 
       50, 
       Seq( 
-        Hand(hand = Seq(Card(Nine, Clubs), Card(Jack, Clubs)), bets = Map("Alice" -> 5), wins = None)))
+        Hand(hand = Seq(Card(Nine, Clubs), Card(Jack, Clubs)), bets = Map("Alice" -> 5), outcome = None)))
     val game = BlackjackGameState(options = BlackjackOptions(), minimumBet = 5, dealerHand = Hand(), players = Seq(player1, player2), currentPlayerIndex = Some(0))
     When("determining whether it's time to play game")
     val timeToPlay: Boolean = isTimeToPlay(game)
@@ -127,12 +127,12 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
       "Jeffrey", 
       25, 
       Seq( 
-        Hand(hand = Seq(Card(Two, Hearts), Card(Ten, Diamonds)), bets = Map("Jeffrey" -> 5), wins = None)))
+        Hand(hand = Seq(Card(Two, Hearts), Card(Ten, Diamonds)), bets = Map("Jeffrey" -> 5), outcome = None)))
     val player2 = BlackjackPlayerState(
       "Alice", 
       50, 
       Seq( 
-        Hand(hand = Seq(Card(Nine, Clubs), Card(Jack, Clubs)), bets = Map("Alice" -> 5), wins = None)))
+        Hand(hand = Seq(Card(Nine, Clubs), Card(Jack, Clubs)), bets = Map("Alice" -> 5), outcome = None)))
     // current player is not specified
     val game = BlackjackGameState(options = BlackjackOptions(), minimumBet = 5, dealerHand = Hand(), players = Seq(player1, player2), currentPlayerIndex = None)
     When("attempting to play")
@@ -146,7 +146,7 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
       "Jeffrey", 
       25, 
       Seq( 
-        Hand(hand = Seq(Card(Two, Hearts)), bets = Map("Jeffrey" -> 5), wins = None)))
+        Hand(hand = Seq(Card(Two, Hearts)), bets = Map("Jeffrey" -> 5), outcome = None)))
     val game = BlackjackGameState(options = BlackjackOptions(), minimumBet = 5, dealerHand = Hand(hand = Seq(Card(Three, Hearts), Card(Two, Hearts))), players = Seq(player1), currentPlayerIndex = Some(0))
     When("attempting to play")
     Then("an illegal state exception should be thrown")
@@ -159,7 +159,7 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
       "Jeffrey", 
       25,
       Seq( 
-        Hand(hand = Seq(Card(Two, Hearts), Card(Ten, Diamonds)), bets = Map("Jeffrey" -> 5), wins = None)))
+        Hand(hand = Seq(Card(Two, Hearts), Card(Ten, Diamonds)), bets = Map("Jeffrey" -> 5), outcome = None)))
     val game = BlackjackGameState(options = BlackjackOptions(), minimumBet = 5, dealerHand = Hand(hand = Seq(Card(Ace, Spades))), players = Seq(player1), currentPlayerIndex = Some(0))
     When("attempting to play")
     Then("an illegal state exception should be thrown")
@@ -250,7 +250,7 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
       "Jeffrey", 
       25, 
       Seq( 
-        Hand(hand = Seq(Card(Ace, Hearts), Card(Ace, Clubs)), bets = Map("Jeffrey" -> 5), wins = None)))
+        Hand(hand = Seq(Card(Ace, Hearts), Card(Ace, Clubs)), bets = Map("Jeffrey" -> 5), outcome = None)))
     Given("dealer hand of 2 cards and two is face up card")
     var dealer = Hand(Seq(Card(Two, Hearts), Card(Two, Clubs)))
     var game = BlackjackGameState(
@@ -397,7 +397,7 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
       "Jeffrey", 
       25, 
       Seq( 
-        Hand(hand = Seq(Card(Queen, Hearts), Card(King, Clubs)), bets = Map("Jeffrey" -> 5), wins = None)))
+        Hand(hand = Seq(Card(Queen, Hearts), Card(King, Clubs)), bets = Map("Jeffrey" -> 5), outcome = None)))
     Given("dealer hand of 2 cards and Two is face up card")
     var dealer = Hand(Seq(Card(Two, Hearts), Card(Two, Clubs)))
     var game = BlackjackGameState(
@@ -545,37 +545,12 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
       "Jeffrey", 
       25, 
       Seq( 
-        Hand(hand = Nil, bets = Map("Jeffrey" -> 5), wins = None)))
+        Hand(hand = Nil, bets = Map("Jeffrey" -> 5), outcome = None)))
     val game = BlackjackGameState(options = BlackjackOptions(), minimumBet = 5, dealerHand = Hand(), players = Seq(player1), currentPlayerIndex = Some(0))
     When("determining whether it's time to deal cards")
     val result = isTimeToDeal(game)
     Then("it's determined that yes, it is in fact time to deal")
     result shouldBe (true)
-    When("dealing cards")
-    val cardsDealtState = deal(game) 
-    Then("2 cards should be dealt to player and 2 cards should be dealt to the dealer, resulting in both player and dealer having exactly 2 cards")
-    val allHands: Seq[Seq[Card]] = cardsDealtState.players.map(_.hands).flatten ++ Seq(cardsDealtState.dealerHand.hand)
-    allHands should have length (2)
-    info("player should have 2 cards")
-    allHands.head should have length (2)
-    info("dealer should have 2 cards")
-    allHands.tail.head should have length (2)
-    info("original game's history is empty")
-    game.history shouldBe empty
-    info("updated history should have length 2")
-    cardsDealtState.history should have length (2)
-    info("history should show player 1 being dealt 2 cards")
-    cardsDealtState.history.count(a => a.playerId == player1.id && a.action == IsDealt && a.actionCards.length == 2) should equal (1)
-    info("history should show dealer being dealt 2 cards")
-    cardsDealtState.history.count(a => a.playerId == "dealer" && a.action == IsDealt && a.actionCards.length == 2) should equal (1)
-    info("first history item is the player being dealt 2 cards, neither being face down")
-    cardsDealtState.history.head.playerId should equal (player1.id)
-    cardsDealtState.history.head.afterCards.head.map(_.rank) should not contain (FaceDown)
-    cardsDealtState.history.head.beforeCards.map(_.rank) should not contain (FaceDown)
-    info("2nd history item is the dealer being dealt 2 cards, the first card being face down") 
-    info("dealer's hand in history should show first card being face-down")
-    cardsDealtState.history.tail.head.afterCards.head.head.rank should equal (FaceDown)
-    cardsDealtState.history.tail.head.beforeCards should have length 0
   }
 
   it should "know it's time to deal when bets have been accepted for a 1 player game and player has cards but dealer does not" in {
@@ -584,7 +559,7 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
       "Jeffrey", 
       25, 
       Seq( 
-        Hand(hand = Seq(Card(Three, Hearts), Card(Seven, Clubs)), bets = Map("Jeffrey" -> 5), wins = None)))
+        Hand(hand = Seq(Card(Three, Hearts), Card(Seven, Clubs)), bets = Map("Jeffrey" -> 5), outcome = None)))
     val game = BlackjackGameState(options = BlackjackOptions(), minimumBet = 5, dealerHand = Hand(), players = Seq(player1), currentPlayerIndex = Some(0))
     When("determining whether it's time to deal cards")
     val result = isTimeToDeal(game)
@@ -599,24 +574,15 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
     allHands.head should have length (2)
     info("dealer should have 2 cards")
     allHands.tail.head should have length (2)
-    info("original game's history is empty")
-    game.history shouldBe empty
-    info("updated history should have length 1")
-    cardsDealtState.history should have length (1)
-    info("history should show dealer being dealt 2 cards")
-    cardsDealtState.history.count(a => a.playerId == "dealer" && a.action == IsDealt && a.actionCards.length == 2) should equal (1)
-    info("dealer's hand in history should show first card being face-down")
-    cardsDealtState.history.head.afterCards.head.head.rank should equal (FaceDown)
-    cardsDealtState.history.head.beforeCards should have length 0
   }
 
-  it should "know it's time to deal when bets have been accepted for a 1 player game and player no cards but dealer has 2 cards" in {
+  it should "know it's time to deal when bets have been accepted for a 1 player game and player has no cards but dealer has 2 cards" in {
     Given("a game with 1 player who has no cards and a dealer who has two cards")
     val player1 = BlackjackPlayerState(
       "Jeffrey", 
       25, 
       Seq( 
-        Hand(hand = Nil, bets = Map("Jeffrey" -> 5), wins = None)))
+        Hand(hand = Nil, bets = Map("Jeffrey" -> 5), outcome = None)))
     val game = BlackjackGameState(options = BlackjackOptions(), minimumBet = 5, dealerHand = Hand(hand = Seq(Card(Three, Hearts), Card(Seven, Clubs))), players = Seq(player1), currentPlayerIndex = Some(0))
     When("determining whether it's time to deal cards")
     val result = isTimeToDeal(game)
@@ -629,17 +595,6 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
     allHands should have length (2)
     info("player should have 2 cards")
     allHands.head should have length (2)
-    info("dealer should have 2 cards")
-    allHands.tail.head should have length (2)
-    info("original game's history is empty")
-    game.history shouldBe empty
-    info("updated history should have length 1")
-    cardsDealtState.history should have length (1)
-    info("history should show player being dealt 2 cards")
-    cardsDealtState.history.count(a => a.playerId == player1.id && a.action == IsDealt && a.actionCards.length == 2) should equal (1)
-    info("none of player's cards in history should be face-down")
-    cardsDealtState.history.head.afterCards.head.map(_.rank) should not contain (FaceDown)
-    cardsDealtState.history.head.beforeCards.map(_.rank) should not contain (FaceDown)
   }
 
   it should "know it's time to deal when bets have been accepted for a 1 player game and player has 2 cards but dealer has only 1 cards" in {
@@ -648,7 +603,7 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
       "Jeffrey", 
       25, 
       Seq( 
-        Hand(hand = Seq(Card(Three, Hearts), Card(Seven, Clubs)), bets = Map("Jeffrey" -> 5), wins = None)) )
+        Hand(hand = Seq(Card(Three, Hearts), Card(Seven, Clubs)), bets = Map("Jeffrey" -> 5), outcome = None)) )
     val game = BlackjackGameState(options = BlackjackOptions(), minimumBet = 5, dealerHand = Hand(hand = Seq(Card(Four, Clubs))), players = Seq(player1), currentPlayerIndex = Some(0))
     When("determining whether it's time to deal cards")
     val result = isTimeToDeal(game)
@@ -667,11 +622,6 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
     game.history shouldBe empty
     info("updated history should have length 1")
     cardsDealtState.history should have length (1)
-    info("history should show dealer being dealt 1 card")
-    cardsDealtState.history.count(a => a.playerId == "dealer" && a.action == IsDealt && a.actionCards.length == 1) should equal (1)
-    info("dealer's hand in history should show first card being face-down")
-    cardsDealtState.history.head.afterCards.head.head.rank should equal (FaceDown)
-    cardsDealtState.history.head.beforeCards.head.rank should equal (FaceDown)
   }
 
   it should "know it's not time to deal when bets have been accepted for a 1 player game and player has 3 cards and the dealer 2" in {
@@ -680,7 +630,7 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
       "Jeffrey", 
       25, 
       Seq( 
-        Hand(hand = Seq(Card(Three, Hearts), Card(Seven, Clubs), Card(Ace, Clubs)), bets = Map("Jeffrey" -> 5), wins = None)) )
+        Hand(hand = Seq(Card(Three, Hearts), Card(Seven, Clubs), Card(Ace, Clubs)), bets = Map("Jeffrey" -> 5), outcome = None)) )
     val game = BlackjackGameState(options = BlackjackOptions(), minimumBet = 5, dealerHand = Hand(hand = Seq(Card(Four, Clubs), Card(Ten, Clubs))), players = Seq(player1), currentPlayerIndex = Some(0))
     When("determining whether it's time to deal cards")
     val result = isTimeToDeal(game)
@@ -695,8 +645,9 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
     Given("a game with no players")
     val game = BlackjackGameState(options = BlackjackOptions(), minimumBet = 5, dealerHand = Hand(hand = Seq(Card(Four, Clubs), Card(Ten, Clubs))), players = Nil, currentPlayerIndex = None)
     When("determining whether it's time to deal cards")
-    Then("an illegal argument exception should be thrown")
-    an [IllegalArgumentException] shouldBe thrownBy (isTimeToDeal(game))
+    val result = isTimeToDeal(game)
+    Then("it's determined it's not time to deal")
+    result shouldBe false
     When("attempting to deal")
     Then("an illegal argument exception should be thrown")
     an [IllegalArgumentException] shouldBe thrownBy (deal(game))
@@ -708,7 +659,7 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
       "Jeffrey", 
       25, 
       Seq( 
-        Hand(hand = Seq(Card(Three, Hearts), Card(Seven, Clubs), Card(Ace, Clubs)), bets = Map("Jeffrey" -> 5), wins = None)) )
+        Hand(hand = Seq(Card(Three, Hearts), Card(Seven, Clubs), Card(Ace, Clubs)), bets = Map("Jeffrey" -> 5), outcome = None)) )
     val game = BlackjackGameState(options = BlackjackOptions(), minimumBet = 5, dealerHand = Hand(hand = Seq(Card(Four, Clubs))), players = Seq(player1), currentPlayerIndex = Some(0))
     When("determining whether it's time to deal cards")
     val result = isTimeToDeal(game)
@@ -722,41 +673,39 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
       "Jeffrey", 
       25, 
       Seq( 
-        Hand(hand = Seq(Card(Three, Hearts), Card(Seven, Clubs)), bets = Map("Jeffrey" -> 5), wins = None)) )
+        Hand(hand = Seq(Card(Three, Hearts), Card(Seven, Clubs)), bets = Map("Jeffrey" -> 5), outcome = None)) )
     val player2 = BlackjackPlayerState(
       "Brandon", 
       25, 
       Seq( 
-        Hand(hand = Nil, bets = Map("Brandon" -> 5), wins = None)) )
+        Hand(hand = Nil, bets = Map("Brandon" -> 5), outcome = None)) )
     val game = BlackjackGameState(options = BlackjackOptions(), minimumBet = 5, dealerHand = Hand(hand = Seq(Card(Four, Clubs), Card(Nine, Clubs))), players = Seq(player1, player2), currentPlayerIndex = Some(0))
     When("determining whether it's time to deal cards")
     val result = isTimeToDeal(game)
     Then("it's determined that yes, it is in fact time to deal")
     result shouldBe (true)
   }
-  
+
   it should "know it's time for dealer to play when only player has selected to Stand" in {
     Given("a game with 1 player having 2 cards, a dealer with 2 cards, and a history showing the player is Standing")
     val player1 = BlackjackPlayerState(
       "Jeffrey", 
       25, 
       Seq( 
-        Hand(hand = Seq(Card(Ten, Hearts), Card(Eight, Clubs)), bets = Map("Jeffrey" -> 5), wins = None)) )
+        Hand(hand = Seq(Card(Ten, Hearts), Card(Eight, Clubs)), bets = Map("Jeffrey" -> 5), outcome = None)) )
     val history = Seq(Action("Jeffrey", Stand, Nil, 0, Seq(Card(Ten, Hearts), Card(Eight, Clubs)), Seq(Seq(Card(Ten, Hearts), Card(Eight, Clubs)))))
     val game = BlackjackGameState(
-      options = BlackjackOptions(dealerHitLimit = S17), 
       minimumBet = 5, 
-      dealerHand = Hand(hand = Seq(Card(Four, Clubs), Card(Nine, Clubs))), 
+      dealerHand = Hand(hand = Seq(Card(Nine, Diamonds), Card(Nine, Clubs))), 
       players = Seq(player1), 
       history = history, 
-      currentPlayerIndex = Some(0))
+      currentPlayerIndex = None)
     When("determining whether it's time to deal cards")
     Then("it's determined that it's not time to deal")
     isTimeToDeal(game) shouldBe (false)
     When("determining whether it's time for dealer to play")
     Then("it's determined that yes, it is in fact time for dealer to play")
     isTimeForDealerToPlay(game) shouldBe (true)
-  
   }
 
   it should "know it's time for dealer to play when only player has busted" in {
@@ -765,15 +714,16 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
       "Jeffrey", 
       25, 
       Seq( 
-        Hand(hand = Seq(Card(Ten, Hearts), Card(Eight, Clubs), Card(Four, Clubs)), bets = Map("Jeffrey" -> 5), wins = None)) )
+        Hand(hand = Seq(Card(Ten, Hearts), Card(Eight, Clubs), Card(Four, Clubs)), bets = Map("Jeffrey" -> 5), outcome = None)) )
     val history = Seq(Action("Jeffrey", Hit, Seq(Card(Four, Clubs)), 0, Seq(Card(Ten, Hearts), Card(Eight, Clubs)), Seq(Seq(Card(Ten, Hearts), Card(Eight, Clubs), Card(Four, Clubs)))))
     val game = BlackjackGameState(
       options = BlackjackOptions(dealerHitLimit = H17), 
       minimumBet = 5, 
-      dealerHand = Hand(hand = Seq(Card(Four, Clubs), Card(Nine, Clubs))), 
+      // dealer has soft 17
+      dealerHand = Hand(hand = Seq(Card(Six, Clubs), Card(Ace, Clubs))), 
       players = Seq(player1), 
       history = history, 
-      currentPlayerIndex = Some(0))
+      currentPlayerIndex = None)
     When("determining whether it's time to deal cards")
     Then("it's determined that it's not time to deal")
     isTimeToDeal(game) shouldBe (false)
@@ -788,28 +738,35 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
       "Jeffrey", 
       25, 
       Seq( 
-        Hand(hand = Seq(Card(Ten, Hearts), Card(Seven, Clubs)), bets = Map("Jeffrey" -> 5), wins = None)) )
+        Hand(hand = Seq(Card(Ten, Hearts), Card(Seven, Clubs)), bets = Map("Jeffrey" -> 5), outcome = None)) )
     val player2 = BlackjackPlayerState(
       "Brandon", 
       25, 
       Seq( 
-        Hand(hand = Seq(Card(Five, Diamonds), Card(Nine, Hearts), Card(Eight, Diamonds)), bets = Map("Brandon" -> 5), wins = None)) )
+        Hand(hand = Seq(Card(Five, Diamonds), Card(Nine, Hearts), Card(Eight, Diamonds)), bets = Map("Brandon" -> 5), outcome = None)) )
     val history = Seq(
       Action("Brandon", Hit, Seq(Card(Eight, Diamonds)), 0, Seq(Card(Five, Diamonds), Card(Nine, Hearts)), Seq(Seq(Card(Five, Diamonds), Card(Nine, Hearts), Card(Eight, Diamonds)))),
       Action("Jeffrey", Stand, Nil, 0, Seq(Card(Ten, Hearts), Card(Seven, Clubs)), Seq(Seq(Card(Ten, Hearts), Card(Seven, Clubs)))) )
     val game = BlackjackGameState(
       options = BlackjackOptions(), 
       minimumBet = 5, 
-      dealerHand = Hand(hand = Seq(Card(Four, Clubs), Card(Nine, Clubs))), 
+      // dealer has soft 17
+      dealerHand = Hand(hand = Seq(Card(Six, Clubs), Card(Ace, Clubs))), 
       players = Seq(player1, player2), 
       history = history, 
-      currentPlayerIndex = Some(1))
+      currentPlayerIndex = None)
     When("determining whether it's time to deal cards")
     Then("it's determined that it's not time to deal")
     isTimeToDeal(game) shouldBe (false)
     When("determining whether it's time for dealer to play")
     Then("it's determined that yes, it is in fact time for dealer to play")
     isTimeForDealerToPlay(game) shouldBe (true)
+    When("when dealer plays hand on an H17 board")
+    val playedHand = dealerPlay(game.copy(options = game.options.copy(dealerHitLimit = H17))) 
+    Then("then dealer will hit on soft 17")
+    val action = playedHand.history.reverse.head
+    action.playerId should equal ("Dealer")
+    action.action should equal (Hit)
   }
 
   it should "know it's not time for dealer to play when only 1 of 2 players has finished playing (busted)" in {
@@ -818,12 +775,12 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
       "Jeffrey", 
       25, 
       Seq( 
-        Hand(hand = Seq(Card(Ten, Hearts), Card(Seven, Clubs)), bets = Map("Jeffrey" -> 5), wins = None)) )
+        Hand(hand = Seq(Card(Ten, Hearts), Card(Seven, Clubs)), bets = Map("Jeffrey" -> 5), outcome = None)) )
     val player2 = BlackjackPlayerState(
       "Brandon", 
       25, 
       Seq( 
-        Hand(hand = Seq(Card(Five, Diamonds), Card(Nine, Hearts), Card(Eight, Diamonds)), bets = Map("Brandon" -> 5), wins = None)) )
+        Hand(hand = Seq(Card(Five, Diamonds), Card(Nine, Hearts), Card(Eight, Diamonds)), bets = Map("Brandon" -> 5), outcome = None)) )
     val history = Seq(
       Action("Brandon", Hit, Seq(Card(Eight, Diamonds)), 0, Seq(Card(Five, Diamonds), Card(Nine, Hearts)), Seq(Seq(Card(Five, Diamonds), Card(Nine, Hearts), Card(Eight, Diamonds)))))
     val game = BlackjackGameState(
@@ -847,12 +804,12 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
       "Jeffrey", 
       25, 
       Seq( 
-        Hand(hand = Seq(Card(Ten, Hearts), Card(Seven, Clubs)), bets = Map("Jeffrey" -> 5), wins = None)) )
+        Hand(hand = Seq(Card(Ten, Hearts), Card(Seven, Clubs)), bets = Map("Jeffrey" -> 5), outcome = None)) )
     val player2 = BlackjackPlayerState(
       "Brandon", 
       25, 
       Seq( 
-        Hand(hand = Seq(Card(Five, Diamonds), Card(Nine, Hearts), Card(Eight, Diamonds)), bets = Map("Brandon" -> 5), wins = None)) )
+        Hand(hand = Seq(Card(Five, Diamonds), Card(Nine, Hearts), Card(Eight, Diamonds)), bets = Map("Brandon" -> 5), outcome = None)) )
     val history = Seq(
       Action("Brandon", Hit, Seq(Card(Eight, Diamonds)), 0, Seq(Card(Five, Diamonds), Card(Nine, Hearts)), Seq(Seq(Card(Five, Diamonds), Card(Nine, Hearts), Card(Eight, Diamonds)))),
       Action("Jeffrey", Stand, Nil, 0, Seq(Card(Ten, Hearts), Card(Seven, Clubs)), Seq(Seq(Card(Ten, Hearts), Card(Seven, Clubs)))) )

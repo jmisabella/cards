@@ -1,8 +1,8 @@
-package cards.behaviors.nonplayer
+package cards.behaviors.controller
 
 import cards.behaviors.Commons
 import cards.behaviors.evaluation.ThirtyOneHandEvaluation
-import cards.behaviors.nonplayer.ThirtyOneNonPlayer
+import cards.behaviors.controller.ThirtyOneController
 import cards.classes.{ Card, Rank, Suit, Deck, DeckType }
 import cards.classes.DeckType._
 import cards.classes.Rank._
@@ -14,18 +14,18 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 import org.scalatest.GivenWhenThen
 
-class ThirtyOneNonPlayerSpec extends AnyFlatSpec with GivenWhenThen {
-  private [nonplayer] case object _commons extends Commons
-  private [nonplayer] case object _evaluation extends ThirtyOneHandEvaluation {
+class ThirtyOneControllerSpec extends AnyFlatSpec with GivenWhenThen {
+  private [controller] case object _commons extends Commons
+  private [controller] case object _evaluation extends ThirtyOneHandEvaluation {
     override type C = Commons
     override val commons = _commons
   }
-  case object module extends ThirtyOneNonPlayer {
+  case object module extends ThirtyOneController {
     override type EVAL = ThirtyOneHandEvaluation
     override val evaluation = _evaluation
   }
 
-  "ThirtyOneNonPlayer" should "throw IllegalStateException when calling next() from game state which does not yet have any player states" in {
+  "ThirtyOneController" should "throw IllegalStateException when calling next() from game state which does not yet have any player states" in {
     val gameState = ThirtyOneGameState(Nil)
     an [IllegalStateException] should be thrownBy module.next(gameState) 
   }
