@@ -41,7 +41,6 @@ trait BlackjackBetting {
     game.players != Nil && game.players.flatMap(p => p.handsAndBets.filter(h => h.outcome.isDefined)).length >= handCount
   }
 
-  // IMPORTANT: // TODO: this doesn't work correctly (e.g. 2 player game, after first player has placed bet but 2nd player has not)
   def isTimeToPlaceNewBets(game: BlackjackGameState): Boolean = {
     // game.players.count(_.hands == Nil) == game.players.length
     game.players.count(_.hands != Nil) < game.players.length
