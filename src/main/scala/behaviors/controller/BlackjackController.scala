@@ -2,6 +2,8 @@ package cards.behaviors.controller
 
 import cards.behaviors.evaluation.BlackjackHandEvaluation
 import cards.behaviors.betting.BlackjackBetting
+import cards.classes.bettingstrategy.BlackjackBettingStrategy
+import cards.classes.bettingstrategy.BlackjackBettingStrategy._
 import cards.behaviors.play.BlackjackPlay
 import cards.classes.state.{ BlackjackPlayerState, BlackjackGameState }
 import cards.classes.{ Card, Deck }
@@ -20,7 +22,6 @@ trait BlackjackController {
   // @tailrec
   def next(game: BlackjackGameState, iterations: Int = 1): BlackjackGameState = {
     def go(game: BlackjackGameState): BlackjackGameState = {
-      val shuffleLimit: Int = game.players.flatMap(_.hands).length * 5
       if (game.deck.length == 0) {
         throw new IllegalStateException(
           s"Cannot proceed to next state because deck is empty")
@@ -32,6 +33,16 @@ trait BlackjackController {
       if (game.currentPlayerIndex.isEmpty && (betting.isTimeToPlaceNewBets(game) || betting.isTimeToSettle(game))) {
         return game.copy(currentPlayerIndex = Some(0), currentHandIndex = Some(0))
       }
+      if (!game.currentHandIndex.isEmpty && game.players(game.currentHandIndex.getOrElse(0)).bank < 0) {
+        val newHistory: Seq[Action[BlackjackAction]] = Seq(Action(game.currentPlayer().id, LeaveTable))
+        val updatedPlayerIndex: Option[Int] = game.currentPlayerIndex match {
+          case None => None 
+          case Some(0) => Some(0)
+          case Some(i) => Some(i - 1)
+        }
+        return game.copy(players = game.players.filter(_.id != game.currentPlayer().id), history = game.history ++ newHistory, currentPlayerIndex = updatedPlayerIndex)
+      }
+      val shuffleLimit: Int = (game.players.flatMap(_.hands).length + 1) * 5
       if (betting.isTimeToSettle(game)) {
         // IMPORTANT: // TODO: after bets are settled, how do we get from history showing Wins, Losses, Ties back to an empty history ?????
         println("SETTLING")
@@ -51,7 +62,7 @@ trait BlackjackController {
         println("DEALING")
         return play.deal(game)
       } else if (play.isTimeToDeal(game) && game.deck.cards.length < shuffleLimit) {
-        println("SHUFFLING")
+        println(s"SHUFFLING: length [${game.deck.cards.length}], shuffle limit [$shuffleLimit]")
         return game.copy(deck = Deck(Seq(Card(LeftBower, Joker), Card(RightBower, Joker)), 1), history = game.history ++ Seq(Action("Dealer", Shuffle)))
       } else if (play.isTimeToPlay(game)) {
         println("PLAYING")
@@ -60,19 +71,31 @@ trait BlackjackController {
         return game
       }
     }
-    var state = game 
-    for (i <- (0 to iterations)) {
-      state = go(state)
+    def turns(game: BlackjackGameState, numberOfTurns: Int): BlackjackGameState = {
+      var state = game 
+      try {
+        for (i <- (0 to iterations)) {
+          state = go(state)
+        }
+      } catch {
+        case _: IllegalStateException => {
+          for (i <- (0 to iterations)) {
+            state = go(state)
+          }
+        }
+      }
+      state
     }
-    state
+    turns(game, iterations)
   }
-  def init(playerNames: Seq[String], tokens: Int): BlackjackGameState = {
-    val players: Seq[BlackjackPlayerState] = for (player <- playerNames) yield BlackjackPlayerState(s"$player", tokens)
+  
+  def init(playerNames: Seq[String], tokens: Int, strategy: BlackjackBettingStrategy, deckCount: Int): BlackjackGameState = {
+    val players: Seq[BlackjackPlayerState] = for (player <- playerNames) yield BlackjackPlayerState(s"$player", tokens, bettingStrategy = strategy)
     BlackjackGameState(players = players, minimumBet = (.025 * tokens).toInt)
   }
 
-  def init(playerCount: Int = 1, tokens: Int = 2000): BlackjackGameState = {
+  def init(playerCount: Int = 1, tokens: Int = 2000, strategy: BlackjackBettingStrategy = NegativeProgression, deckCount: Int = 1): BlackjackGameState = {
     val players: Seq[String] = for (i <- 0 to playerCount) yield s"player${i+1}"
-    init(players, tokens)
+    init(players, tokens, strategy, deckCount)
   }
 }

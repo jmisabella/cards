@@ -73,12 +73,23 @@ trait BlackjackBetting {
   def placeBet(game: BlackjackGameState): BlackjackGameState = {
     if (game.players == Nil)
       throw new IllegalArgumentException("Cannot place bet because there are no players")
-    // IMPORTANT: // TODO: if current player is not selected, then return game.copy(currentPlayer = Some(0)) 
     if (!isTimeToPlaceNewBets(game))
       throw new IllegalArgumentException("Cannot place new bets as it is not currently time to take new bets")
-    if (game.currentPlayerIndex.isEmpty)
+    if (game.currentPlayerIndex.isEmpty) {
       // if current player is not selected, then set it to the first player 
       return game.copy(currentPlayerIndex = Some(0))
+    }
+    if (game.currentPlayer().bank < game.minimumBet) {
+      // TODO: test
+      // player doesn't have sufficient funds, should leave the game and this should be captured in game's history
+      val newHistory: Seq[Action[BlackjackAction]] = Seq(Action(game.currentPlayer().id, LeaveTable))
+      val updatedPlayerIndex: Option[Int] = game.currentPlayerIndex match {
+        case None => None 
+        case Some(0) => Some(0)
+        case Some(i) => Some(i - 1)
+      }
+      return game.copy(players = game.players.filter(_.id != game.currentPlayer().id), history = game.history ++ newHistory, currentPlayerIndex = updatedPlayerIndex)
+    }
 
     val (minBet, maxBet): (Int, Int) = getMinAndMaxBet(game.currentPlayer(), game)
     val amount: Int = {
@@ -161,6 +172,7 @@ trait BlackjackBetting {
       throw new IllegalArgumentException(s"Cannot alter player's state because player does not belong to this game. player [$player], game [$game]")
     }
     player.completedHands % 25 match { // check whether 25 hands have been completed since last min bet alteration
+    // player.completedHands % 15 match { // check whether 15 hands have been completed since last min bet alteration
       case 0 => {
         val changeDirection: Int = (player.bank, player.bankEvery25Hands) match {
           case (newBank, oldBank) if (newBank < oldBank) => -1 // negative for less than
@@ -188,13 +200,15 @@ trait BlackjackBetting {
     // player.completedHands % 25 match { // check whether 25 hands have been completed since last min bet alteration
     player.completedHands % 6 match { // check whether 6 hands have been completed since last min bet alteration
       case 0 => {
-        // val goal: Int = player.bankEvery250Hands + (player.bankEvery250Hands * 0.15).toInt 
-        val goal: Int = player.bankEvery25Hands + (player.bankEvery25Hands * 0.15).toInt 
+        val goal: Int = player.bankEvery250Hands + (player.bankEvery250Hands * 0.15).toInt 
+        // val goal: Int = player.bankEvery25Hands + (player.bankEvery25Hands * 0.15).toInt 
         val nextStrategy: BlackjackBettingStrategy = (player.bank, goal) match {
           case (actual, planned) if (actual >= planned) => player.bettingStrategy // goal reached, no need to alter betting strategy
           case (_, _) => { // goal was not reached, change betting strategy
             val otherStrategies: Seq[BlackjackBettingStrategy] = BlackjackBettingStrategy.values.toSeq.filter(_ != player.bettingStrategy)
-            otherStrategies(Random.nextInt(otherStrategies.length))
+            val nex = otherStrategies(Random.nextInt(otherStrategies.length))
+            println("ALTERING BETTING STRATEGY: " + nex)
+            nex
           }
         }
         val updatedPlayer: BlackjackPlayerState = player.copy(bettingStrategy = nextStrategy)
@@ -258,7 +272,7 @@ trait BlackjackBetting {
           case false => p.bank
           case true => p.bank + wagers(p.id)
         }
-        BlackjackPlayerState(p.id, updatedBank, Nil)
+        p.copy(bank = updatedBank, handsAndBets = Nil)
       }  
       game.copy(players = updatedPlayers, history = nextHistory, dealerHand = Hand(), currentPlayerIndex = None, currentHandIndex = None)
     } 

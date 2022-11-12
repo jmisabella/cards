@@ -34,9 +34,9 @@ import cards.classes.bettingstrategy.BlackjackBettingStrategy._
 //                 hands to determine when to refresh bankEvery25Hands and bankEvery250Hands
 case class BlackjackPlayerState(
   id: String, 
-  bank: Int = 0, 
+  bank: Int = 200, 
   handsAndBets: Seq[Hand] = Nil, 
-  minBetMultiplier: Double = 1.0, 
+  minBetMultiplier: Double = 1.0,
   maxBet: Option[Int] = None,
   bettingStrategy: BlackjackBettingStrategy = NegativeProgression,
   oscarsGoalMultiplier: Double = 1.25, 
@@ -78,13 +78,12 @@ case class BlackjackGameState(
   currentHandIndex: Option[Int] = None, 
   options: BlackjackOptions = BlackjackOptions(),
   dealerHand: Hand = Hand.empty, // bets are only placed on dealer's hand when purchasing insurance
-  insurance: Map[String, Int] = Map(), 
   minimumBet: Int = 1,
   maximumBet: Int = 999999) extends GameState[BlackjackPlayerState, BlackjackAction] {
 
     def currentCards(): Seq[Card] = current(currentPlayer().hands, currentHandIndex)
     def nextHandIndex(): Int = nextIndex(currentPlayer().hands, currentHandIndex)
-    // TODO: test 
+    // TODO: this is not used anywhere other than in a unit test, should this be removed? 
     def isLastHand(): Boolean = 
       currentPlayerIndex.isDefined && currentPlayer().hands.length > 0 && currentHandIndex == Some(currentPlayer().hands.length - 1)
     
