@@ -26,23 +26,23 @@ import cards.classes.bettingstrategy.BlackjackBettingStrategy._
 // oscarsGoalMultiplier: only applicable for Oscar's betting strategy, player's bank multiplied by this value is the incremental 
 //                       goal of Oscar's betting
 // oscarsGoal: only applicable for Oscar's betting strategy, intermediate goal to be achieved
-// bankEvery25Intervals: to be reset every 25 games to update to bank amount, used to determine whether to increase or decrease  
+// bankedLastBettingAmountUpdate: to be reset every 25 games to update to bank amount, used to determine whether to increase or decrease  
 //                            player's minimum bet, based on whether bank increases or decreases after 25 games
-// bankEvery250Intervals: to be reset every 250 games to update to current bank amount, used to determine whether to change betting strategy, 
+// bankedLastStrategyUpdate: to be reset every 250 games to update to current bank amount, used to determine whether to change betting strategy, 
 //                             based on whether bank increases by 15% after 250 games
 // completedHands: starts at 0 and increases with every hand won or lost, the number of completed hands is used to track updating every 25 and 250 
 //                 hands to determine when to refresh bankEvery25Hands and bankEvery250Hands
 case class BlackjackPlayerState(
   id: String, 
-  bank: Int = 0, 
+  bank: Int = 200, 
   handsAndBets: Seq[Hand] = Nil, 
-  minBetMultiplier: Double = 1.0, 
+  minBetMultiplier: Double = 1.0,
   maxBet: Option[Int] = None,
   bettingStrategy: BlackjackBettingStrategy = NegativeProgression,
   oscarsGoalMultiplier: Double = 1.25, 
   oscarsGoal: Int = 0,
-  bankEvery25Hands: Int = 1,
-  bankEvery250Hands: Int = 1,
+  bankedLastBettingAmountUpdate: Int = 1,
+  bankedLastStrategyUpdate: Int = 1,
   completedHands: Int = 0) extends PlayerState {
   
     val hands: Seq[Seq[Card]] = handsAndBets.map(_.hand)
@@ -78,13 +78,13 @@ case class BlackjackGameState(
   currentHandIndex: Option[Int] = None, 
   options: BlackjackOptions = BlackjackOptions(),
   dealerHand: Hand = Hand.empty, // bets are only placed on dealer's hand when purchasing insurance
-  insurance: Map[String, Int] = Map(), 
   minimumBet: Int = 1,
-  maximumBet: Int = 999999) extends GameState[BlackjackPlayerState, BlackjackAction] {
+  maximumBet: Int = 999999,
+  round: Int = 1) extends GameState[BlackjackPlayerState, BlackjackAction] {
 
     def currentCards(): Seq[Card] = current(currentPlayer().hands, currentHandIndex)
     def nextHandIndex(): Int = nextIndex(currentPlayer().hands, currentHandIndex)
-    // TODO: test 
+    // TODO: this is not used anywhere other than in a unit test, should this be removed? 
     def isLastHand(): Boolean = 
       currentPlayerIndex.isDefined && currentPlayer().hands.length > 0 && currentHandIndex == Some(currentPlayer().hands.length - 1)
     
@@ -115,7 +115,8 @@ case class BlackjackGameState(
         case (Some(_), Some(h), false) => this.copy(currentHandIndex = Some(h + 1))
       }
     }
-    
+
+
     // TODO: know when all players as well as the dealer have all played their hands (and it's time to reset history and take new bets)
 
     def playerHistory(playerId: String): Seq[Action[BlackjackAction]] = history.filter(a => a.playerId == playerId)

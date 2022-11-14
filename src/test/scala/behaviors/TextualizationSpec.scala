@@ -47,7 +47,7 @@ class TextualizationSpec extends AnyFlatSpec with GivenWhenThen {
         "Jeffrey", 
         Hit, 
         Seq(Card(Ten, Diamonds)), 
-        0, 
+        None, 
         Seq(Card(Two, Hearts), Card(Eight, Clubs)), 
         Seq(Seq(Card(Two, Hearts), Card(Eight, Clubs), Card(Ten, Diamonds))))
     When("converting action to words")
@@ -63,7 +63,7 @@ class TextualizationSpec extends AnyFlatSpec with GivenWhenThen {
         "Jeffrey", 
         Bet, 
         Nil,
-        200)
+        Some(200))
     When("converting action to words")
     val result = words(action)
     Then(s"""One complete sentence should be rendered, specifying an action amount""")

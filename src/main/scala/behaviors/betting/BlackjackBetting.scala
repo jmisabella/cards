@@ -41,7 +41,6 @@ trait BlackjackBetting {
     game.players != Nil && game.players.flatMap(p => p.handsAndBets.filter(h => h.outcome.isDefined)).length >= handCount
   }
 
-  // IMPORTANT: // TODO: this doesn't work correctly (e.g. 2 player game, after first player has placed bet but 2nd player has not)
   def isTimeToPlaceNewBets(game: BlackjackGameState): Boolean = {
     // game.players.count(_.hands == Nil) == game.players.length
     game.players.count(_.hands != Nil) < game.players.length
@@ -60,7 +59,7 @@ trait BlackjackBetting {
     val playerBets: Seq[Action[BlackjackAction]] = game.history.filter(h => h.playerId == player.id && h.action == Bet)
     playerBets.length match {
       case 0 => 0
-      case _ => playerBets.reverse.head.actionTokens
+      case _ => playerBets.reverse.head.actionTokens.getOrElse(0)
     }
   }
 
@@ -74,12 +73,23 @@ trait BlackjackBetting {
   def placeBet(game: BlackjackGameState): BlackjackGameState = {
     if (game.players == Nil)
       throw new IllegalArgumentException("Cannot place bet because there are no players")
-    // IMPORTANT: // TODO: if current player is not selected, then return game.copy(currentPlayer = Some(0)) 
     if (!isTimeToPlaceNewBets(game))
       throw new IllegalArgumentException("Cannot place new bets as it is not currently time to take new bets")
-    if (game.currentPlayerIndex.isEmpty)
+    if (game.currentPlayerIndex.isEmpty) {
       // if current player is not selected, then set it to the first player 
       return game.copy(currentPlayerIndex = Some(0))
+    }
+    if (game.currentPlayer().bank < game.minimumBet) {
+      // TODO: test
+      // player doesn't have sufficient funds, should leave the game and this should be captured in game's history
+      val newHistory: Seq[Action[BlackjackAction]] = Seq(Action(game.currentPlayer().id, LeaveTable))
+      val updatedPlayerIndex: Option[Int] = game.currentPlayerIndex match {
+        case None => None 
+        case Some(0) => Some(0)
+        case Some(i) => Some(i - 1)
+      }
+      return game.copy(players = game.players.filter(_.id != game.currentPlayer().id), history = game.history ++ newHistory, currentPlayerIndex = updatedPlayerIndex)
+    }
 
     val (minBet, maxBet): (Int, Int) = getMinAndMaxBet(game.currentPlayer(), game)
     val amount: Int = {
@@ -153,7 +163,8 @@ trait BlackjackBetting {
       else 
         p
     }
-    val updatedHistory = game.history ++ Seq(Action(game.currentPlayer().id, Bet, Nil, amount))
+    val updatedHistory = game.history ++ Seq(Action(game.currentPlayer().id, Bet, Nil, Some(amount)).copy(beforeTokens = Some(game.currentPlayer().bank)))
+    // val updatedHistory = game.history ++ Seq(Action(game.currentPlayer().id, Bet, Nil, Some(amount)))
     game.copy(currentPlayerIndex = Some(game.nextPlayerIndex()), players = updatedPlayers, history = updatedHistory)
   }
 
@@ -162,8 +173,9 @@ trait BlackjackBetting {
       throw new IllegalArgumentException(s"Cannot alter player's state because player does not belong to this game. player [$player], game [$game]")
     }
     player.completedHands % 25 match { // check whether 25 hands have been completed since last min bet alteration
+    // player.completedHands % 15 match { // check whether 15 hands have been completed since last min bet alteration
       case 0 => {
-        val changeDirection: Int = (player.bank, player.bankEvery25Hands) match {
+        val changeDirection: Int = (player.bank, player.bankedLastBettingAmountUpdate) match {
           case (newBank, oldBank) if (newBank < oldBank) => -1 // negative for less than
           case (newBank, oldBank) if (newBank == oldBank) => 0 // zero for equality
           case (_, _) => 1 // positive for greater than
@@ -175,7 +187,7 @@ trait BlackjackBetting {
           case (d, multiplier, tableMin, tableMax) if (d < 0 && multiplier > 1) => multiplier - 1 // decrease
           case (_, _, _, _) => 1 // else cannot go lower than 1
         }
-        val updatedPlayer: BlackjackPlayerState = player.copy(bankEvery25Hands = player.bank, minBetMultiplier = updatedMinBetMultiplier)
+        val updatedPlayer: BlackjackPlayerState = player.copy(bankedLastBettingAmountUpdate = player.bank, minBetMultiplier = updatedMinBetMultiplier)
         game.copy(players = game.players.map(p => if (p.id == player.id) updatedPlayer else p))
       }
       case _ => game // no change to state since player hasn't yet reached 25 hands played since last check
@@ -189,13 +201,15 @@ trait BlackjackBetting {
     // player.completedHands % 25 match { // check whether 25 hands have been completed since last min bet alteration
     player.completedHands % 6 match { // check whether 6 hands have been completed since last min bet alteration
       case 0 => {
-        // val goal: Int = player.bankEvery250Hands + (player.bankEvery250Hands * 0.15).toInt 
-        val goal: Int = player.bankEvery25Hands + (player.bankEvery25Hands * 0.15).toInt 
+        val goal: Int = player.bankedLastStrategyUpdate + (player.bankedLastStrategyUpdate * 0.15).toInt 
+        // val goal: Int = player.bankEvery25Hands + (player.bankEvery25Hands * 0.15).toInt 
         val nextStrategy: BlackjackBettingStrategy = (player.bank, goal) match {
           case (actual, planned) if (actual >= planned) => player.bettingStrategy // goal reached, no need to alter betting strategy
           case (_, _) => { // goal was not reached, change betting strategy
             val otherStrategies: Seq[BlackjackBettingStrategy] = BlackjackBettingStrategy.values.toSeq.filter(_ != player.bettingStrategy)
-            otherStrategies(Random.nextInt(otherStrategies.length))
+            val nex = otherStrategies(Random.nextInt(otherStrategies.length))
+            // println("ALTERING BETTING STRATEGY: " + nex)
+            nex
           }
         }
         val updatedPlayer: BlackjackPlayerState = player.copy(bettingStrategy = nextStrategy)
@@ -245,13 +259,14 @@ trait BlackjackBetting {
           .map(tup => (tup._1, tup._2.foldLeft(0)((acc, x) => x._2 + acc)))
 
       val nextHistory: Seq[Action[BlackjackAction]] = game.history ++ wagers.toSeq.map(tup => {
-        val action: BlackjackAction = tup._2 match {
-          case n if (n < 0) => Lose
-          case n if (n > 0) => Win
-          case _ => Tie
-        }
         val amount: Int = tup._2.abs
-        Action(tup._1, action, Nil, amount) 
+        val player: BlackjackPlayerState = game.players.filter(p => p.id == tup._1).head
+        val (action, bank): (BlackjackAction, Option[Int]) = tup._2 match {
+          case n if (n < 0) => (Lose, Some(player.bank - amount))
+          case n if (n > 0) => (Win, Some(player.bank + amount))
+          case _ => (Tie, None)
+        }
+        Action(tup._1, action, Nil, Some(amount)).copy(afterTokens = bank) 
       }).toSeq
 
       val updatedPlayers: Seq[BlackjackPlayerState] = game.players.map { p => 
@@ -259,9 +274,15 @@ trait BlackjackBetting {
           case false => p.bank
           case true => p.bank + wagers(p.id)
         }
-        BlackjackPlayerState(p.id, updatedBank, Nil)
-      }  
-      game.copy(players = updatedPlayers, history = nextHistory, dealerHand = Hand(), currentPlayerIndex = None, currentHandIndex = None)
+        p.copy(bank = updatedBank, handsAndBets = Nil)
+      }
+      game.copy(
+        players = updatedPlayers, 
+        history = nextHistory, 
+        dealerHand = Hand(), 
+        currentPlayerIndex = None, 
+        currentHandIndex = None, 
+        round = game.round + 1)
     } 
   }
 
