@@ -30,7 +30,7 @@ class BlackjackActionSerializationSpec extends AnyFlatSpec with GivenWhenThen {
 
   it should "create valid json from Bet action when an amount is specified" in {
     Given("a Bet action with an amount of 20 specified") 
-    val action: Seq[Action[BlackjackAction]] = Seq(Action[BlackjackAction]("JMI", Bet, Nil, 20))
+    val action: Seq[Action[BlackjackAction]] = Seq(Action[BlackjackAction]("JMI", Bet, Nil, Some(20)))
 
     When("serializing the action object to json")
     val json: String = module.json(action)

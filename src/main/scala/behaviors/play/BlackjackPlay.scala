@@ -99,7 +99,7 @@ trait BlackjackPlay {
       deck = updatedDeck
       val history = if (hand.hand.length < 2) 
         // Some(Action(player.id, IsDealt, updatedCards, 0, hand.hand, Seq(hand.hand ++ updatedCards) ))
-        Some(Action(player.id, IsDealt, updatedCards, 0 ))
+        Some(Action(player.id, IsDealt, updatedCards, None ))
       else
         None
       (player.updateHand(hand.hand, updatedCards), history) // only updates hand when updatedCards isn't empty
@@ -118,7 +118,7 @@ trait BlackjackPlay {
     val dealerHistory: Seq[Action[BlackjackAction]] = newlyDealtDealerCards.length match {
       case 0 => Nil
       case _ => {
-        Seq(Action("Dealer", IsDealt, newDealerWithFaceDown, 0))
+        Seq(Action("Dealer", IsDealt, newDealerWithFaceDown, None))
       }
     }
     val history: Seq[Action[BlackjackAction]] = updatedPlayersAndHistories.filter(_._2.isDefined).map(_._2.get) ++ dealerHistory
@@ -149,11 +149,11 @@ trait BlackjackPlay {
         case (_, _, _) => Hit
       }
     val (newDealerCards, newHistory, newDeck): (Seq[Card], Seq[Action[BlackjackAction]], Deck) = action match {
-      case Stand => (game.dealerHand.hand, Seq(Action("Dealer", Stand, Nil, 0, Nil, Seq(Seq(Card.FaceDownCard) ++ game.dealerHand.hand.tail))), game.deck)
+      case Stand => (game.dealerHand.hand, Seq(Action("Dealer", Stand, Nil, None, Nil, Seq(Seq(Card.FaceDownCard) ++ game.dealerHand.hand.tail))), game.deck)
       case Hit => {
         // Hit deals 1 card 
         val (dealt, nextDeck): (Seq[Card], Deck) = game.deck.deal()
-        (game.dealerHand.hand ++ dealt, Seq(Action("Dealer", Hit, dealt, 0, Nil, Seq(Seq(Card.FaceDownCard) ++ (game.dealerHand.hand ++ dealt).tail))), nextDeck)
+        (game.dealerHand.hand ++ dealt, Seq(Action("Dealer", Hit, dealt, None, Nil, Seq(Seq(Card.FaceDownCard) ++ (game.dealerHand.hand ++ dealt).tail))), nextDeck)
       }
       case a => throw new IllegalArgumentException(s"Unexpected dealer action [$a]; dealer can only ever Hit or Stand")
     }
@@ -395,7 +395,7 @@ trait BlackjackPlay {
     hand: Hand, 
     deck: Deck): (Seq[Hand], Deck, Seq[Action[BlackjackAction]]) = action match {
       // case Stand => (Seq(hand), deck, Seq(Action(playerId, Stand, Nil, 0, hand.hand, Seq(hand.hand))))
-      case Stand => (Seq(hand), deck, Seq(Action(playerId, Stand, Nil, 0, Nil, Seq(hand.hand))))
+      case Stand => (Seq(hand), deck, Seq(Action(playerId, Stand, Nil, None, Nil, Seq(hand.hand))))
       case a if (a == Hit || a == DoubleDown) => {
         // Hit and DoubleDown both deal 1 card 
         val (dealt, nextDeck): (Seq[Card], Deck) = deck.deal()
@@ -416,7 +416,7 @@ trait BlackjackPlay {
         }
         val updatedHand: Hand = hand.copy(hand = hand.hand ++ dealt, bets = nextBets)
         // (Seq(updatedHand), nextDeck, Seq(Action(playerId, a, dealt, additionalBet, hand.hand, Seq(updatedHand.hand))))
-        (Seq(updatedHand), nextDeck, Seq(Action(playerId, a, dealt, additionalBet, Nil, Seq(updatedHand.hand))))
+        (Seq(updatedHand), nextDeck, Seq(Action(playerId, a, dealt, Some(additionalBet), Nil, Seq(updatedHand.hand))))
       }
       case Split => {
         // deal 2 cards, 1 for each split hand 
@@ -426,7 +426,7 @@ trait BlackjackPlay {
         // original bet amount is added as as new bet to the new hand 
         val additionalBet: Int = hand.bets(playerId)
         // (Seq(hand1, hand2), nextDeck, Seq(Action(playerId, Split, dealt, additionalBet, hand.hand, Seq(hand1, hand2).map(_.hand)))) 
-        (Seq(hand1, hand2), nextDeck, Seq(Action(playerId, Split, dealt, additionalBet, Nil, Seq(hand1, hand2).map(_.hand)))) 
+        (Seq(hand1, hand2), nextDeck, Seq(Action(playerId, Split, dealt, Some(additionalBet), Nil, Seq(hand1, hand2).map(_.hand)))) 
       }
       case Surrender => {
         val (surrenderAmount, nextBets): (Int, Map[String, Int]) = {
@@ -442,7 +442,7 @@ trait BlackjackPlay {
           )
         }
         // afterwards player does not have any cards in the hand since player has surrendered; bet is adjusted so player only pays half
-        (Seq(hand.copy(hand = Nil, bets = nextBets)), deck, Seq(Action(playerId, Surrender, Nil, surrenderAmount, hand.hand, Nil)))
+        (Seq(hand.copy(hand = Nil, bets = nextBets)), deck, Seq(Action(playerId, Surrender, Nil, Some(surrenderAmount), hand.hand, Nil)))
       }
       case a => throw new IllegalArgumentException(s"Unexpected BlackjackAction [$a], at this phase the only expected actions are [Hit, Stand, DoubleDown, Split, Surrender]")
     }

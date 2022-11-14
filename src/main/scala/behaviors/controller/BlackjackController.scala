@@ -19,58 +19,63 @@ trait BlackjackController {
   val betting: BETTING
   val play: PLAY
 
+  def purgeHistory(previous: BlackjackGameState, current: BlackjackGameState): Boolean = previous.round != current.round
+
+  def go(game: BlackjackGameState): BlackjackGameState = {
+    if (game.deck.length == 0) {
+      throw new IllegalStateException(
+        s"Cannot proceed to next state because deck is empty")
+    }
+    if (game.players.length == 0) {
+      throw new IllegalStateException(
+        s"Cannot proceed to next state because there are no players")
+    }
+    if (game.currentPlayerIndex.isEmpty && (betting.isTimeToPlaceNewBets(game) || betting.isTimeToSettle(game))) {
+      return game.copy(currentPlayerIndex = Some(0), currentHandIndex = Some(0))
+    }
+    if (!game.currentHandIndex.isEmpty && game.players(game.currentHandIndex.getOrElse(0)).bank < 0) {
+      val newHistory: Seq[Action[BlackjackAction]] = Seq(Action(game.currentPlayer().id, LeaveTable))
+      val updatedPlayerIndex: Option[Int] = game.currentPlayerIndex match {
+        case None => None 
+        case Some(0) => Some(0)
+        case Some(i) => Some(i - 1)
+      }
+      return game.copy(players = game.players.filter(_.id != game.currentPlayer().id), history = game.history ++ newHistory, currentPlayerIndex = updatedPlayerIndex)
+    }
+    val shuffleLimit: Int = (game.players.flatMap(_.hands).length + 1) * 5
+    if (betting.isTimeToSettle(game)) {
+      // IMPORTANT: // TODO: after bets are settled, how do we get from history showing Wins, Losses, Ties back to an empty history ?????
+      // println("SETTLING")
+      return betting.settleBets(game)
+    }
+    if (betting.isTimeToPlaceNewBets(game)) {
+      // println("BETTING")
+      val adjustedStrategy: BlackjackGameState = betting.alterBettingStrategy(game.currentPlayer(), game) 
+      val adjustedBetting: BlackjackGameState = betting.alterMinBet(adjustedStrategy.currentPlayer(), adjustedStrategy)
+      return betting.placeBet(adjustedBetting) // TODO: test
+    }
+    if (play.isTimeForDealerToPlay(game)) {
+      // IMPORTANT: // TODO: when a player splits with more than one hand, isTimeToSettle is never true, so dealer continues playing infinitly
+      // println("DEALER PLAYING")
+      return play.dealerPlay(game)
+    } else if (play.isTimeToDeal(game) && game.deck.cards.length >= shuffleLimit) {
+      // println("DEALING")
+      return play.deal(game)
+    } else if (play.isTimeToDeal(game) && game.deck.cards.length < shuffleLimit) {
+      // println(s"SHUFFLING: length [${game.deck.cards.length}], shuffle limit [$shuffleLimit]")
+      return game.copy(deck = Deck(Seq(Card(LeftBower, Joker), Card(RightBower, Joker)), 1), history = game.history ++ Seq(Action("Dealer", Shuffle)))
+    } else if (play.isTimeToPlay(game)) {
+      // println("PLAYING")
+      return play.playHand(game)
+    } else {
+      return game
+    }
+  }
+
+
   // @tailrec
   def next(game: BlackjackGameState, iterations: Int = 1): BlackjackGameState = {
-    def go(game: BlackjackGameState): BlackjackGameState = {
-      if (game.deck.length == 0) {
-        throw new IllegalStateException(
-          s"Cannot proceed to next state because deck is empty")
-      }
-      if (game.players.length == 0) {
-        throw new IllegalStateException(
-          s"Cannot proceed to next state because there are no players")
-      }
-      if (game.currentPlayerIndex.isEmpty && (betting.isTimeToPlaceNewBets(game) || betting.isTimeToSettle(game))) {
-        return game.copy(currentPlayerIndex = Some(0), currentHandIndex = Some(0))
-      }
-      if (!game.currentHandIndex.isEmpty && game.players(game.currentHandIndex.getOrElse(0)).bank < 0) {
-        val newHistory: Seq[Action[BlackjackAction]] = Seq(Action(game.currentPlayer().id, LeaveTable))
-        val updatedPlayerIndex: Option[Int] = game.currentPlayerIndex match {
-          case None => None 
-          case Some(0) => Some(0)
-          case Some(i) => Some(i - 1)
-        }
-        return game.copy(players = game.players.filter(_.id != game.currentPlayer().id), history = game.history ++ newHistory, currentPlayerIndex = updatedPlayerIndex)
-      }
-      val shuffleLimit: Int = (game.players.flatMap(_.hands).length + 1) * 5
-      if (betting.isTimeToSettle(game)) {
-        // IMPORTANT: // TODO: after bets are settled, how do we get from history showing Wins, Losses, Ties back to an empty history ?????
-        println("SETTLING")
-        return betting.settleBets(game)
-      }
-      if (betting.isTimeToPlaceNewBets(game)) {
-        println("BETTING")
-        val adjustedStrategy: BlackjackGameState = betting.alterBettingStrategy(game.currentPlayer(), game) 
-        val adjustedBetting: BlackjackGameState = betting.alterMinBet(adjustedStrategy.currentPlayer(), adjustedStrategy)
-        return betting.placeBet(adjustedBetting) // TODO: test
-      }
-      if (play.isTimeForDealerToPlay(game)) {
-        // IMPORTANT: // TODO: when a player splits with more than one hand, isTimeToSettle is never true, so dealer continues playing infinitly
-        println("DEALER PLAYING")
-        return play.dealerPlay(game)
-      } else if (play.isTimeToDeal(game) && game.deck.cards.length >= shuffleLimit) {
-        println("DEALING")
-        return play.deal(game)
-      } else if (play.isTimeToDeal(game) && game.deck.cards.length < shuffleLimit) {
-        println(s"SHUFFLING: length [${game.deck.cards.length}], shuffle limit [$shuffleLimit]")
-        return game.copy(deck = Deck(Seq(Card(LeftBower, Joker), Card(RightBower, Joker)), 1), history = game.history ++ Seq(Action("Dealer", Shuffle)))
-      } else if (play.isTimeToPlay(game)) {
-        println("PLAYING")
-        return play.playHand(game)
-      } else {
-        return game
-      }
-    }
+
     def turns(game: BlackjackGameState, numberOfTurns: Int): BlackjackGameState = {
       var state = game 
       try {

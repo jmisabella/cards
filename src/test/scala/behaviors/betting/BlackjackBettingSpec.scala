@@ -493,7 +493,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     val betPlaced = placeBet(game)
     Then("player should bet the table minimum of 25, since his minimum multiplier is 1")
     betPlaced.history.length shouldBe >= (1) 
-    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 25))
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, Some(25), Nil, Nil, Some(player1.bank)))
     mostRecentBet(player1, betPlaced) should equal (25) 
   }
 
@@ -515,7 +515,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     val betPlaced = placeBet(game)
     Then("player should bet the table minimum of 25, since his minimum multiplier is 1")
     betPlaced.history.length shouldBe >= (1) 
-    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 25))
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, Some(25), Nil, Nil, Some(player1.bank)))
     mostRecentBet(player1, betPlaced) should equal (25) 
   }
 
@@ -537,7 +537,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     val betPlaced = placeBet(game)
     Then("player should bet 50 (2 * the minimum)")
     betPlaced.history.length shouldBe >= (1) 
-    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 50))
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, Some(50), Nil, Nil, Some(player1.bank)))
     mostRecentBet(player1, betPlaced) should equal (50) 
   }
 
@@ -559,7 +559,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     val betPlaced = placeBet(game)
     Then("player should bet 50 (2 * the minimum)")
     betPlaced.history.length shouldBe >= (1) 
-    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 50))
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, Some(50), Nil, Nil, Some(player1.bank)))
     mostRecentBet(player1, betPlaced) should equal (50) 
   }
 
@@ -581,7 +581,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     val betPlaced = placeBet(game)
     Then("player should bet 75 (3 * the minimum)")
     betPlaced.history.length shouldBe >= (1) 
-    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 75))
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, Some(75), Nil, Nil, Some(player1.bank)))
     mostRecentBet(player1, betPlaced) should equal (75)
   }
 
@@ -603,7 +603,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     val betPlaced = placeBet(game)
     Then("player should bet 75 (3 * the minimum)")
     betPlaced.history.length shouldBe >= (1) 
-    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 75))
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, Some(75), Nil, Nil, Some(player1.bank)))
     mostRecentBet(player1, betPlaced) should equal (75)
   }
 
@@ -631,7 +631,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     val betPlaced = placeBet(game)
     Then("player should bet 100 (4 * the minimum)")
     betPlaced.history.length shouldBe >= (1) 
-    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 100))
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, Some(100), Nil, Nil, Some(player1.bank)))
     mostRecentBet(player1, betPlaced) should equal (100)
   }
 
@@ -659,7 +659,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     val betPlaced = placeBet(game)
     Then("player should bet 999 (since 4 * the minimum 250 product of 1000 would exceed table maximum bet of 999)")
     betPlaced.history.length shouldBe >= (1) 
-    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 999))
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, Some(999), Nil, Nil, Some(player1.bank)))
     mostRecentBet(player1, betPlaced) should equal (999)
   }
 
@@ -687,7 +687,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     val betPlaced = placeBet(game)
     Then("player should bet the minimum amount of 250")
     betPlaced.history.length shouldBe >= (1) 
-    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 250))
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, Some(250), Nil, Nil, Some(player1.bank)))
     mostRecentBet(player1, betPlaced) should equal (250)
   }
 
@@ -710,7 +710,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     val betPlaced = placeBet(game)
     Then("player should bet the table minimum of 25, since his minimum multiplier is 1")
     betPlaced.history.length shouldBe >= (1) 
-    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 25))
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, Some(25), Nil, Nil, Some(player1.bank)))
     mostRecentBet(player1, betPlaced) should equal (25)
   }
 
@@ -731,7 +731,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     val betPlaced = placeBet(game)
     Then("player should bet the table minimum of 25, since his minimum multiplier is 1")
     betPlaced.history.length shouldBe >= (1) 
-    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 25))
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, Some(25), Nil, Nil, Some(player1.bank)))
     mostRecentBet(player1, betPlaced) should equal (25)
   }
 
@@ -752,7 +752,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     val betPlaced = placeBet(game)
     Then("player should bet 50 (2 * minimum)")
     betPlaced.history.length shouldBe >= (1) 
-    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 50))
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, Some(50), Nil, Nil, Some(player1.bank)))
     mostRecentBet(player1, betPlaced) should equal (50)
   }
 
@@ -773,7 +773,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     val betPlaced = placeBet(game)
     Then("player should bet 100 (4 * minimum)")
     betPlaced.history.length shouldBe >= (1) 
-    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 100))
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, Some(100), Nil, Nil, Some(player1.bank)))
     mostRecentBet(player1, betPlaced) should equal (100)
   }
 
@@ -794,7 +794,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     val betPlaced = placeBet(game)
     Then("player should bet 200 (8 * minimum)")
     betPlaced.history.length shouldBe >= (1) 
-    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 200))
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, Some(200), Nil, Nil, Some(player1.bank)))
     mostRecentBet(player1, betPlaced) should equal (200)
   }
 
@@ -815,7 +815,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     val betPlaced = placeBet(game)
     Then("player should bet 400 (16 * minimum)")
     betPlaced.history.length shouldBe >= (1) 
-    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 400))
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, Some(400), Nil, Nil, Some(player1.bank)))
     mostRecentBet(player1, betPlaced) should equal (400)
   }
 
@@ -836,7 +836,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     val betPlaced = placeBet(game)
     Then("player should bet 25 (the minimum)")
     betPlaced.history.length shouldBe >= (1) 
-    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 25))
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, Some(25), Nil, Nil, Some(player1.bank)))
     mostRecentBet(player1, betPlaced) should equal (25)
   }
   
@@ -857,7 +857,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     val betPlaced = placeBet(game)
     Then("player should bet 200 (since 16 * minimum exceeds the maximum bet of 200)")
     betPlaced.history.length shouldBe >= (1) 
-    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 200))
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, Some(200), Nil, Nil, Some(player1.bank)))
     mostRecentBet(player1, betPlaced) should equal (200)
   }
 
@@ -879,7 +879,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     val betPlaced = placeBet(game)
     Then("player should bet the table minimum of 25, since his minimum multiplier is 1")
     betPlaced.history.length shouldBe >= (1) 
-    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 25))
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, Some(25), Nil, Nil, Some(player1.bank)))
     mostRecentBet(player1, betPlaced) should equal (25)
   }
 
@@ -901,7 +901,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     val betPlaced = placeBet(game)
     Then("player should bet the table minimum of 25, since his minimum multiplier is 1")
     betPlaced.history.length shouldBe >= (1) 
-    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 25))
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, Some(25), Nil, Nil, Some(player1.bank)))
     mostRecentBet(player1, betPlaced) should equal (25)
   }
 
@@ -923,7 +923,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     val betPlaced = placeBet(game)
     Then("player should bet 50 (2 * the minimum)")
     betPlaced.history.length shouldBe >= (1) 
-    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 50))
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, Some(50), Nil, Nil, Some(player1.bank)))
     mostRecentBet(player1, betPlaced) should equal (50)
   }
 
@@ -945,7 +945,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     val betPlaced = placeBet(game)
     Then("player should bet 50 (2 * the minimum)")
     betPlaced.history.length shouldBe >= (1) 
-    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 50))
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, Some(50), Nil, Nil, Some(player1.bank)))
     mostRecentBet(player1, betPlaced) should equal (50)
   }
 
@@ -967,7 +967,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     val betPlaced = placeBet(game)
     Then("player should bet 75 (3 * the minimum)")
     betPlaced.history.length shouldBe >= (1) 
-    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 75))
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, Some(75), Nil, Nil, Some(player1.bank)))
     mostRecentBet(player1, betPlaced) should equal (75)
   }
 
@@ -989,7 +989,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     val betPlaced = placeBet(game)
     Then("player should bet 75 (3 * the minimum)")
     betPlaced.history.length shouldBe >= (1) 
-    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 75))
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, Some(75), Nil, Nil, Some(player1.bank)))
     mostRecentBet(player1, betPlaced) should equal (75)
   }
 
@@ -1017,7 +1017,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     val betPlaced = placeBet(game)
     Then("player should bet 100 (4 * the minimum)")
     betPlaced.history.length shouldBe >= (1) 
-    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 100))
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, Some(100), Nil, Nil, Some(player1.bank)))
     mostRecentBet(player1, betPlaced) should equal (100)
   }
 
@@ -1045,7 +1045,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     val betPlaced = placeBet(game)
     Then("player should bet 999 (since 4 * the minimum 250 product of 1000 would exceed table maximum bet of 999)")
     betPlaced.history.length shouldBe >= (1) 
-    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 999))
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, Some(999), Nil, Nil, Some(player1.bank)))
     mostRecentBet(player1, betPlaced) should equal (999)
   }
 
@@ -1073,7 +1073,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     val betPlaced = placeBet(game)
     Then("player should bet the minimum amount of 250")
     betPlaced.history.length shouldBe >= (1) 
-    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 250))
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, Some(250), Nil, Nil, Some(player1.bank)))
     mostRecentBet(player1, betPlaced) should equal (250)
   }
 
@@ -1095,7 +1095,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     val betPlaced = placeBet(game)
     Then("player should bet the table minimum of 25, since his minimum multiplier is 1")
     betPlaced.history.length shouldBe >= (1) 
-    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 25))
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, Some(25), Nil, Nil, Some(player1.bank)))
     mostRecentBet(player1, betPlaced) should equal (25)
   }
 
@@ -1117,7 +1117,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     val betPlaced = placeBet(game)
     Then("player should bet the table minimum of 25")
     betPlaced.history.length shouldBe >= (1) 
-    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 25))
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, Some(25), Nil, Nil, Some(player1.bank)))
     mostRecentBet(player1, betPlaced) should equal (25)
   }
   
@@ -1139,7 +1139,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     val betPlaced = placeBet(game)
     Then("player should bet the table minimum of 25")
     betPlaced.history.length shouldBe >= (1) 
-    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 25))
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, Some(25), Nil, Nil, Some(player1.bank)))
     mostRecentBet(player1, betPlaced) should equal (25)
   }
 
@@ -1161,7 +1161,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     val betPlaced = placeBet(game)
     Then("player should bet the table minimum of 25")
     betPlaced.history.length shouldBe >= (1) 
-    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 25))
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, Some(25), Nil, Nil, Some(player1.bank)))
     mostRecentBet(player1, betPlaced) should equal (25)
   }
 
@@ -1183,7 +1183,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     val betPlaced = placeBet(game)
     Then("player should bet the table minimum of 25")
     betPlaced.history.length shouldBe >= (1) 
-    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 25))
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, Some(25), Nil, Nil, Some(player1.bank)))
     mostRecentBet(player1, betPlaced) should equal (25)
   }
 
@@ -1205,7 +1205,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     val betPlaced = placeBet(game)
     Then("player should bet the table minimum of 25")
     betPlaced.history.length shouldBe >= (1) 
-    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 25))
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, Some(25), Nil, Nil, Some(player1.bank)))
     mostRecentBet(player1, betPlaced) should equal (25)
   }
 
@@ -1227,7 +1227,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     val betPlaced = placeBet(game)
     Then("player should bet the table minimum of 25")
     betPlaced.history.length shouldBe >= (1) 
-    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 25))
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, Some(25), Nil, Nil, Some(player1.bank)))
     mostRecentBet(player1, betPlaced) should equal (25)
   }
 
@@ -1255,7 +1255,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     val betPlaced = placeBet(game)
     Then("player should bet the table minimum of 25")
     betPlaced.history.length shouldBe >= (1) 
-    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 25))
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, Some(25), Nil, Nil, Some(player1.bank)))
     mostRecentBet(player1, betPlaced) should equal (25)
   }
 
@@ -1283,7 +1283,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     val betPlaced = placeBet(game)
     Then("player should bet the minimum amount of 250")
     betPlaced.history.length shouldBe >= (1) 
-    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 250))
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, Some(250), Nil, Nil, Some(player1.bank)))
     mostRecentBet(player1, betPlaced) should equal (250)
   }
 
@@ -1305,7 +1305,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     val betPlaced = placeBet(game)
     Then("player should bet the table minimum of 25, since his minimum multiplier is 1")
     betPlaced.history.length shouldBe >= (1) 
-    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 25))
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, Some(25), Nil, Nil, Some(player1.bank)))
     betPlaced.players.filter(_.id == "Jeffrey").head.handsAndBets.map(_.bets("Jeffrey")).head should equal (25)
     mostRecentBet(player1, betPlaced) should equal (25)
   }
@@ -1328,7 +1328,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     val betPlaced = placeBet(game)
     Then("player should bet the table minimum of 25")
     betPlaced.history.length shouldBe >= (1) 
-    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 25))
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, Some(25), Nil, Nil, Some(player1.bank)))
     mostRecentBet(player1, betPlaced) should equal (25)
   }
 
@@ -1350,7 +1350,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     val betPlaced = placeBet(game)
     Then("player should bet the table minimum of 25")
     betPlaced.history.length shouldBe >= (1) 
-    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 25))
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, Some(25), Nil, Nil, Some(player1.bank)))
     mostRecentBet(player1, betPlaced) should equal (25)
   }
 
@@ -1369,7 +1369,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       oscarsGoalMultiplier = 1.25,
       oscarsGoal = (1.25 * 2000).toInt)
     val history: Seq[Action[BlackjackAction]] = Seq(
-      Action("Jeffrey", action = Bet, actionTokens = 25), 
+      Action("Jeffrey", action = Bet, actionTokens = Some(25)), 
       Action("Jeffrey", Lose), 
       Action("Jeffrey", Win))
     val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 200, history = history, currentPlayerIndex = Some(0))
@@ -1377,7 +1377,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     val betPlaced = placeBet(game)
     Then("player should have bet 50, twice his last bet of 25")
     betPlaced.history.length shouldBe >= (1) 
-    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 50))
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, Some(50), Nil, Nil, Some(player1.bank)))
     mostRecentBet(player1, betPlaced) should equal (50)
   }
 
@@ -1396,7 +1396,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       oscarsGoalMultiplier = 1.25,
       oscarsGoal = (1.25 * 2000).toInt)
     val history: Seq[Action[BlackjackAction]] = Seq(
-      Action("Jeffrey", action = Bet, actionTokens = 125), 
+      Action("Jeffrey", action = Bet, actionTokens = Some(125)), 
       Action("Jeffrey", Lose), 
       Action("Jeffrey", Win),
       Action("Jeffrey", Win))
@@ -1408,7 +1408,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     val betPlaced = placeBet(game)
     Then("player should have bet 200, the table's max, since doubling his last bet of 125 would have exceeded the table's max")
     betPlaced.history.length shouldBe >= (1) 
-    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, 200))
+    betPlaced.history.reverse.head should equal (Action("Jeffrey", Bet, Nil, Some(200), Nil, Nil, Some(player1.bank)))
     mostRecentBet(player1, betPlaced) should equal (200)
   }
 
@@ -1424,7 +1424,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       maxBet = None: Option[Int],
       bettingStrategy = Steady,
       completedHands = 25,
-      bankEvery25Hands = 1900)
+      bankedLastStrategyUpdate = 1900)
     val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 200, currentPlayerIndex = Some(0))
     When("checking whether player should increase their personal minimum bet")
     val alteredMinBet: BlackjackGameState = alterMinBet(player1, game)
@@ -1444,7 +1444,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       maxBet = None: Option[Int],
       bettingStrategy = Steady,
       completedHands = 25,
-      bankEvery25Hands = 1900)
+      bankedLastBettingAmountUpdate = 1900)
     val game = BlackjackGameState(dealerHand = Hand.empty, players = Nil, minimumBet = 25, maximumBet = 200)
     When("checking whether player should alter their minimum bet")
     Then("an illegal argument exception should be thrown")
@@ -1462,7 +1462,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       maxBet = None: Option[Int],
       bettingStrategy = Steady,
       completedHands = 24,
-      bankEvery25Hands = 1900)
+      bankedLastStrategyUpdate = 1900)
     val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 200, currentPlayerIndex = Some(0))
     When("checking whether player should increase their personal minimum bet")
     val alteredMinBet: BlackjackGameState = alterMinBet(player1, game)
@@ -1483,7 +1483,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       maxBet = None: Option[Int],
       bettingStrategy = Steady,
       completedHands = 25,
-      bankEvery25Hands = 1900)
+      bankedLastBettingAmountUpdate = 1900)
     val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 200, currentPlayerIndex = Some(0))
     When("checking whether player should increase their personal minimum bet")
     val alteredMinBet: BlackjackGameState = alterMinBet(player1, game)
@@ -1503,7 +1503,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       maxBet = None: Option[Int],
       bettingStrategy = Steady,
       completedHands = 75,
-      bankEvery25Hands = 3200)
+      bankedLastBettingAmountUpdate = 3200)
     val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 200, currentPlayerIndex = Some(0))
     When("checking whether player should decrease their personal minimum bet")
     val alteredMinBet: BlackjackGameState = alterMinBet(player1, game)
@@ -1523,7 +1523,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       maxBet = None: Option[Int],
       bettingStrategy = Steady,
       completedHands = 50,
-      bankEvery25Hands = 3200)
+      bankedLastBettingAmountUpdate = 3200)
     val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 200, currentPlayerIndex = Some(0))
     When("checking whether player should decrease their personal minimum bet")
     val alteredMinBet: BlackjackGameState = alterMinBet(player1, game)
@@ -1544,7 +1544,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       maxBet = None: Option[Int],
       bettingStrategy = Steady,
       completedHands = 250,
-      bankEvery250Hands = 1000)
+      bankedLastStrategyUpdate = 1000)
     pending // pending while we work through issues via console, this test would potentially change to reflect new adjustments
     val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 200, currentPlayerIndex = Some(0))
     When("checking whether player should change to a different betting strategy")
@@ -1565,7 +1565,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       maxBet = None: Option[Int],
       bettingStrategy = Steady,
       completedHands = 250,
-      bankEvery250Hands = 1000)
+      bankedLastStrategyUpdate = 1000)
     val game = BlackjackGameState(dealerHand = Hand.empty, players = Nil, minimumBet = 25, maximumBet = 200, currentPlayerIndex = Some(0))
     When("checking whether player should change to a different betting strategy")
     Then("an illegal exception should be thrown")
@@ -1582,7 +1582,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
       maxBet = None: Option[Int],
       bettingStrategy = Steady,
       completedHands = 250,
-      bankEvery250Hands = 1000)
+      bankedLastStrategyUpdate = 1000)
     val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 200, currentPlayerIndex = Some(0))
     When("checking whether player should change to a different betting strategy")
     val alteredStrategy: BlackjackGameState = alterBettingStrategy(player1, game) 

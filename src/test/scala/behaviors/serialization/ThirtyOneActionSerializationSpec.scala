@@ -29,7 +29,7 @@ class ThirtyOneActionSerializationSpec extends AnyFlatSpec {
           playerId="JMI",
           action=DrawFromStock, 
           actionCards=Seq(Card(Two, Spades)), 
-          actionTokens=0 ))
+          actionTokens=None ))
 
     val json: String = module.json(action)
     val result: Either[String, Seq[Action[ThirtyOneAction]]] = module.parse(json)
