@@ -19,9 +19,9 @@ trait BlackjackController {
   val betting: BETTING
   val play: PLAY
 
-  def purgeHistory(previous: BlackjackGameState, current: BlackjackGameState): Boolean = previous.round != current.round
+  private def purgeHistory(previous: BlackjackGameState, current: BlackjackGameState): Boolean = previous.round != current.round
 
-  def go(game: BlackjackGameState): BlackjackGameState = {
+  private def go(game: BlackjackGameState): BlackjackGameState = {
     if (game.deck.length == 0) {
       throw new IllegalStateException(
         s"Cannot proceed to next state because deck is empty")
@@ -72,20 +72,44 @@ trait BlackjackController {
     }
   }
 
-
-  // @tailrec
-  def next(game: BlackjackGameState, iterations: Int = 1): BlackjackGameState = {
-
-    def turns(game: BlackjackGameState, numberOfTurns: Int): BlackjackGameState = {
+  def next(game: BlackjackGameState, iterations: Int): BlackjackGameState = {
+    val f = (a: Action[BlackjackAction]) => ""
+    next(game, iterations, f) 
+  }
+  
+  def next(game: BlackjackGameState): BlackjackGameState = {
+    val f = (a: Action[BlackjackAction]) => ""
+    next(game, 1, f) 
+  }
+  
+  // serialize is an optional function which converts a blackjack action to text
+  def next(game: BlackjackGameState, iterations: Int = 1, serialize: Action[BlackjackAction] => String): BlackjackGameState = {
+    def turns(game: BlackjackGameState, iterations: Int): BlackjackGameState = {
+      def turn(game: BlackjackGameState, serialize: Action[BlackjackAction] => String): BlackjackGameState = {
+        val next = go(game)
+        purgeHistory(game, next) match {
+          case false => next
+          case true => {
+            for (a <- next.history) {
+              val printed: String = serialize(a)
+              if (printed != "") {
+                println(printed)
+              }
+            }
+            next.copy(history = Nil)
+          }
+        }
+      } 
       var state = game 
       try {
         for (i <- (0 to iterations)) {
-          state = go(state)
+          state = turn(state, serialize)
         }
+        state
       } catch {
         case _: IllegalStateException => {
           for (i <- (0 to iterations)) {
-            state = go(state)
+            state = turn(state, serialize)
           }
         }
       }
@@ -93,7 +117,7 @@ trait BlackjackController {
     }
     turns(game, iterations)
   }
-  
+
   def init(playerNames: Seq[String], tokens: Int, strategy: BlackjackBettingStrategy, deckCount: Int): BlackjackGameState = {
     val players: Seq[BlackjackPlayerState] = for (player <- playerNames) yield BlackjackPlayerState(s"$player", tokens, bettingStrategy = strategy)
     BlackjackGameState(players = players, minimumBet = (.025 * tokens).toInt)
