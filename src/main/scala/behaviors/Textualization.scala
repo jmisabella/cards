@@ -39,14 +39,8 @@ trait Textualization {
 
   def words(cards: Seq[Card]): String = cards.map(words(_)).mkString("[", ", ", "]")
 
-  def words[A <: Enumeration#Value](action: Action[A], letterSVerbSuffix: Boolean = true): String = {
-    // val actionSentencePrefix: String = s"${action.playerId} ${words(action.action, letterSVerbSuffix)}".replace(" iss ", " is ")
-
-    // val actionSentencePrefix: String = (action.beforeCards match {
-    //   case Nil => s"${action.playerId} ${words(action.action, letterSVerbSuffix)}"
-    //   case cs => s", ${words(action.action, letterSVerbSuffix)}"
-    // }).replace(" iss ", " is ")
-    
+  def words[A <: Enumeration#Value](action: Action[A]): String = words(action, true)
+  def words[A <: Enumeration#Value](action: Action[A], letterSVerbSuffix: Boolean): String = {
     val actionSentencePrefix: String = ((action.beforeCards, action.beforeTokens) match {
       case (Nil, None) => s"${action.playerId} ${words(action.action, letterSVerbSuffix)}"
       case (_, Some(n)) => s", ${words(action.action, letterSVerbSuffix)}"
@@ -60,20 +54,12 @@ trait Textualization {
       // case (cs, n) => actionSentencePrefix + s" ${words(cs)}, $n"
       case (cs, Some(n)) => actionSentencePrefix + s" ${words(cs)} $n" // jmi
     }
-    // val preSentence: String = action.beforeCards match {
-    //   case Nil => ""
-    //   case cs => action.playerId + s", starting with ${words(action.beforeCards)}"
-    // }
     val preSentence: String = (action.beforeCards, action.beforeTokens) match {
       case (Nil, None) => ""
       case (Nil, Some(n)) => action.playerId + s", starting with $n"
       case (cs, None) => action.playerId + s", starting with ${words(cs)}"
       case (cs, Some(n)) => action.playerId + s", starting with ${words(cs)} and $n"
     }
-    // val postSentence: String = action.afterCards match {
-    //   case Nil => ""
-    //   case cs => s", ending with ${words(action.afterCards.head)}"
-    // }
     val postSentence: String = (action.afterCards, action.afterTokens) match {
       case (Nil, None) => ""
       case (Nil, Some(n)) => s", ending with $n"
@@ -82,5 +68,4 @@ trait Textualization {
     }
     preSentence + actionSentence + postSentence 
   }
-
 }
