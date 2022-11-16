@@ -72,15 +72,11 @@ trait BlackjackController {
     }
   }
 
-  def next(game: BlackjackGameState, iterations: Int): BlackjackGameState = {
-    val f = (a: Action[BlackjackAction]) => ""
-    next(game, iterations, f) 
-  }
+  private val doNothing = (a: Action[BlackjackAction]) => "" 
+
+  def next(game: BlackjackGameState, iterations: Int): BlackjackGameState = next(game, iterations, doNothing) 
   
-  def next(game: BlackjackGameState): BlackjackGameState = {
-    val f = (a: Action[BlackjackAction]) => ""
-    next(game, 1, f) 
-  }
+  def next(game: BlackjackGameState): BlackjackGameState = next(game, 1, doNothing)
   
   // serialize is an optional function which converts a blackjack action to text
   def next(game: BlackjackGameState, iterations: Int = 1, serialize: Action[BlackjackAction] => String): BlackjackGameState = {
@@ -93,23 +89,24 @@ trait BlackjackController {
             for (a <- next.history) {
               val printed: String = serialize(a)
               if (printed != "") {
+                // print history before purging it
                 println(printed)
               }
             }
+            // purge history
             next.copy(history = Nil)
           }
         }
       } 
-      var state = game 
-      try {
-        for (i <- (0 to iterations)) {
+      var state = game
+      for (i <- (0 to iterations)) {
+        try {
           state = turn(state, serialize)
-        }
-        state
-      } catch {
-        case _: IllegalStateException => {
-          for (i <- (0 to iterations)) {
+        } catch {
+          case _: IllegalStateException => try {
             state = turn(state, serialize)
+          } catch { 
+            case _: IllegalStateException => state = turn(state, serialize)
           }
         }
       }
