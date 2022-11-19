@@ -80,7 +80,6 @@ trait BlackjackBetting {
       return game.copy(currentPlayerIndex = Some(0))
     }
     if (game.currentPlayer().bank < game.minimumBet) {
-      // TODO: test
       // player doesn't have sufficient funds, should leave the game and this should be captured in game's history
       val newHistory: Seq[Action[BlackjackAction]] = Seq(Action(game.currentPlayer().id, LeaveTable))
       val updatedPlayerIndex: Option[Int] = game.currentPlayerIndex match {

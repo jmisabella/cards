@@ -249,9 +249,6 @@ class BlackjackControllerSpec extends AnyFlatSpec with GivenWhenThen {
     settledBets.players.head.bank should equal (21) 
   }
 
-  // TODO: need to build logic so player will bet at a certain amount, and double bet after losing, and go back to original bet after winning
-  // ......this will involve looking back in player's history
-
   it should "stand on a 3 card hand whose value is 20" in {
     
     pending

@@ -10,7 +10,6 @@ case class Action[A <: Enumeration#Value](
   playerId: String, 
   action: A, 
   actionCards: Seq[Card] = Nil, 
-  // actionTokens: Int = 0, 
   actionTokens: Option[Int] = None, 
   beforeCards: Seq[Card] = Nil, 
   afterCards: Seq[Seq[Card]] = Nil,

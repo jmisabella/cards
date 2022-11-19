@@ -162,7 +162,6 @@ trait BlackjackPlay {
       history = game.history ++ newHistory, 
       dealerHand = game.dealerHand.copy(hand = newDealerCards))
 
-    // TODO: test
     // if dealer's 21 or busted or is Standing, then game is over and bets should be settled
     val gameOver: Boolean = eval(newDealerCards) >= 21 || action == Stand || nextState.history.reverse.head.action == ShowCards
     gameOver match {

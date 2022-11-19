@@ -732,7 +732,6 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
     isTimeForDealerToPlay(game) shouldBe (true)
   }
 
-  // TODO: this sometimes but doesn't always fail, action is ShowCards and not Hit sommetimes
   it should "know it's time for dealer to play when 2 players have played (one busts, another Stands)" in {
     Given("a game with 2 players, one who busts and another who Stands, and a dealer with 2 cards")
     val player1 = BlackjackPlayerState(

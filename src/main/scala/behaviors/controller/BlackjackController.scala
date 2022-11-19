@@ -44,7 +44,6 @@ trait BlackjackController {
     }
     val shuffleLimit: Int = (game.players.flatMap(_.hands).length + 1) * 5
     if (betting.isTimeToSettle(game)) {
-      // IMPORTANT: // TODO: after bets are settled, how do we get from history showing Wins, Losses, Ties back to an empty history ?????
       // println("SETTLING")
       return betting.settleBets(game)
     }
@@ -52,7 +51,7 @@ trait BlackjackController {
       // println("BETTING")
       val adjustedStrategy: BlackjackGameState = betting.alterBettingStrategy(game.currentPlayer(), game) 
       val adjustedBetting: BlackjackGameState = betting.alterMinBet(adjustedStrategy.currentPlayer(), adjustedStrategy)
-      return betting.placeBet(adjustedBetting) // TODO: test
+      return betting.placeBet(adjustedBetting)
     }
     if (play.isTimeForDealerToPlay(game)) {
       // IMPORTANT: // TODO: when a player splits with more than one hand, isTimeToSettle is never true, so dealer continues playing infinitly
@@ -77,7 +76,8 @@ trait BlackjackController {
   def next(game: BlackjackGameState, iterations: Int): BlackjackGameState = next(game, iterations, doNothing) 
   
   def next(game: BlackjackGameState): BlackjackGameState = next(game, 1, doNothing)
-  
+
+  // TODO: test  
   // serialize is an optional function which converts a blackjack action to text
   def next(game: BlackjackGameState, iterations: Int = 1, serialize: Action[BlackjackAction] => String): BlackjackGameState = {
     def turns(game: BlackjackGameState, iterations: Int): BlackjackGameState = {
