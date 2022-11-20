@@ -69,12 +69,6 @@ trait BlackjackController extends Controller[BlackjackPlayerState, BlackjackActi
     }
   }
 
-  // private val doNothing = (a: Action[BlackjackAction]) => "" 
-
-  // def next(game: BlackjackGameState, iterations: Int): BlackjackGameState = next(game, iterations, doNothing) 
-  
-  // def next(game: BlackjackGameState): BlackjackGameState = next(game, 1, doNothing)
-
   // serialize is an optional function which converts a blackjack action to text
   override def next(game: BlackjackGameState, iterations: Int = 1, serialize: Action[BlackjackAction] => String): BlackjackGameState = {
     def turns(game: BlackjackGameState, iterations: Int): BlackjackGameState = {

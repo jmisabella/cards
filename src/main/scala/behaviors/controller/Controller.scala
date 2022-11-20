@@ -3,17 +3,20 @@ package cards.behaviors.controller
 import cards.classes.state.{ PlayerState, GameState }
 import cards.classes.actions.Action
 
-trait Controller[A <: PlayerState, B <: Enumeration#Value, C <: GameState[A, B]] {
+// P is concrete PlayerState
+// A is concrete Action enumeration
+// S is concrete GameState
+trait Controller[P <: PlayerState, A <: Enumeration#Value, S <: GameState[P, A]] {
   
-  private val doNothing = (a: Action[B]) => "" 
+  private val doNothing = (a: Action[A]) => "" 
 
-  def purgeHistory(previous: C, current: C): Boolean = previous.round != current.round
+  def purgeHistory(previous: S, current: S): Boolean = previous.round != current.round
   
-  def next(game: C, iterations: Int): C = next(game, iterations, doNothing) 
+  def next(game: S, iterations: Int): S = next(game, iterations, doNothing) 
   
-  def next(game: C): C = next(game, 1, doNothing)
+  def next(game: S): S = next(game, 1, doNothing)
 
   // serialize is an optional function which converts a game action to text
-  def next(game: C, iterations: Int = 1, serialize: Action[B] => String): C
+  def next(game: S, iterations: Int = 1, serialize: Action[A] => String): S
 
 }
