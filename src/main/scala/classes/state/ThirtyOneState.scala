@@ -22,7 +22,8 @@ case class ThirtyOneGameState(
   discardPile: Seq[Card] = Nil,
   pot: Int = 0,
   knockedPlayerId: Option[String] = None,
-  winningPlayerId: Option[String] = None) extends GameState[ThirtyOnePlayerState, ThirtyOneAction] {
+  winningPlayerId: Option[String] = None,
+  round: Int = 1) extends GameState[ThirtyOnePlayerState, ThirtyOneAction] {
 
     require(players.length <= 7, s"Cannot have more than 7 players in the game of Thirty-One. There are currently [${players.length}] players")
 

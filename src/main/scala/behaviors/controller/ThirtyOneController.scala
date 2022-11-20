@@ -7,7 +7,7 @@ import cards.classes.actions.{ Action, ThirtyOneAction }
 import cards.classes.actions.ThirtyOneAction._
 
 // Game play follows West Lansing Cut Throat rules
-trait ThirtyOneController { 
+trait ThirtyOneController extends Controller[ThirtyOnePlayerState, ThirtyOneAction, ThirtyOneGameState] { 
   type EVAL <: ThirtyOneHandEvaluation 
   val evaluation: EVAL
 
@@ -31,7 +31,51 @@ trait ThirtyOneController {
     h.length > 1 && (Seq(h.reverse.head).map(_.actionCards.head.suit) ++ Seq(lastDiscard.suit)).distinct.length == 1
   }
 
-  def next(gameState: ThirtyOneGameState): ThirtyOneGameState = {
+  //////////////////////////////
+  override def next(game: ThirtyOneGameState, iterations: Int = 1, serialize: Action[ThirtyOneAction] => String): ThirtyOneGameState = {
+    def turns(game: ThirtyOneGameState, iterations: Int): ThirtyOneGameState = {
+      def turn(game: ThirtyOneGameState, serialize: Action[ThirtyOneAction] => String): ThirtyOneGameState = {
+        val next = go(game)
+
+        purgeHistory(game, next) match {
+          case false => next
+          case true => {
+            for (a <- next.history) {
+              val printed: String = serialize(a)
+              if (printed != "") {
+                // print history before purging it
+                println(printed)
+              }
+            }
+            // purge history
+            next.copy(history = Nil)
+          }
+        }
+      } 
+      var state = game
+      for (i <- (0 to iterations)) {
+        try {
+          state = turn(state, serialize)
+        } catch {
+          case _: IllegalStateException => try {
+            state = turn(state, serialize)
+          } catch { 
+            case _: IllegalStateException => state = turn(state, serialize)
+          }
+        }
+      }
+      state
+    }
+    turns(game, iterations)
+  }
+
+  //////////////////////////////
+
+  override def next(gameState: ThirtyOneGameState): ThirtyOneGameState = {
+    go(gameState)
+  }
+
+  private def go(gameState: ThirtyOneGameState): ThirtyOneGameState = {
     if (gameState.deck.length == 0) {
       throw new IllegalStateException(
         s"Cannot get next because deck is empty")
@@ -59,7 +103,8 @@ trait ThirtyOneController {
         history = gameState.history ++ paymentHistory ++ lostPlayerHistory, 
         players = updatedPlayers.filter(p => !removedPlayers.contains(p.id)),
         knockedPlayerId = None,
-        winningPlayerId = None)
+        winningPlayerId = None,
+        round = gameState.round + 1)
     }
     val currentPlayer: ThirtyOnePlayerState = gameState.currentPlayer()
     val completed: Boolean = gameState.knockedPlayerId.getOrElse("") == currentPlayer.id || gameState.players.count(p => evaluation.eval(p.hand) == 32) > 0
@@ -187,5 +232,16 @@ trait ThirtyOneController {
       deck = updatedDeck,
       discardPile = Seq(discardedCard) ++ gameState.discardPile)
   }
+
+  def init(playerNames: Seq[String], tokens: Int): ThirtyOneGameState = {
+    val players: Seq[ThirtyOnePlayerState] = for (player <- playerNames) yield ThirtyOnePlayerState(s"$player", tokens)
+    ThirtyOneGameState(players = players) // TODO: need to properly init state with discard pile having 3 cards (see unit tests)
+  }
+
+  def init(playerCount: Int = 1, tokens: Int = 2000): ThirtyOneGameState = {
+    val players: Seq[String] = for (i <- 0 to playerCount) yield s"player${i+1}"
+    init(players, tokens)
+  }
+
 
 }

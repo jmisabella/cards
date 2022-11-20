@@ -13,13 +13,11 @@ import cards.classes.actions.{ Action, BlackjackAction }
 import cards.classes.actions.BlackjackAction._
 import scala.annotation.tailrec
 
-trait BlackjackController { 
+trait BlackjackController extends Controller[BlackjackPlayerState, BlackjackAction, BlackjackGameState] { 
   type BETTING <: BlackjackBetting
   type PLAY <: BlackjackPlay
   val betting: BETTING
   val play: PLAY
-
-  private def purgeHistory(previous: BlackjackGameState, current: BlackjackGameState): Boolean = previous.round != current.round
 
   private def go(game: BlackjackGameState): BlackjackGameState = {
     if (game.deck.length == 0) {
@@ -71,15 +69,14 @@ trait BlackjackController {
     }
   }
 
-  private val doNothing = (a: Action[BlackjackAction]) => "" 
+  // private val doNothing = (a: Action[BlackjackAction]) => "" 
 
-  def next(game: BlackjackGameState, iterations: Int): BlackjackGameState = next(game, iterations, doNothing) 
+  // def next(game: BlackjackGameState, iterations: Int): BlackjackGameState = next(game, iterations, doNothing) 
   
-  def next(game: BlackjackGameState): BlackjackGameState = next(game, 1, doNothing)
+  // def next(game: BlackjackGameState): BlackjackGameState = next(game, 1, doNothing)
 
-  // TODO: test  
   // serialize is an optional function which converts a blackjack action to text
-  def next(game: BlackjackGameState, iterations: Int = 1, serialize: Action[BlackjackAction] => String): BlackjackGameState = {
+  override def next(game: BlackjackGameState, iterations: Int = 1, serialize: Action[BlackjackAction] => String): BlackjackGameState = {
     def turns(game: BlackjackGameState, iterations: Int): BlackjackGameState = {
       def turn(game: BlackjackGameState, serialize: Action[BlackjackAction] => String): BlackjackGameState = {
         val next = go(game)
