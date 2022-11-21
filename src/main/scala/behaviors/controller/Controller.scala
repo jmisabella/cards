@@ -4,13 +4,13 @@ import cards.classes.state.{ PlayerState, GameState }
 import cards.classes.actions.Action
 
 // P is concrete PlayerState
-// A is concrete Action enumeration
+// A is concrete Action enumeration value
 // S is concrete GameState
 trait Controller[P <: PlayerState, A <: Enumeration#Value, S <: GameState[P, A]] {
   
   private val doNothing = (a: Action[A]) => "" 
 
-  def purgeHistory(previous: S, current: S): Boolean = previous.round != current.round
+  protected def purgeHistory(previous: S, current: S): Boolean = previous.round != current.round
   
   def next(game: S, iterations: Int): S = next(game, iterations, doNothing) 
   

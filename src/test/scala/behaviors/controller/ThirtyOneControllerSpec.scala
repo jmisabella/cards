@@ -40,26 +40,6 @@ class ThirtyOneControllerSpec extends AnyFlatSpec with GivenWhenThen {
     an [IllegalStateException] should be thrownBy module.next(state)
   }
 
-  it should "throw illegal state exception when calling next() from game state which has an empty discard pile" in {
-    val hands = Seq(
-      Seq(Card(Two, Clubs), Card(Three, Clubs), Card(Four, Clubs)), 
-      Seq(Card(Five, Hearts), Card(Six, Hearts), Card(Seven, Hearts)), 
-      Seq(Card(Eight, Spades), Card(Nine, Spades), Card(Ten, Spades)))
-    val players = Seq(ThirtyOnePlayerState("player1", 3, hands(0)), ThirtyOnePlayerState("player2", 3, hands(1)), ThirtyOnePlayerState("player3", 3, hands(2))) 
-    val state = ThirtyOneGameState(players = players, currentPlayerIndex = Some(0), discardPile = Nil) 
-    an [IllegalStateException] should be thrownBy module.next(state)
-  }
-
-  it should "throw illegal state exception when calling next() from game state which already has a declared winner" in {
-    val hands = Seq(
-      Seq(Card(Two, Clubs), Card(Three, Clubs), Card(Four, Clubs)), 
-      Seq(Card(Five, Hearts), Card(Six, Hearts), Card(Seven, Hearts)), 
-      Seq(Card(Eight, Spades), Card(Nine, Spades), Card(Ten, Spades)))
-    val players = Seq(ThirtyOnePlayerState("player1", 3, hands(0)), ThirtyOnePlayerState("player2", 3, hands(1)), ThirtyOnePlayerState("player3", 3, hands(2))) 
-    val state = ThirtyOneGameState(players = players, currentPlayerIndex = Some(0), winningPlayerId = Some(players.reverse.head.id))
-    an [IllegalStateException] should be thrownBy module.next(state)
-  }
-
   it should "declare a winner who is not the current player has 31" in {
     val hands = Seq(
       Seq(Card(Two, Clubs), Card(Three, Clubs), Card(Four, Clubs)), 
