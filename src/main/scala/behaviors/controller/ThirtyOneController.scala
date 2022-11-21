@@ -136,11 +136,14 @@ trait ThirtyOneController extends Controller[ThirtyOnePlayerState, ThirtyOneActi
       val updatedPlayers: Seq[ThirtyOnePlayerState] = gameState.updatedTokens(loserDebts)
       val removedPlayers: Seq[String] = updatedPlayers.filter(p => p.tokens <= 0).map(_.id)
       val lostPlayerHistory: Seq[Action[ThirtyOneAction]] = removedPlayers.map(p => Action(p, Out))
+      val returnedCards: Seq[Card] = gameState.players.flatMap(_.hand) 
       return gameState.copy(
         history = gameState.history ++ paymentHistory ++ lostPlayerHistory, 
-        players = updatedPlayers.filter(p => !removedPlayers.contains(p.id)),
+        players = updatedPlayers.filter(p => !removedPlayers.contains(p.id)).map(p => p.copy(hand = Nil, suspectedCards = Nil, suspectedSuitChange = false)),
         knockedPlayerId = None,
         winningPlayerId = None,
+        discardPile = Nil,
+        deck = gameState.deck.copy(cards = gameState.deck.cards ++ returnedCards ++ gameState.discardPile),
         round = gameState.round + 1)
     }
     val currentPlayer: ThirtyOnePlayerState = gameState.currentPlayer()
@@ -263,8 +266,8 @@ trait ThirtyOneController extends Controller[ThirtyOnePlayerState, ThirtyOneActi
     //   case cs => drawCardPermutationsAndScores.filter(_._1.intersect(discardsToAvoid).nonEmpty)
     // }
     val drawHand: Seq[Card] = safePermutationsAndScores.length match {
-      // case 0 => Nil // currentHand ++ drawnCard
-      case 0 => drawnCard
+      // case 0 => Nil // currentHand ++ drawnCard // ???
+      case 0 => drawnCard // ???
       case _ => safePermutationsAndScores.maxBy(_._2)._1
     }
     val drawHandScore: Int = evaluation.eval(drawHand)
