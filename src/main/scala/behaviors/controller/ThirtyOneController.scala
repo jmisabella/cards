@@ -273,7 +273,6 @@ trait ThirtyOneController extends Controller[ThirtyOnePlayerState, ThirtyOneActi
     val drawHandScore: Int = evaluation.eval(drawHand)
     val discardedCard: Card = (currentHand ++ drawnCard).diff(drawHand).head
     println("PLAYER DRAWS FROM STOCK DECK")
-    println("DRAW HAND: " + drawHand.mkString(", "))
     return gameState.copy(
       currentPlayerIndex = Some(gameState.nextPlayerIndex()),
       history = gameState.history ++ 
