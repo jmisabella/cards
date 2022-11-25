@@ -46,6 +46,9 @@ case object BlackjackText extends BlackjackController with Textualization {
 case object ThirtyOneText extends ThirtyOneController with Textualization {
   override type EVAL = ThirtyOneHandEvaluation
   override val evaluation = _thirtyoneEval
-}
 
+  private val f: Action[ThirtyOneAction] => String = words (_: Action[ThirtyOneAction])
+  override def next(game: ThirtyOneGameState, iterations: Int): ThirtyOneGameState = super.next(game, iterations, f) 
+  override def next(game: ThirtyOneGameState): ThirtyOneGameState = super.next(game, 1, f) 
+}
 

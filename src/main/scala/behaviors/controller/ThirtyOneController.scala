@@ -3,6 +3,8 @@ package cards.behaviors.controller
 import cards.behaviors.evaluation.ThirtyOneHandEvaluation
 import cards.classes.state.{ ThirtyOnePlayerState, ThirtyOneGameState }
 import cards.classes.{ Card, Deck }
+import cards.classes.Rank._
+import cards.classes.Suit._
 import cards.classes.actions.{ Action, ThirtyOneAction }
 import cards.classes.actions.ThirtyOneAction._
 
@@ -10,6 +12,8 @@ import cards.classes.actions.ThirtyOneAction._
 trait ThirtyOneController extends Controller[ThirtyOnePlayerState, ThirtyOneAction, ThirtyOneGameState] { 
   type EVAL <: ThirtyOneHandEvaluation 
   val evaluation: EVAL
+
+  private def facedown(cards: Seq[Card]): Seq[Card] = cards.map(_ => Card(FaceDown, Unknown))
 
   private def highestHand(cs1: Seq[Card], cs2: Seq[Card]): Seq[Card] = evaluation.preference(cs1, cs2) match {
     case None => throw new IllegalStateException(s"No rules defined for when hands perfectly match in ranks with suit groupings: hand 1 [${cs1.sorted}] hand 2 [${cs2.sorted}]")
@@ -32,6 +36,7 @@ trait ThirtyOneController extends Controller[ThirtyOnePlayerState, ThirtyOneActi
   }
 
   //////////////////////////////
+
   override def next(game: ThirtyOneGameState, iterations: Int = 1, serialize: Action[ThirtyOneAction] => String): ThirtyOneGameState = {
     def turns(game: ThirtyOneGameState, iterations: Int): ThirtyOneGameState = {
       def turn(game: ThirtyOneGameState, serialize: Action[ThirtyOneAction] => String): ThirtyOneGameState = {
@@ -90,7 +95,8 @@ trait ThirtyOneController extends Controller[ThirtyOnePlayerState, ThirtyOneActi
       //   s"Cannot get next because discard pile is empty")
       // no cards yet in discard pile, so  deal 3
       val (discardPile, deck): (Seq[Card], Deck) = gameState.deck.deal(3)
-      return gameState.copy(discardPile = discardPile, deck = deck, currentPlayerIndex = Some(0)) // ???
+      val history: Seq[Action[ThirtyOneAction]] = Seq(Action("Discard pile", IsDealt, Seq(discardPile.head)))
+      return gameState.copy(discardPile = discardPile, deck = deck, currentPlayerIndex = Some(0), history = history)
     }
     if (gameState.discardPile.length >= (52 - gameState.players.length - 3)) {
       println("SHUFFLING")
@@ -104,7 +110,6 @@ trait ThirtyOneController extends Controller[ThirtyOnePlayerState, ThirtyOneActi
         history = gameState.history ++ history)
     }
 
-
     if (gameState.players.count(p => p.hand.length == 0) == gameState.players.length) {
       println("NOT ALL PLAYERS HAVE 3 CARDS: DEALING... ")
       // if players have no cards then deal cards
@@ -113,9 +118,14 @@ trait ThirtyOneController extends Controller[ThirtyOnePlayerState, ThirtyOneActi
       val players: Seq[ThirtyOnePlayerState] = gameState.players.map { p =>
         val (dealt, updatedDeck): (Seq[Card], Deck) = deck.deal(3 - p.hand.length)
         deck = updatedDeck
-        history = history ++ Seq(Action(p.id, IsDealt, dealt))
+        val actionCards: Seq[Card] = gameState.debug match {
+          case true => dealt // if in debug mode, then show cards
+          case false => facedown(dealt) // hide cards
+        }
+        history = history ++ Seq(Action(p.id, IsDealt, actionCards))
         p.copy(hand = p.hand ++ dealt)
       }
+      history = history ++ Seq(Action("Discard pile", IsDealt, Seq(gameState.discardPile.head)))
       return gameState.copy(deck = deck, history = gameState.history ++ history, players = players)
     }
 
@@ -135,10 +145,12 @@ trait ThirtyOneController extends Controller[ThirtyOnePlayerState, ThirtyOneActi
       val paymentHistory: Seq[Action[ThirtyOneAction]] = (for ((player, debt) <- loserDebts) yield Action(player, Pay, Nil, actionTokens = Some(debt))).toSeq
       val updatedPlayers: Seq[ThirtyOnePlayerState] = gameState.updatedTokens(loserDebts)
       val removedPlayers: Seq[String] = updatedPlayers.filter(p => p.tokens <= 0).map(_.id)
-      val lostPlayerHistory: Seq[Action[ThirtyOneAction]] = removedPlayers.map(p => Action(p, Out))
+      val lostPlayerHistory: Seq[Action[ThirtyOneAction]] = removedPlayers.map(p => Action(p, LeaveTable))
+      val showCardsHistory: Seq[Action[ThirtyOneAction]] = gameState.players.map(p => Action(p.id, Show, p.hand))
       val returnedCards: Seq[Card] = gameState.players.flatMap(_.hand) 
       return gameState.copy(
-        history = gameState.history ++ paymentHistory ++ lostPlayerHistory, 
+        // history = gameState.history ++ paymentHistory ++ lostPlayerHistory // ++ showCardsHistory, 
+        history = gameState.history ++ paymentHistory ++ lostPlayerHistory ++ showCardsHistory, 
         players = updatedPlayers.filter(p => !removedPlayers.contains(p.id)).map(p => p.copy(hand = Nil, suspectedCards = Nil, suspectedSuitChange = false)),
         knockedPlayerId = None,
         winningPlayerId = None,
@@ -175,7 +187,9 @@ trait ThirtyOneController extends Controller[ThirtyOnePlayerState, ThirtyOneActi
         winningPlayerId = Some(currentPlayer.id),
         currentPlayerIndex = Some(gameState.nextPlayerIndex()),
         history = gameState.history ++ 
-          Seq(Action(currentPlayer.id, DrawFromDiscard, Seq(gameState.discardPile.head)), Action(currentPlayer.id, Discard, Seq(drawDiscardPileDiscardedCard))), 
+          Seq(
+            Action(currentPlayer.id, DrawFromDiscard, Seq(gameState.discardPile.head)), 
+            Action(currentPlayer.id, Discard, Seq(drawDiscardPileDiscardedCard))), 
         players = gameState.updatedHandAndSuspectedCards(
           updatedHand = drawDiscardPileHand, 
           discarded = Seq(drawDiscardPileDiscardedCard),
@@ -193,7 +207,9 @@ trait ThirtyOneController extends Controller[ThirtyOnePlayerState, ThirtyOneActi
       return gameState.copy(
         currentPlayerIndex = Some(gameState.nextPlayerIndex()),
         history = gameState.history ++ 
-          Seq(Action(currentPlayer.id, DrawFromDiscard, Seq(gameState.discardPile.head)), Action(currentPlayer.id, Discard, Seq(drawDiscardPileDiscardedCard))), 
+          Seq(
+            Action(currentPlayer.id, DrawFromDiscard, Seq(gameState.discardPile.head)), 
+            Action(currentPlayer.id, Discard, Seq(drawDiscardPileDiscardedCard))), 
         players = gameState.updatedHandAndSuspectedCards(
           updatedHand = drawDiscardPileHand, 
           discarded = Seq(drawDiscardPileDiscardedCard), 
@@ -273,10 +289,14 @@ trait ThirtyOneController extends Controller[ThirtyOnePlayerState, ThirtyOneActi
     val drawHandScore: Int = evaluation.eval(drawHand)
     val discardedCard: Card = (currentHand ++ drawnCard).diff(drawHand).head
     println("PLAYER DRAWS FROM STOCK DECK")
+    val drawActionCards: Seq[Card] = gameState.debug match {
+      case true => drawnCard // show all cards for debug mode
+      case false => Nil // don't display anything by default when player draws from stock
+    }
     return gameState.copy(
       currentPlayerIndex = Some(gameState.nextPlayerIndex()),
       history = gameState.history ++ 
-        Seq(Action(currentPlayer.id, DrawFromStock, drawnCard), Action(currentPlayer.id, Discard, Seq(discardedCard))), 
+        Seq(Action(currentPlayer.id, DrawFromStock, drawActionCards), Action(currentPlayer.id, Discard, Seq(discardedCard))), 
       players = gameState.updatedHandAndSuspectedCards(
         updatedHand = drawHand, 
         suspectedSuitChange = suspectedSuitChange(currentPlayer.id, discardedCard, gameState),
@@ -285,14 +305,14 @@ trait ThirtyOneController extends Controller[ThirtyOnePlayerState, ThirtyOneActi
       discardPile = Seq(discardedCard) ++ gameState.discardPile)
   }
 
-  def init(playerNames: Seq[String], tokens: Int): ThirtyOneGameState = {
-    val players: Seq[ThirtyOnePlayerState] = for (player <- playerNames) yield ThirtyOnePlayerState(s"$player", tokens)
-    ThirtyOneGameState(players = players) // TODO: need to properly init state with discard pile having 3 cards (see unit tests)
+  def init(playerNames: Seq[String]): ThirtyOneGameState = {
+    val players: Seq[ThirtyOnePlayerState] = for (player <- playerNames) yield ThirtyOnePlayerState(s"$player", 4)
+    ThirtyOneGameState(players = players)
   }
 
-  def init(playerCount: Int = 1, tokens: Int = 2000): ThirtyOneGameState = {
+  def init(playerCount: Int = 1): ThirtyOneGameState = {
     val players: Seq[String] = for (i <- 0 to playerCount) yield s"player${i+1}"
-    init(players, tokens)
+    init(players)
   }
 
 

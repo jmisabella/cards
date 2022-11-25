@@ -7,7 +7,8 @@ import cards.classes.actions.Action
 // A is concrete Action enumeration value
 // S is concrete GameState
 trait Controller[P <: PlayerState, A <: Enumeration#Value, S <: GameState[P, A]] {
-  
+
+  // by default, don't print anything; subclasses should override next(S, Int) and next(S) to specify a different function
   private val doNothing = (a: Action[A]) => "" 
 
   protected def purgeHistory(previous: S, current: S): Boolean = previous.round != current.round
