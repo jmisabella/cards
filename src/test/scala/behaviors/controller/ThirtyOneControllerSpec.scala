@@ -426,13 +426,12 @@ and next's potential score is less than current player's score""" in {
     initialState.knockedPlayerId shouldBe defined // somebody's knocked in this scenario
     
     When("calling next on the state")
-    val paymentSettled = module.next(initialState)
-    
+    var paymentSettled = module.next(initialState)
+    paymentSettled = module.next(paymentSettled) // takes 2 turns to complete
     Then("the winner and knocked flags would both be disabled and the lowest player would have pay 1 token")
-    // TODO: fix
-    // paymentSettled.history.filter(a => a.action != Show && a.action != Win).reverse.head should equal (Action("player2", Pay, Nil, Some(1))) 
-    // paymentSettled.players.filter(_.id == "player2").head.tokens should equal (2) 
-    // paymentSettled.winningPlayerId shouldBe empty
+    paymentSettled.history.filter(a => a.action != Show && a.action != Win).reverse.head should equal (Action("player2", Pay, Nil, Some(1))) 
+    paymentSettled.players.filter(_.id == "player2").head.tokens should equal (2) 
+    paymentSettled.winningPlayerId shouldBe empty
   }
 
 
