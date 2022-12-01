@@ -42,27 +42,21 @@ trait BlackjackController extends Controller[BlackjackPlayerState, BlackjackActi
     }
     val shuffleLimit: Int = (game.players.flatMap(_.hands).length + 1) * 5
     if (betting.isTimeToSettle(game)) {
-      // println("SETTLING")
       return betting.settleBets(game)
     }
     if (betting.isTimeToPlaceNewBets(game)) {
-      // println("BETTING")
       val adjustedStrategy: BlackjackGameState = betting.alterBettingStrategy(game.currentPlayer(), game) 
       val adjustedBetting: BlackjackGameState = betting.alterMinBet(adjustedStrategy.currentPlayer(), adjustedStrategy)
       return betting.placeBet(adjustedBetting)
     }
     if (play.isTimeForDealerToPlay(game)) {
-      // IMPORTANT: // TODO: when a player splits with more than one hand, isTimeToSettle is never true, so dealer continues playing infinitly
-      // println("DEALER PLAYING")
+      // THIS HASN'T HAPPENED SINCE, SHOULD TEST THIS: IMPORTANT: TODO: when a player splits with more than one hand, isTimeToSettle is never true, so dealer continues playing infinitly
       return play.dealerPlay(game)
     } else if (play.isTimeToDeal(game) && game.deck.cards.length >= shuffleLimit) {
-      // println("DEALING")
       return play.deal(game)
     } else if (play.isTimeToDeal(game) && game.deck.cards.length < shuffleLimit) {
-      // println(s"SHUFFLING: length [${game.deck.cards.length}], shuffle limit [$shuffleLimit]")
       return game.copy(deck = Deck(Seq(Card(LeftBower, Joker), Card(RightBower, Joker)), 1), history = game.history ++ Seq(Action("Dealer", Shuffle)))
     } else if (play.isTimeToPlay(game)) {
-      // println("PLAYING")
       return play.playHand(game)
     } else {
       return game

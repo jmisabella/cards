@@ -89,14 +89,12 @@ trait ThirtyOneController extends Controller[ThirtyOnePlayerState, ThirtyOneActi
         s"Cannot get next because there are no players")
     }
     if (gameState.discardPile.length == 0) {
-      // println("INITIAL DISCARD PILE")
       // no cards yet in discard pile, so  deal 3
       val (discardPile, deck): (Seq[Card], Deck) = gameState.deck.deal(3)
       val history: Seq[Action[ThirtyOneAction]] = Seq(Action("Discard pile", IsDealt, Seq(discardPile.head)))
       return gameState.copy(discardPile = discardPile, deck = deck, currentPlayerIndex = Some(0), history = history)
     }
     if (gameState.discardPile.length >= (52 - gameState.players.length - 3)) {
-      // println("SHUFFLING")
       // if discard pile length is close to a certain amount, then return discard pile to deck (action Shuffle)
       val returnedCards: Seq[Card] = gameState.discardPile.tail.tail.tail // skip top 3 cards
       val discardPile: Seq[Card] = Seq(gameState.discardPile.head, gameState.discardPile.tail.head, gameState.discardPile.tail.tail.head)
@@ -108,7 +106,6 @@ trait ThirtyOneController extends Controller[ThirtyOnePlayerState, ThirtyOneActi
     }
 
     if (gameState.players.count(p => p.hand.length == 0) == gameState.players.length) {
-      // println("NOT ALL PLAYERS HAVE 3 CARDS: DEALING... ")
       // if players have no cards then deal cards
       var deck: Deck = gameState.deck
       var history: Seq[Action[ThirtyOneAction]] = Nil 
@@ -126,9 +123,7 @@ trait ThirtyOneController extends Controller[ThirtyOnePlayerState, ThirtyOneActi
       return gameState.copy(deck = deck, history = gameState.history ++ history, players = players)
     }
 
-
     if (gameState.winningPlayerId.isDefined) {
-      // println("WINNER DETECTED!")
       // if score of 31 is reached and nobody's knocked yet, then all other non-31 players should pay 1 token
       // otherwise the lowest hand(s) pays 1 token; knocker pays double if knocker has lowest hand... 
       // any losers with no remaining tokens are removed from the game
@@ -138,8 +133,9 @@ trait ThirtyOneController extends Controller[ThirtyOnePlayerState, ThirtyOneActi
         // else nobody's blitzed with a 31, so lowest hand(s) must pay; debt is 1 unless the loser knocked 
         case (_, _) => gameState.players.filter(p => lowestHands(gameState.players.map(_.hand)).contains(p.hand.sorted)).map(_.id)
       }
-      // IMPORTANT: TODO: state's pot is apparently never getting any tokens...
       val loserDebts: Map[String, Int] = (for (p <- losers) yield if (gameState.knockedPlayerId.getOrElse("") == p) p -> 2 else p -> 1).toMap
+
+      val updatedPot: Int = gameState.pot + loserDebts.values.toList.foldLeft(0)(_ + _)
       val paymentHistory: Seq[Action[ThirtyOneAction]] = (for ((player, debt) <- loserDebts) yield Action(player, Pay, Nil, actionTokens = Some(debt))).toSeq
       var updatedPlayers: Seq[ThirtyOnePlayerState] = gameState.updatedTokens(loserDebts)
       val removedPlayers: Seq[String] = updatedPlayers.filter(p => p.tokens <= 0).map(_.id)
@@ -151,7 +147,7 @@ trait ThirtyOneController extends Controller[ThirtyOnePlayerState, ThirtyOneActi
         case false => Nil
         case true => {
           val winner: String = (gameState.players.map(_.id).diff(removedPlayers)).headOption.getOrElse("MISSING")
-          updatedPlayers = updatedPlayers.map(p => if (p.id == winner) p.copy(tokens = p.tokens + gameState.pot) else p) 
+          updatedPlayers = updatedPlayers.map(p => if (p.id == winner) p.copy(tokens = p.tokens + updatedPot) else p) 
           Seq(Action(winner, Win, Nil, Some(gameState.pot)))
         }
       }
@@ -162,13 +158,12 @@ trait ThirtyOneController extends Controller[ThirtyOnePlayerState, ThirtyOneActi
         winningPlayerId = None,
         discardPile = Nil,
         deck = gameState.deck.copy(cards = gameState.deck.cards ++ returnedCards ++ gameState.discardPile),
-        pot = if (gameOver) 0 else gameState.pot,
+        pot = if (gameOver) 0 else updatedPot,
         round = gameState.round + 1)
     }
     val currentPlayer: ThirtyOnePlayerState = gameState.currentPlayer()
     val completed: Boolean = gameState.knockedPlayerId.getOrElse("") == currentPlayer.id || gameState.players.count(p => evaluation.eval(p.hand) == 32) > 0
     if (completed) {
-      // println("ROUND IS COMPLETED, DETERMINE WINNER...")
       // round is completed, determine winner 
       val winningHand: Seq[Card] = gameState.players.map(_.hand).foldLeft(Nil: Seq[Card]) { (acc, a) => highestHand(acc, a) }
       val winner: String = gameState.players.filter(p => p.hand.sorted == winningHand.sorted).map(_.id).head
@@ -189,7 +184,6 @@ trait ThirtyOneController extends Controller[ThirtyOnePlayerState, ThirtyOneActi
     val drawDiscardScore: Int =  evaluation.eval(drawDiscardPileHand)
     val drawDiscardPileDiscardedCard: Card = (currentHand ++ Seq(gameState.discardPile.head)).diff(drawDiscardPileHand).head
     if (drawDiscardScore == 32) { // draw from discard if it leads to 31 (instant win)
-      // println("DRAW FROM DISCARD...")
       return gameState.copy(
         winningPlayerId = Some(currentPlayer.id),
         currentPlayerIndex = Some(gameState.nextPlayerIndex()),
@@ -210,7 +204,6 @@ trait ThirtyOneController extends Controller[ThirtyOnePlayerState, ThirtyOneActi
       case _ => drawDiscardNextPlayerPermutations.maxBy(_._2)._2
     }
     if (drawDiscardNextPlayerPotentialScore < 32 && drawDiscardScore > currentScore && (drawDiscardScore - currentScore >= 7 || drawDiscardScore >= 30)) {
-      // println("DRAW FROM DISCARD...")
       return gameState.copy(
         currentPlayerIndex = Some(gameState.nextPlayerIndex()),
         history = gameState.history ++ 
@@ -227,7 +220,6 @@ trait ThirtyOneController extends Controller[ThirtyOnePlayerState, ThirtyOneActi
     
     // early knock logic
     if (!gameState.knockedPlayerId.isDefined && gameState.history.length == 0 && currentScore > 17) {
-      // println("PLAYER HAS KNOCKED...")
       // if, during the very first turn, hand is good enough then knock right away
       return gameState.copy (
         knockedPlayerId = Some(currentPlayer.id), 
@@ -248,7 +240,6 @@ trait ThirtyOneController extends Controller[ThirtyOnePlayerState, ThirtyOneActi
       nextPlayerDrawDiscardPotentialScore != 32 && 
       nextPlayerDrawDiscardPotentialScore < currentScore) {
       // if, during the first round, hand is good enough then knock
-      // println("PLAYER HAS KNOCKED...")
       return gameState.copy(
         knockedPlayerId = Some(currentPlayer.id), 
         currentPlayerIndex = Some(gameState.nextPlayerIndex()),
@@ -261,7 +252,6 @@ trait ThirtyOneController extends Controller[ThirtyOnePlayerState, ThirtyOneActi
       nextPlayerDrawDiscardPotentialScore != 32 && 
       nextPlayerDrawDiscardPotentialScore < currentScore) {
       // if, during the first round, hand is good enough then knock
-      // println("PLAYER HAS KNOCKED: typical case...")
       return gameState.copy(
         knockedPlayerId = Some(currentPlayer.id), 
         currentPlayerIndex = Some(gameState.nextPlayerIndex()),
@@ -295,7 +285,6 @@ trait ThirtyOneController extends Controller[ThirtyOnePlayerState, ThirtyOneActi
     }
     val drawHandScore: Int = evaluation.eval(drawHand)
     val discardedCard: Card = (currentHand ++ drawnCard).diff(drawHand).head
-    // println("PLAYER DRAWS FROM STOCK DECK")
     val drawActionCards: Seq[Card] = gameState.debug match {
       case true => drawnCard // show all cards for debug mode
       case false => Nil // don't display anything by default when player draws from stock
