@@ -229,11 +229,11 @@ trait BlackjackBetting {
         case ThreeToTwo => (3, 2) 
         case SixToFive => (6, 5) 
       }
-      (hand: Hand) => Hand(hand.hand, hand.bets.map(b => if (evaluation.eval(hand.hand) == 21) b._1 -> b._2 * numerator / denominator else b).toMap, hand.outcome) 
+      (hand: Hand) => Hand(hand.hand, hand.bets.map(b => if (evaluation.eval(hand.hand) == 21) b._1 -> b._2 * numerator / denominator else b).toMap, Nil, hand.outcome) 
     }
     val dealerBlackjackWinAdjustedPayout: Hand => Hand = (dealerHand: Hand) => {
       if (evaluation.eval(dealerHand.hand) == 21 && dealerHand.hand.length == 2 && dealerHand.outcome == Some(Outcome.Win))
-        Hand(dealerHand.hand, dealerHand.bets.map(mapEntry => mapEntry._1 -> mapEntry._2 * 2), dealerHand.outcome) // insurance pays 2-to-1
+        Hand(dealerHand.hand, dealerHand.bets.map(mapEntry => mapEntry._1 -> mapEntry._2 * 2), Nil, dealerHand.outcome) // insurance pays 2-to-1
       else 
         dealerHand
     }
