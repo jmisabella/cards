@@ -37,7 +37,15 @@ case class Card(rank: Rank, suit: Suit) {
 object Card {
   val FaceDownCard: Card = Card(FaceDown, Unknown)
   implicit val format: Format[Card] = Json.format[Card]
-  implicit def ordering[A <: Card]: Ordering[A] = Ordering.by(_.rank.id)
+  // implicit def ordering[A <: Card]: Ordering[A] = Ordering.by(_.rank.id)
+  implicit def ordering[A <: Card]: Ordering[A] = new Ordering[A] {
+    def compare(self: A, that: A): Int = {
+      (self.rank.id compare that.rank.id) match {
+        case 0 => self.suit.id compare that.suit.id
+        case c => c
+      }
+    }
+  }
 }
 
 case class Cards(cards: Seq[Card]) {
