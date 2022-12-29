@@ -21,7 +21,7 @@ trait ThirtyOneController extends Controller[ThirtyOnePlayerState, ThirtyOneActi
   }
   // in case of tie, both lowest hands pay
   private def lowestHands(hands: Seq[Seq[Card]]): Seq[Seq[Card]] = {
-    val lowest: Int = hands.map(cs => evaluation.eval(cs)).sorted.head
+    val lowest: Long = hands.map(cs => evaluation.eval(cs)).sorted.head
     hands.filter(cs => evaluation.eval(cs) == lowest).map(_.sorted)
   } 
   private def suspectedSuitChange(playerId: String, state: ThirtyOneGameState): Boolean = {
@@ -171,17 +171,17 @@ trait ThirtyOneController extends Controller[ThirtyOnePlayerState, ThirtyOneActi
     }
     // round is not yet completed, play next turn
     val currentHand: Seq[Card] = currentPlayer.hand
-    val currentScore: Int = evaluation.eval(currentHand)
+    val currentScore: Long = evaluation.eval(currentHand)
     val nextPlayer: ThirtyOnePlayerState = gameState.players(gameState.nextPlayerIndex())
     val suspected: Seq[Card] = nextPlayer.suspectedCards
     
     // draw discard logic
-    val drawDiscardPermutationsAndScores: Seq[(Seq[Card], Int)] = evaluation.permutationsAndScores(cards = currentHand ++ Seq(gameState.discardPile.head), n = 3)
+    val drawDiscardPermutationsAndScores: Seq[(Seq[Card], Long)] = evaluation.permutationsAndScores(cards = currentHand ++ Seq(gameState.discardPile.head), n = 3)
     val drawDiscardPileHand: Seq[Card] = drawDiscardPermutationsAndScores.length match {
       case 0 => Nil
       case _ => drawDiscardPermutationsAndScores.maxBy(_._2)._1
     }
-    val drawDiscardScore: Int =  evaluation.eval(drawDiscardPileHand)
+    val drawDiscardScore: Long =  evaluation.eval(drawDiscardPileHand)
     val drawDiscardPileDiscardedCard: Card = (currentHand ++ Seq(gameState.discardPile.head)).diff(drawDiscardPileHand).head
     if (drawDiscardScore == 32) { // draw from discard if it leads to 31 (instant win)
       return gameState.copy(
@@ -199,7 +199,7 @@ trait ThirtyOneController extends Controller[ThirtyOnePlayerState, ThirtyOneActi
         discardPile = Seq(drawDiscardPileDiscardedCard) ++ gameState.discardPile.tail)
     }
     val drawDiscardNextPlayerPermutations = evaluation.permutationsAndScores(Seq(drawDiscardPileDiscardedCard) ++ suspected, suspected.length)
-    val drawDiscardNextPlayerPotentialScore: Int = drawDiscardNextPlayerPermutations.length match {
+    val drawDiscardNextPlayerPotentialScore: Long = drawDiscardNextPlayerPermutations.length match {
       case 0 => 0
       case _ => drawDiscardNextPlayerPermutations.maxBy(_._2)._2
     }
@@ -232,7 +232,7 @@ trait ThirtyOneController extends Controller[ThirtyOnePlayerState, ThirtyOneActi
       case true => 15 // if any of the other players is suspected of changing suits, then we're more confident of not having lowest score
       case false => 22 
     }
-    val nextPlayerDrawDiscardPotentialScore: Int = evaluation.permutationsAndScores(Seq(gameState.discardPile.head) ++ suspected, suspected.length).maxBy(_._2)._2
+    val nextPlayerDrawDiscardPotentialScore: Long = evaluation.permutationsAndScores(Seq(gameState.discardPile.head) ++ suspected, suspected.length).maxBy(_._2)._2
     if (!gameState.knockedPlayerId.isDefined &&
       // either it's first round or at least 1 other player is suspected of changing suits
       (gameState.history.length < gameState.players.length || otherPlayersSuspectedOfSuitChange) && 
@@ -260,9 +260,9 @@ trait ThirtyOneController extends Controller[ThirtyOnePlayerState, ThirtyOneActi
 
     // draw logic: either draw from stock deck or draw from discard pile
     val (drawnCard, updatedDeck): (Seq[Card], Deck) = gameState.deck.deal()
-    val drawCardPermutationsAndScores: Seq[(Seq[Card], Int)] = evaluation.permutationsAndScores(cards = currentHand ++ drawnCard, n = 3)
+    val drawCardPermutationsAndScores: Seq[(Seq[Card], Long)] = evaluation.permutationsAndScores(cards = currentHand ++ drawnCard, n = 3)
     // determine if next player would have a better or even winning hand if he or she picks up any of this player's discarded cards
-    val nextPlayerPotentialScores: Map[Card, Int] = 
+    val nextPlayerPotentialScores: Map[Card, Long] = 
       (currentHand ++ drawnCard)
         .map { c =>  
           c -> evaluation
@@ -273,7 +273,7 @@ trait ThirtyOneController extends Controller[ThirtyOnePlayerState, ThirtyOneActi
         .toMap
 
     val discardsToAvoid: Seq[Card] = nextPlayerPotentialScores.filter(_._2 >= 32).toSeq.map(_._1)
-    val safePermutationsAndScores: Seq[(Seq[Card], Int)] = drawCardPermutationsAndScores.filter(_._1.diff(discardsToAvoid).nonEmpty)
+    val safePermutationsAndScores: Seq[(Seq[Card], Long)] = drawCardPermutationsAndScores.filter(_._1.diff(discardsToAvoid).nonEmpty)
     // val safePermutationsAndScores: Seq[(Seq[Card], Int)] = discardsToAvoid match {
     //   case Nil => drawCardPermutationsAndScores
     //   case cs => drawCardPermutationsAndScores.filter(_._1.intersect(discardsToAvoid).nonEmpty)
@@ -283,7 +283,7 @@ trait ThirtyOneController extends Controller[ThirtyOnePlayerState, ThirtyOneActi
       case 0 => drawnCard // ???
       case _ => safePermutationsAndScores.maxBy(_._2)._1
     }
-    val drawHandScore: Int = evaluation.eval(drawHand)
+    val drawHandScore: Long = evaluation.eval(drawHand)
     val discardedCard: Card = (currentHand ++ drawnCard).diff(drawHand).head
     val drawActionCards: Seq[Card] = gameState.debug match {
       case true => drawnCard // show all cards for debug mode

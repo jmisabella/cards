@@ -19,7 +19,7 @@ trait BlackjackHandEvaluation extends HandEvaluation {
     case (x, _) if (x <= 21) => x // score <= 21, no need to reduce any further
     case (x, n) => reduce(x - 11 + 1, n - 1) // tail-recursive call to replace one of the aces' value of 11 by 2
   }
-  override def eval(cards: Seq[Card]): Int = {
+  override def eval(cards: Seq[Card]): Long = {
     // reduce score (e.g. 2 instead of 11 for ace) as necessary/allowed to drop below 22
     reduce(
       cards

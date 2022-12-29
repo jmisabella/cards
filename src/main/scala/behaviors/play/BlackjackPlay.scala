@@ -205,8 +205,8 @@ trait BlackjackPlay {
     // player's turn: based on player's cards and dealers face up card, decide which action to take
     // looking at cards in reverse order so aces are at head, and changed to list in order to pattern match on head :: tail
     val highestRank: Rank = game.currentCards().sorted.reverse.head.rank
-    val totalScore: Int = eval(game.currentCards())
-    val tailScore: Int = eval(game.currentCards().tail)
+    val totalScore: Long = eval(game.currentCards())
+    val tailScore: Long = eval(game.currentCards().tail)
     // val dealerFaceUpRank: Rank = game.dealerHand.hand.head.rank
     val dealerFaceUpRank: Rank = game.dealerHand.hand.tail.head.rank
     val surrenderOffered: Boolean = game.options.allowSurrender 
