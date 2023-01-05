@@ -1,6 +1,6 @@
 package cards.classes.options
 
-import cards.classes.options.BlackjackOptions
+import cards.classes.options.blackjack.BlackjackOptions
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 

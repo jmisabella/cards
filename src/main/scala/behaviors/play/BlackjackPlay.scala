@@ -9,8 +9,8 @@ import cards.classes.Suit._
 import cards.classes.hand.Hand
 import cards.classes.actions.{ Action, BlackjackAction }
 import cards.classes.actions.BlackjackAction._
-import cards.classes.options.BlackjackOptions
-import cards.classes.options.DealerHitLimit._
+import cards.classes.options.blackjack.BlackjackOptions
+import cards.classes.options.blackjack.DealerHitLimit._
 
 trait BlackjackPlay {
   type EVAL <: BlackjackHandEvaluation 

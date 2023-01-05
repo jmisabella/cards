@@ -5,7 +5,7 @@ import cards.classes.{ Card, Rank, Suit, Deck }
 import cards.classes.Rank._
 import cards.classes.Suit._
 import cards.classes.hand.Hand
-import cards.classes.options.BlackjackOptions
+import cards.classes.options.blackjack.BlackjackOptions
 import cards.classes.actions.{ Action, BlackjackAction }
 import cards.classes.actions.BlackjackAction._
 import cards.classes.bettingstrategy.BlackjackBettingStrategy._

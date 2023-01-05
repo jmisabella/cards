@@ -4,8 +4,8 @@ import cards.behaviors.Commons
 import cards.behaviors.betting.BlackjackBetting
 import cards.behaviors.evaluation.BlackjackHandEvaluation
 import cards.classes.state.{ BlackjackGameState, BlackjackPlayerState }
-import cards.classes.options.BlackjackOptions
-import cards.classes.options.BlackjackPayout._
+import cards.classes.options.blackjack.BlackjackOptions
+import cards.classes.options.blackjack.BlackjackPayout._
 import cards.classes.bettingstrategy.BlackjackBettingStrategy._
 import cards.classes.{ Card, Rank, Suit, Deck, Outcome }
 import cards.classes.Rank._

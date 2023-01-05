@@ -4,9 +4,9 @@ import cards.classes.{ Card, Rank, Suit, Deck }
 import cards.classes.Rank.Ace
 import cards.classes.hand.Hand
 import cards.classes.Outcome
-import cards.classes.options.BlackjackOptions
-import cards.classes.options.BlackjackPayout._
-import cards.classes.options.DealerHitLimit._
+import cards.classes.options.blackjack.BlackjackOptions
+import cards.classes.options.blackjack.BlackjackPayout._
+import cards.classes.options.blackjack.DealerHitLimit._
 import cards.classes.actions.{ Action, BlackjackAction }
 import cards.classes.actions.BlackjackAction._
 import cards.classes.state.{ BlackjackPlayerState, BlackjackGameState }
