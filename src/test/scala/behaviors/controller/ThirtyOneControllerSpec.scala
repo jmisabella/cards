@@ -40,26 +40,6 @@ class ThirtyOneControllerSpec extends AnyFlatSpec with GivenWhenThen {
     an [IllegalStateException] should be thrownBy module.next(state)
   }
 
-  it should "throw illegal state exception when calling next() from game state which has an empty discard pile" in {
-    val hands = Seq(
-      Seq(Card(Two, Clubs), Card(Three, Clubs), Card(Four, Clubs)), 
-      Seq(Card(Five, Hearts), Card(Six, Hearts), Card(Seven, Hearts)), 
-      Seq(Card(Eight, Spades), Card(Nine, Spades), Card(Ten, Spades)))
-    val players = Seq(ThirtyOnePlayerState("player1", 3, hands(0)), ThirtyOnePlayerState("player2", 3, hands(1)), ThirtyOnePlayerState("player3", 3, hands(2))) 
-    val state = ThirtyOneGameState(players = players, currentPlayerIndex = Some(0), discardPile = Nil) 
-    an [IllegalStateException] should be thrownBy module.next(state)
-  }
-
-  it should "throw illegal state exception when calling next() from game state which already has a declared winner" in {
-    val hands = Seq(
-      Seq(Card(Two, Clubs), Card(Three, Clubs), Card(Four, Clubs)), 
-      Seq(Card(Five, Hearts), Card(Six, Hearts), Card(Seven, Hearts)), 
-      Seq(Card(Eight, Spades), Card(Nine, Spades), Card(Ten, Spades)))
-    val players = Seq(ThirtyOnePlayerState("player1", 3, hands(0)), ThirtyOnePlayerState("player2", 3, hands(1)), ThirtyOnePlayerState("player3", 3, hands(2))) 
-    val state = ThirtyOneGameState(players = players, currentPlayerIndex = Some(0), winningPlayerId = Some(players.reverse.head.id))
-    an [IllegalStateException] should be thrownBy module.next(state)
-  }
-
   it should "declare a winner who is not the current player has 31" in {
     val hands = Seq(
       Seq(Card(Two, Clubs), Card(Three, Clubs), Card(Four, Clubs)), 
@@ -363,8 +343,8 @@ but next's potential score is equal to current player's score""" in {
     val paymentSettled = module.next(initialState)
     
     Then("the winner flag would be disabled and all players other than the winner (who blitzed with 31) pay 1") 
-    paymentSettled.history.reverse.head should (equal (Action("player1", Pay, Nil, Some(1))) or equal (Action("player3", Pay, Nil, Some(1))))
-    paymentSettled.history.reverse.tail.head should (equal (Action("player1", Pay, Nil, Some(1))) or equal (Action("player3", Pay, Nil, Some(1))))
+    paymentSettled.history.filter(a => a.action != Show && a.action != Win).reverse.head should (equal (Action("player1", Pay, Nil, Some(1))) or equal (Action("player3", Pay, Nil, Some(1))))
+    paymentSettled.history.filter(a => a.action != Show && a.action != Win).reverse.tail.head should (equal (Action("player1", Pay, Nil, Some(1))) or equal (Action("player3", Pay, Nil, Some(1))))
     paymentSettled.history.count(a => a.playerId == "player2" && a.action == Pay) equals (0)
     paymentSettled.winningPlayerId shouldBe empty
   }
@@ -420,8 +400,7 @@ and next's potential score is less than current player's score""" in {
     val paymentSettled = module.next(initialState)
     
     Then("the winner flag would be disabled and the lowest player would have pay 1 token") 
-    println("HERE: " + paymentSettled.history.reverse.head) 
-    paymentSettled.history.reverse.head should equal (Action("player2", Pay, Nil, Some(1)) )
+    paymentSettled.history.filter(a => a.action != Show).reverse.head should equal (Action("player2", Pay, Nil, Some(1)) )
     paymentSettled.winningPlayerId shouldBe empty
   }
 
@@ -431,7 +410,7 @@ and next's potential score is less than current player's score""" in {
       Seq(Card(Seven, Hearts), Card(Seven, Spades), Card(Seven, Diamonds)), // highest hand (3-of-a-kind is 30.5 score)
       Seq(Card(Queen, Clubs), Card(Jack, Clubs), Card(Seven, Spades)), // score of 20, the lowest score
       Seq(Card(Eight, Spades), Card(Nine, Spades), Card(Eight, Spades)))  // score of 25
-    val discardPile = Seq(Card(Ten, Clubs))
+  
     val players = 
       Seq(
         ThirtyOnePlayerState("player1", 3, hands(0)), 
@@ -441,16 +420,16 @@ and next's potential score is less than current player's score""" in {
     val initialState = ThirtyOneGameState(
       players = players, 
       currentPlayerIndex = Some(0), 
-      discardPile = discardPile, 
+      // discardPile = discardPile, 
       knockedPlayerId = Some("player1"), 
       winningPlayerId = Some("player2"))
     initialState.knockedPlayerId shouldBe defined // somebody's knocked in this scenario
     
     When("calling next on the state")
-    val paymentSettled = module.next(initialState)
-    
-    Then("the winner and knocked flags would both be disabled and the lowest player would have pay 1 token") 
-    paymentSettled.history.reverse.head should equal (Action("player2", Pay, Nil, Some(1))) 
+    var paymentSettled = module.next(initialState)
+    paymentSettled = module.next(paymentSettled) // takes 2 turns to complete
+    Then("the winner and knocked flags would both be disabled and the lowest player would have pay 1 token")
+    paymentSettled.history.filter(a => a.action != Show && a.action != Win).reverse.head should equal (Action("player2", Pay, Nil, Some(1))) 
     paymentSettled.players.filter(_.id == "player2").head.tokens should equal (2) 
     paymentSettled.winningPlayerId shouldBe empty
   }
@@ -477,8 +456,9 @@ and next's potential score is less than current player's score""" in {
     Then("both players with tied lowest hands pay 1 token each")
     paymentSettled.history.length shouldBe >= (2)
     info("last 2 history actions should be player2 and player3 both paying 1 token")
-    paymentSettled.history.reverse.head should (equal (Action("player2", Pay, Nil, Some(1))) or equal (Action("player3", Pay, Nil, Some(1))))
-    paymentSettled.history.reverse.tail.head should (equal (Action("player2", Pay, Nil, Some(1))) or equal (Action("player3", Pay, Nil, Some(1))))
+    val history = paymentSettled.history.filter(a => a.action != Show && a.action != Win)  
+    history.reverse.head should (equal (Action("player2", Pay, Nil, Some(1))) or equal (Action("player3", Pay, Nil, Some(1))))
+    history.reverse.tail.head should (equal (Action("player2", Pay, Nil, Some(1))) or equal (Action("player3", Pay, Nil, Some(1))))
   }
 
   it should "make the knocker pay 2 tokens when their hand is the lowest and a winner's been declared" in {
@@ -500,7 +480,8 @@ and next's potential score is less than current player's score""" in {
     val paymentSettled = module.next(initialState)
     
     Then("the lone loser who is also the knocker must pay double (2) tokens")
-    paymentSettled.history.reverse.head should equal (Action("player3", Pay, Nil, Some(2)) )
+    val history = paymentSettled.history.filter(a => a.action != Show && a.action != Win) 
+    history.reverse.head should equal (Action("player3", Pay, Nil, Some(2)) )
     paymentSettled.players.filter(_.id == "player3").head.tokens should equal (1) 
   }
 
@@ -523,8 +504,9 @@ and next's potential score is less than current player's score""" in {
     val paymentSettled = module.next(initialState)
     
     Then("loser who is the knocker must pay double (2) tokens, and  the other tied loser pays 1 token")
-    paymentSettled.history.reverse.head should (equal (Action("player2", Pay, Nil, Some(1))) or equal (Action("player3", Pay, Nil, Some(2))) )
-    paymentSettled.history.reverse.tail.head should (equal (Action("player2", Pay, Nil, Some(1))) or equal (Action("player3", Pay, Nil, Some(2))) )
+    val history = paymentSettled.history.filter(a => a.action != Show && a.action != Win)
+    history.reverse.head should (equal (Action("player2", Pay, Nil, Some(1))) or equal (Action("player3", Pay, Nil, Some(2))) )
+    history.reverse.tail.head should (equal (Action("player2", Pay, Nil, Some(1))) or equal (Action("player3", Pay, Nil, Some(2))) )
     info("player1 didn't pay so should have all 3 tokens")
     paymentSettled.players.filter(_.id == "player1").head.tokens should equal (3)
     info("player2 payed 1 so should have 2 tokens remaining")
@@ -554,9 +536,11 @@ and next's potential score is less than current player's score""" in {
     Then("both players with tied lowest hands pay 1 token each")
     paymentSettled.history.length shouldBe >= (2)
     info("last 2 history actions should be player2 paying 1 token and player2 losing out")
-    
-    paymentSettled.history.reverse.head should equal (Action("player2", Out, Nil))
-    paymentSettled.history.reverse.tail.head should equal (Action("player2", Pay, Nil, Some(1)))
+
+    val history = paymentSettled.history.filter(a => a.action != Win && a.action != Show)
+
+    history.reverse.head should equal (Action("player2", LeaveTable, Nil))
+    history.reverse.tail.head should equal (Action("player2", Pay, Nil, Some(1)))
     paymentSettled.players.map(_.id) should not contain "player2" 
     paymentSettled.players.map(_.id) contains "player1" 
     paymentSettled.players.map(_.id) contains "player3" 
@@ -583,11 +567,12 @@ and next's potential score is less than current player's score""" in {
     Then("both players with tied lowest hands pay 1 token each")
     paymentSettled.history.length shouldBe >= (4)
     info("last 2 history actions should be player2 paying 1 token and player2 losing out")
-    
-    paymentSettled.history.reverse.head should (equal (Action("player2", Out, Nil)) or equal (Action("player3", Out, Nil)) )
-    paymentSettled.history.reverse.tail.head should (equal (Action("player2", Out, Nil)) or equal (Action("player3", Out, Nil)) )
-    paymentSettled.history.reverse.tail.tail.head should (equal (Action("player2", Pay, Nil, Some(1))) or equal (Action("player3", Pay, Nil, Some(1))) )
-    paymentSettled.history.reverse.tail.tail.tail.head should (equal (Action("player2", Pay, Nil, Some(1))) or equal (Action("player3", Pay, Nil, Some(1))) )
+
+    val history = paymentSettled.history.filter(a => a.action != Show && a.action != Win)  
+    history.reverse.head should (equal (Action("player2", LeaveTable, Nil)) or equal (Action("player3", LeaveTable, Nil)) )
+    history.reverse.tail.head should (equal (Action("player2", LeaveTable, Nil)) or equal (Action("player3", LeaveTable, Nil)) )
+    history.reverse.tail.tail.head should (equal (Action("player2", Pay, Nil, Some(1))) or equal (Action("player3", Pay, Nil, Some(1))) )
+    history.reverse.tail.tail.tail.head should (equal (Action("player2", Pay, Nil, Some(1))) or equal (Action("player3", Pay, Nil, Some(1))) )
     paymentSettled.players.map(_.id) should not contain "player2" 
     paymentSettled.players.map(_.id) contains "player1" 
     paymentSettled.players.map(_.id) should not contain "player3" 

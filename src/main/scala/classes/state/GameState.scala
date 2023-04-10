@@ -12,6 +12,7 @@ trait GameState[A <: PlayerState, B <: Enumeration#Value] {
   val currentPlayerIndex: Option[Int]
   val history: Seq[Action[B]]
   val deck: Deck
+  val round: Int
     
     def currentPlayer(): A = current(players, currentPlayerIndex)
     def nextPlayerIndex(): Int = nextIndex(players, currentPlayerIndex)

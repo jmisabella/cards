@@ -23,7 +23,7 @@ class PokerHandEvaluationSpec extends AnyFlatSpec {
 
   "PokerHandEvaluation" should "score an empty hand as 0" in {
     val cards: Seq[Card] = Nil
-    val result: Int = module.eval(cards)
+    val result: Long = module.eval(cards)
     result should equal (0)
   }
 

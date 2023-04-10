@@ -6,7 +6,7 @@ import cards.classes.DeckType._
 trait HandEvaluation {
 
   // evaluate given hand as an integer score 
-  def eval(cards: Seq[Card]): Int
+  def eval(cards: Seq[Card]): Long
 
   // transform hand into the best possible hand with jokers replaced by suited cards 
   def jokerWildcardReplacement(cards: Seq[Card]): Seq[Card] = cards.count(_.isJoker) match {
@@ -16,7 +16,7 @@ trait HandEvaluation {
       val replacements: List[List[Card]] = Deck(JokersExcluded).cards.combinations(n).toList
 
       // yield each possibility as well as its evaluated integer score
-      val possibilities: List[(List[Card], Int)] = replacements.map { cs => 
+      val possibilities: List[(List[Card], Long)] = replacements.map { cs => 
         val possibility: List[Card] = cs ++ cards.filter(!_.isJoker)
         (possibility, eval(possibility))
       }
@@ -26,7 +26,7 @@ trait HandEvaluation {
 
   // preference: given 2 hands yield which is better, unless both hands evaluate to the same score 
   def preference(cs1: Seq[Card], cs2: Seq[Card], jokerReplacement: Boolean = true): Option[Seq[Card]] = {
-    val (score1, score2): (Int, Int) = jokerReplacement match {
+    val (score1, score2): (Long, Long) = jokerReplacement match {
       case false => (eval(cs1), eval(cs2))
       case true => (eval(jokerWildcardReplacement(cs1)), eval(jokerWildcardReplacement(cs2)))
     }
@@ -38,7 +38,7 @@ trait HandEvaluation {
   }
 
   // Given a collection of cards and n cards per hand, yield possible hand permutations and evaluated scores
-  def permutationsAndScores(cards: Seq[Card], n: Int): Seq[(Seq[Card], Int)] = {
+  def permutationsAndScores(cards: Seq[Card], n: Int): Seq[(Seq[Card], Long)] = {
     if (n > cards.length)
       throw new IllegalStateException(s"Cannot get permutations when n is [$n] which exceeds list length [${cards.length}]")
     

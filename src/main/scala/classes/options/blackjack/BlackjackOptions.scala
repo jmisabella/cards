@@ -1,4 +1,4 @@
-package cards.classes.options
+package cards.classes.options.blackjack
 
 import play.api.libs.json.{ Json, Format }
 
@@ -23,8 +23,8 @@ object DealerHitLimit extends Enumeration {
   implicit val format: Format[DealerHitLimit] = Json.formatEnum(this)
 }
 
-import cards.classes.options.BlackjackPayout._
-import cards.classes.options.DealerHitLimit._
+import cards.classes.options.blackjack.BlackjackPayout._
+import cards.classes.options.blackjack.DealerHitLimit._
 
 case class BlackjackOptions(
   deckCount: Int = 1,

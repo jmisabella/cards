@@ -13,13 +13,11 @@ import cards.classes.actions.{ Action, BlackjackAction }
 import cards.classes.actions.BlackjackAction._
 import scala.annotation.tailrec
 
-trait BlackjackController { 
+trait BlackjackController extends Controller[BlackjackPlayerState, BlackjackAction, BlackjackGameState] { 
   type BETTING <: BlackjackBetting
   type PLAY <: BlackjackPlay
   val betting: BETTING
   val play: PLAY
-
-  private def purgeHistory(previous: BlackjackGameState, current: BlackjackGameState): Boolean = previous.round != current.round
 
   private def go(game: BlackjackGameState): BlackjackGameState = {
     if (game.deck.length == 0) {
@@ -44,42 +42,29 @@ trait BlackjackController {
     }
     val shuffleLimit: Int = (game.players.flatMap(_.hands).length + 1) * 5
     if (betting.isTimeToSettle(game)) {
-      // IMPORTANT: // TODO: after bets are settled, how do we get from history showing Wins, Losses, Ties back to an empty history ?????
-      // println("SETTLING")
       return betting.settleBets(game)
     }
     if (betting.isTimeToPlaceNewBets(game)) {
-      // println("BETTING")
       val adjustedStrategy: BlackjackGameState = betting.alterBettingStrategy(game.currentPlayer(), game) 
       val adjustedBetting: BlackjackGameState = betting.alterMinBet(adjustedStrategy.currentPlayer(), adjustedStrategy)
-      return betting.placeBet(adjustedBetting) // TODO: test
+      return betting.placeBet(adjustedBetting)
     }
     if (play.isTimeForDealerToPlay(game)) {
-      // IMPORTANT: // TODO: when a player splits with more than one hand, isTimeToSettle is never true, so dealer continues playing infinitly
-      // println("DEALER PLAYING")
+      // THIS HASN'T HAPPENED SINCE, SHOULD TEST THIS: IMPORTANT: TODO: when a player splits with more than one hand, isTimeToSettle is never true, so dealer continues playing infinitly
       return play.dealerPlay(game)
     } else if (play.isTimeToDeal(game) && game.deck.cards.length >= shuffleLimit) {
-      // println("DEALING")
       return play.deal(game)
     } else if (play.isTimeToDeal(game) && game.deck.cards.length < shuffleLimit) {
-      // println(s"SHUFFLING: length [${game.deck.cards.length}], shuffle limit [$shuffleLimit]")
       return game.copy(deck = Deck(Seq(Card(LeftBower, Joker), Card(RightBower, Joker)), 1), history = game.history ++ Seq(Action("Dealer", Shuffle)))
     } else if (play.isTimeToPlay(game)) {
-      // println("PLAYING")
       return play.playHand(game)
     } else {
       return game
     }
   }
 
-  private val doNothing = (a: Action[BlackjackAction]) => "" 
-
-  def next(game: BlackjackGameState, iterations: Int): BlackjackGameState = next(game, iterations, doNothing) 
-  
-  def next(game: BlackjackGameState): BlackjackGameState = next(game, 1, doNothing)
-  
   // serialize is an optional function which converts a blackjack action to text
-  def next(game: BlackjackGameState, iterations: Int = 1, serialize: Action[BlackjackAction] => String): BlackjackGameState = {
+  override def next(game: BlackjackGameState, iterations: Int = 1, serialize: Action[BlackjackAction] => String): BlackjackGameState = {
     def turns(game: BlackjackGameState, iterations: Int): BlackjackGameState = {
       def turn(game: BlackjackGameState, serialize: Action[BlackjackAction] => String): BlackjackGameState = {
         val next = go(game)

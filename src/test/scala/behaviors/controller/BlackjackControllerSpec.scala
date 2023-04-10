@@ -11,8 +11,8 @@ import cards.classes.Rank._
 import cards.classes.Suit._
 import cards.classes.hand.Hand
 import cards.classes.state.{ BlackjackGameState, BlackjackPlayerState }
-import cards.classes.options.BlackjackOptions
-import cards.classes.options.BlackjackPayout._
+import cards.classes.options.blackjack.BlackjackOptions
+import cards.classes.options.blackjack.BlackjackPayout._
 import cards.classes.actions.{ Action, BlackjackAction }
 import cards.classes.actions.BlackjackAction._
 import org.scalatest.flatspec.AnyFlatSpec
@@ -238,7 +238,7 @@ class BlackjackControllerSpec extends AnyFlatSpec with GivenWhenThen {
         Hand(Seq(Card(Two, Hearts), Card(Jack, Diamonds)), 
         bets = Map("Jeffrey" -> 1), // bet 2 on his hand 
         outcome = Some(Outcome.Lose))))
-    val dealerCards: Hand = Hand(Seq(Card(Ace, Diamonds), Card(Ten, Spades)), Map("Jeffrey" -> 1), Some(Outcome.Win))
+    val dealerCards: Hand = Hand(Seq(Card(Ace, Diamonds), Card(Ten, Spades)), Map("Jeffrey" -> 1), Nil, Some(Outcome.Win))
     val gameState = BlackjackGameState(
       dealerHand = dealerCards, 
       players = Seq(player1),
@@ -248,9 +248,6 @@ class BlackjackControllerSpec extends AnyFlatSpec with GivenWhenThen {
     Then("player should win 2 for insurance but lose 1 for his losing hand, for a new bank total of 21")
     settledBets.players.head.bank should equal (21) 
   }
-
-  // TODO: need to build logic so player will bet at a certain amount, and double bet after losing, and go back to original bet after winning
-  // ......this will involve looking back in player's history
 
   it should "stand on a 3 card hand whose value is 20" in {
     

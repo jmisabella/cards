@@ -10,7 +10,7 @@ trait ThirtyOneHandEvaluation extends HandEvaluation {
   type C <: Commons
   val commons: C 
 
-  override def eval(cards: Seq[Card]): Int = commons.suited(cards) match {
+  override def eval(cards: Seq[Card]): Long = commons.suited(cards) match {
     // 3-of-a-kind is 30.5 points, so to simulate we're making it instead be 31, and actual 31 will then be scored as 32 (behind the scenes)
     case Nil => 0 
     case cs if (commons.countRank(cs).values.toSeq.contains(3)) => 31 // 3-of-a-kind, 30.5 points (see explanation above)

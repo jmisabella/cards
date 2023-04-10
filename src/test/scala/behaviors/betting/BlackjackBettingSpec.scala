@@ -4,8 +4,8 @@ import cards.behaviors.Commons
 import cards.behaviors.betting.BlackjackBetting
 import cards.behaviors.evaluation.BlackjackHandEvaluation
 import cards.classes.state.{ BlackjackGameState, BlackjackPlayerState }
-import cards.classes.options.BlackjackOptions
-import cards.classes.options.BlackjackPayout._
+import cards.classes.options.blackjack.BlackjackOptions
+import cards.classes.options.blackjack.BlackjackPayout._
 import cards.classes.bettingstrategy.BlackjackBettingStrategy._
 import cards.classes.{ Card, Rank, Suit, Deck, Outcome }
 import cards.classes.Rank._
@@ -326,7 +326,7 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
         Hand(Seq(Card(Two, Hearts), Card(Jack, Diamonds)), 
         bets = Map("Jeffrey" -> 1), // bet 2 on his hand 
         outcome = Some(Outcome.Lose))))
-    val dealerCards: Hand = Hand(Seq(Card(Ace, Diamonds), Card(Ten, Spades)), Map("Jeffrey" -> 1), Some(Outcome.Win))
+    val dealerCards: Hand = Hand(Seq(Card(Ace, Diamonds), Card(Ten, Spades)), Map("Jeffrey" -> 1), Nil,Some(Outcome.Win))
     val gameState = BlackjackGameState(dealerHand = dealerCards, players = Seq(player1), currentPlayerIndex = Some(0))
     When("settling bets")
     isTimeToSettle(gameState) shouldBe (true)

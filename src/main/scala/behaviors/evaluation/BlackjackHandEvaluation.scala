@@ -19,7 +19,7 @@ trait BlackjackHandEvaluation extends HandEvaluation {
     case (x, _) if (x <= 21) => x // score <= 21, no need to reduce any further
     case (x, n) => reduce(x - 11 + 1, n - 1) // tail-recursive call to replace one of the aces' value of 11 by 2
   }
-  override def eval(cards: Seq[Card]): Int = {
+  override def eval(cards: Seq[Card]): Long = {
     // reduce score (e.g. 2 instead of 11 for ace) as necessary/allowed to drop below 22
     reduce(
       cards
@@ -35,7 +35,7 @@ trait BlackjackHandEvaluation extends HandEvaluation {
       , cards.count(_.rank == Ace)) // ace count
   }
 
-  // TODO: test
+  // when comparing 2 hands, yield the hands with outcome set as Win, Lose, or Tie
   def outcomes(hand1: Hand, hand2: Hand): (Hand, Hand) = (eval(hand1.hand), eval(hand2.hand)) match {
     case (n1, n2) if (n1 > 21 && n2 > 21) => (hand1.copy(outcome = Some(Lose)), hand2.copy(outcome = Some(Lose)))
     case (n, _) if (n > 21) => (hand1.copy(outcome = Some(Lose)), hand2.copy(outcome = Some(Win)))
@@ -45,7 +45,6 @@ trait BlackjackHandEvaluation extends HandEvaluation {
     case (_, _) => (hand1.copy(outcome = Some(Tie)), hand2.copy(outcome = Some(Tie)))
   }
 
-  // TODO: test
   def outcomes(game: BlackjackGameState): BlackjackGameState = {
     val players = game.players.map { p =>
       val hands: Seq[Hand] = p.handsAndBets.map ( h => outcomes(h, game.dealerHand)._1)

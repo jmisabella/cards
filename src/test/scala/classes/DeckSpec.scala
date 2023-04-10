@@ -46,7 +46,7 @@ class DeckSpec extends AnyFlatSpec {
     deck should have length (24)
     assert(!deck.contains(Seq(Card(LeftBower, Joker), Card(RightBower, Joker)) ++
       (for { r <- Seq(Two, Three, Four, Five, Six, Seven, Eight); s <- Suit.values} yield Card(r, s)).toList))
-    assert(deck.contains( (for { r <- Seq(Nine, Ten, Jack, Queen, King, Ace); s <- Suit.values} yield Card(r, s)).toList))
+    assert(deck.contains( (for { r <- Seq(Nine, Ten, Jack, Queen, King, Ace); s <- Suit.values.filter(s => s != Unknown && s != Joker)} yield Card(r, s)).toList))
   }
 
   it should "deal 0 cards" in {

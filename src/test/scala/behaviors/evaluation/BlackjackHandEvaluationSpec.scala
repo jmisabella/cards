@@ -17,62 +17,62 @@ class BlackJackHandEvaluationSpec extends AnyFlatSpec {
 
   "BlackJackHandEvaluation" should "evaluate empty hand as 0" in {
     val cards: Seq[Card] = Nil
-    val result: Int = module.eval(cards)
+    val result: Long = module.eval(cards)
     result should equal (0)
   }
 
   it should "evaluate a single Ace as 11" in {
     val cards: Seq[Card] = Seq(Card(Ace, Spades))
-    val result: Int = module.eval(cards)
+    val result: Long = module.eval(cards)
     result should equal (11)
   }
 
   it should "evaluate two Aces as 12" in {
     val cards: Seq[Card] = Seq(Card(Ace, Diamonds), Card(Ace, Spades))
-    val result: Int = module.eval(cards)
+    val result: Long = module.eval(cards)
     result should equal (12)
   }
 
   it should "evaluate three Aces as 13" in {
     val cards: Seq[Card] = Seq(Card(Ace, Hearts), Card(Ace, Diamonds), Card(Ace, Spades))
-    val result: Int = module.eval(cards)
+    val result: Long = module.eval(cards)
     result should equal (13)
   }
 
   it should "evaluate four Aces as 14" in {
     val cards: Seq[Card] = Seq(Card(Ace, Clubs), Card(Ace, Hearts), Card(Ace, Diamonds), Card(Ace, Spades))
-    val result: Int = module.eval(cards)
+    val result: Long = module.eval(cards)
     result should equal (14)
   }
 
   it should "evaluate 21 Aces as 21" in {
     val cards: Seq[Card] = for (_ <- 0 until 21) yield Card(Ace, Diamonds)
     cards should have length (21) 
-    val result: Int = module.eval(cards)
+    val result: Long = module.eval(cards)
     result should equal (21)
   }
 
   it should "evaluate a single Two as 2" in {
     val cards: Seq[Card] = Seq(Card(Two, Clubs))
-    val result: Int = module.eval(cards)
+    val result: Long = module.eval(cards)
     result should equal (2)
   }
 
   it should "evaluate two Twos as 4" in {
     val cards: Seq[Card] = Seq(Card(Two, Hearts), Card(Two, Clubs))
-    val result: Int = module.eval(cards)
+    val result: Long = module.eval(cards)
     result should equal (4)
   }
 
   it should "evaluate 2 Jacks as 20" in {
     val cards: Seq[Card] = Seq(Card(Jack, Clubs), Card(Jack, Spades))
-    val result: Int = module.eval(cards)
+    val result: Long = module.eval(cards)
     result should equal (20)
   }
 
   it should "evaluate Queen and Ace as 21" in {
     val cards: Seq[Card] = Seq(Card(Jack, Spades), Card(Ace, Diamonds))
-    val result: Int = module.eval(cards)
+    val result: Long = module.eval(cards)
     result should equal (21)
   }
 
