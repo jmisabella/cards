@@ -43,6 +43,13 @@ case object BlackjackText extends BlackjackController with Textualization {
   override def next(game: BlackjackGameState): BlackjackGameState = super.next(game, 1, f) 
 }
 
+case object Blackjack extends BlackjackController {
+  override type BETTING = BlackjackBetting
+  override type PLAY = BlackjackPlay
+  override val betting = _blackjackBetting
+  override val play = _blackjackPlay
+}
+
 case object ThirtyOneText extends ThirtyOneController with Textualization {
   override type EVAL = ThirtyOneHandEvaluation
   override val evaluation = _thirtyoneEval
