@@ -37,13 +37,17 @@ trait ThirtyOneController extends Controller[ThirtyOnePlayerState, ThirtyOneActi
 
   //////////////////////////////
 
-  override def next(game: ThirtyOneGameState, iterations: Int = 1, serialize: Action[ThirtyOneAction] => String): ThirtyOneGameState = {
+  // iterations: number of iterations to take (number of moves)
+  // purgeHistory: whether to purge history after all players have completed the round
+  // serialize is an optional function which converts a blackjack action to text
+  override def next(game: ThirtyOneGameState, iterations: Int = 1, purgeHistoryAfterRound: Boolean = true, serialize: Action[ThirtyOneAction] => String): ThirtyOneGameState = {
     def turns(game: ThirtyOneGameState, iterations: Int): ThirtyOneGameState = {
       def turn(game: ThirtyOneGameState, serialize: Action[ThirtyOneAction] => String): ThirtyOneGameState = {
         val next = go(game)
-        purgeHistory(game, next) match {
-          case false => next
-          case true => {
+        (purgeHistoryAfterRound, purgeHistory(game, next)) match {
+          case (false, _) => next
+          case (_, false) => next
+          case (true, true) => {
             for (a <- next.history) {
               val printed: String = serialize(a)
               if (printed != "") {

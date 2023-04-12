@@ -63,14 +63,17 @@ trait BlackjackController extends Controller[BlackjackPlayerState, BlackjackActi
     }
   }
 
+  // iterations: number of iterations to take (number of moves)
+  // purgeHistory: whether to purge history after all players have completed the round
   // serialize is an optional function which converts a blackjack action to text
-  override def next(game: BlackjackGameState, iterations: Int = 1, serialize: Action[BlackjackAction] => String): BlackjackGameState = {
+  override def next(game: BlackjackGameState, iterations: Int = 1, purgeHistoryAfterRound: Boolean = true, serialize: Action[BlackjackAction] => String): BlackjackGameState = {
     def turns(game: BlackjackGameState, iterations: Int): BlackjackGameState = {
       def turn(game: BlackjackGameState, serialize: Action[BlackjackAction] => String): BlackjackGameState = {
         val next = go(game)
-        purgeHistory(game, next) match {
-          case false => next
-          case true => {
+        (purgeHistoryAfterRound, purgeHistory(game, next)) match {
+          case (false, _) => next
+          case (_, false) => next
+          case (true, true) => {
             for (a <- next.history) {
               val printed: String = serialize(a)
               if (printed != "") {
