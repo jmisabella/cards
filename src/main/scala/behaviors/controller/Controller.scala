@@ -13,11 +13,11 @@ trait Controller[P <: PlayerState, A <: Enumeration#Value, S <: GameState[P, A]]
 
   protected def purgeHistory(previous: S, current: S): Boolean = previous.round != current.round
   
-  def next(game: S, iterations: Int): S = next(game, iterations, doNothing) 
+  def next(game: S, iterations: Int, purgeHistoryAfterRound: Boolean): S = next(game, iterations, true, doNothing) 
   
-  def next(game: S): S = next(game, 1, doNothing)
+  def next(game: S): S = next(game, 1, true, doNothing)
 
   // serialize is an optional function which converts a game action to text
-  def next(game: S, iterations: Int = 1, serialize: Action[A] => String): S
+  def next(game: S, iterations: Int = 1, purgeHistoryAfterRound: Boolean = true, serialize: Action[A] => String): S
 
 }

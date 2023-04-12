@@ -39,8 +39,8 @@ case object BlackjackText extends BlackjackController with Textualization {
   override val play = _blackjackPlay
 
   private val f: Action[BlackjackAction] => String = words (_: Action[BlackjackAction])
-  override def next(game: BlackjackGameState, iterations: Int): BlackjackGameState = super.next(game, iterations, f) 
-  override def next(game: BlackjackGameState): BlackjackGameState = super.next(game, 1, f) 
+  override def next(game: BlackjackGameState, iterations: Int, purgeHistoryAfterRound: Boolean): BlackjackGameState = super.next(game, iterations, purgeHistoryAfterRound, f)
+  override def next(game: BlackjackGameState): BlackjackGameState = super.next(game, 1, true, f) 
 }
 
 case object Blackjack extends BlackjackController {
@@ -55,7 +55,7 @@ case object ThirtyOneText extends ThirtyOneController with Textualization {
   override val evaluation = _thirtyoneEval
 
   private val f: Action[ThirtyOneAction] => String = words (_: Action[ThirtyOneAction])
-  override def next(game: ThirtyOneGameState, iterations: Int): ThirtyOneGameState = super.next(game, iterations, f) 
-  override def next(game: ThirtyOneGameState): ThirtyOneGameState = super.next(game, 1, f) 
+  override def next(game: ThirtyOneGameState, iterations: Int, purgeHistoryAfterRound: Boolean): ThirtyOneGameState = super.next(game, iterations, purgeHistoryAfterRound, f)
+  override def next(game: ThirtyOneGameState): ThirtyOneGameState = super.next(game, 1, true, f) 
 }
 
