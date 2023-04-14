@@ -23,3 +23,4 @@ object PokerVariant extends Enumeration {
 // TODO: logic for determining number of decks to use (based on number of players and also sometimes takes into account the game variation as well)
 
 // TODO: applicable only to some games such as Omaha, option showing how many community cards and how many personal cards must be selected when forming hand
+

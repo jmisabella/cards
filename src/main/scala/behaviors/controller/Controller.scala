@@ -13,7 +13,7 @@ trait Controller[P <: PlayerState, A <: Enumeration#Value, S <: GameState[P, A]]
 
   protected def purgeHistory(previous: S, current: S): Boolean = previous.round != current.round
   
-  def next(game: S, iterations: Int, purgeHistoryAfterRound: Boolean): S = next(game, iterations, true, doNothing) 
+  def next(game: S, iterations: Int, purgeHistoryAfterRound: Boolean): S = next(game, iterations, purgeHistoryAfterRound, doNothing) 
   
   def next(game: S): S = next(game, 1, true, doNothing)
 
