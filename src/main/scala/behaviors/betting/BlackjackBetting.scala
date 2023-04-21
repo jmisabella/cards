@@ -79,7 +79,7 @@ trait BlackjackBetting {
       // if current player is not selected, then set it to the first player 
       return game.copy(currentPlayerIndex = Some(0))
     }
-    val playerLeavesBecauseGoalReached: Boolean = game.currentPlayer().bank >= game.options.goal
+    val playerLeavesBecauseGoalReached: Boolean = game.currentPlayer().bank >= game.currentPlayer().goal
     val playerLeavesBecauseInsufficientFunds: Boolean = game.currentPlayer().bank < game.minimumBet
     if (playerLeavesBecauseGoalReached || playerLeavesBecauseInsufficientFunds) {
       // player either reached goal or doesn't have sufficient funds, should leave the game and this should be captured in game's history
@@ -97,7 +97,11 @@ trait BlackjackBetting {
         case Some(0) => Some(0)
         case Some(i) => Some(i - 1)
       }
-      return game.copy(players = game.players.filter(_.id != game.currentPlayer().id), history = game.history ++ newHistory, currentPlayerIndex = updatedPlayerIndex)
+      return game.copy(
+        completedPlayers = game.completedPlayers ++ Seq(game.currentPlayer()),
+        players = game.players.filter(_.id != game.currentPlayer().id), 
+        history = game.history ++ newHistory, 
+        currentPlayerIndex = updatedPlayerIndex)
     }
 
     val (minBet, maxBet): (Int, Int) = getMinAndMaxBet(game.currentPlayer(), game)
@@ -283,11 +287,11 @@ trait BlackjackBetting {
           case false => p.bank
           case true => p.bank + wagers(p.id)
         }
-        p.copy(bank = updatedBank, handsAndBets = Nil)
-      }
-      val maximumBank: Int = (game.highestBank, updatedPlayers.map(_.bank).max) match {
-        case (existingBank, newBank) if (newBank > existingBank) => newBank
-        case (existingBank, _) => existingBank
+        val maxBank: Int = (p.highestBank, updatedBank) match {
+          case (highest, current) if (current > highest) => current
+          case (highest, _) => highest
+        }
+        p.copy(bank = updatedBank, handsAndBets = Nil, highestBank = maxBank, rounds = p.rounds + 1)
       }
       game.copy(
         players = updatedPlayers, 
@@ -295,8 +299,7 @@ trait BlackjackBetting {
         dealerHand = Hand(), 
         currentPlayerIndex = None, 
         currentHandIndex = None, 
-        round = game.round + 1,
-        highestBank = maximumBank)
+        round = game.round + 1)
     } 
   }
 
@@ -305,6 +308,5 @@ trait BlackjackBetting {
   def eligibleForInsurance(dealerCards: Seq[Card]): Boolean =
     // only eligible if first turn (dealer only has 2 cards) and the face up card (2nd card) is an Ace 
     dealerCards.length == 2 && dealerCards.tail.head.rank == Ace
-
 
 }

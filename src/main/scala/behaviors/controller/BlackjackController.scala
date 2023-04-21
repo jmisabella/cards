@@ -39,7 +39,11 @@ trait BlackjackController extends Controller[BlackjackPlayerState, BlackjackActi
         case Some(0) => Some(0)
         case Some(i) => Some(i - 1)
       }
-      return game.copy(players = game.players.filter(_.id != game.currentPlayer().id), history = game.history ++ newHistory, currentPlayerIndex = updatedPlayerIndex)
+      return game.copy(
+        completedPlayers = game.completedPlayers ++ Seq(game.currentPlayer()), 
+        players = game.players.filter(_.id != game.currentPlayer().id), 
+        history = game.history ++ newHistory, 
+        currentPlayerIndex = updatedPlayerIndex)
     }
     val shuffleLimit: Int = (game.players.flatMap(_.hands).length + 1) * 5
     if (betting.isTimeToSettle(game)) {
@@ -104,13 +108,13 @@ trait BlackjackController extends Controller[BlackjackPlayerState, BlackjackActi
     turns(game, iterations)
   }
 
-  def init(playerNames: Seq[String], tokens: Int, strategy: BlackjackBettingStrategy, deckCount: Int): BlackjackGameState = {
-    val players: Seq[BlackjackPlayerState] = for (player <- playerNames) yield BlackjackPlayerState(s"$player", tokens, bettingStrategy = strategy)
+  def init(playerNames: Seq[String], tokens: Int, goal: Int, strategy: BlackjackBettingStrategy, deckCount: Int): BlackjackGameState = {
+    val players: Seq[BlackjackPlayerState] = for (player <- playerNames) yield BlackjackPlayerState(s"$player", tokens, goal = goal, bettingStrategy = strategy)
     BlackjackGameState(players = players, minimumBet = (.025 * tokens).toInt)
   }
 
-  def init(playerCount: Int = 1, tokens: Int = 2000, strategy: BlackjackBettingStrategy = NegativeProgression, deckCount: Int = 1): BlackjackGameState = {
+  def init(playerCount: Int = 1, tokens: Int = 2000, goal: Int = 30000, strategy: BlackjackBettingStrategy = NegativeProgression, deckCount: Int = 1): BlackjackGameState = {
     val players: Seq[String] = for (i <- 0 until playerCount) yield s"player${i+1}"
-    init(players, tokens, strategy, deckCount)
+    init(players, tokens, goal, strategy, deckCount)
   }
 }

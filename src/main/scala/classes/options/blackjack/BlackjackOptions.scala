@@ -34,8 +34,7 @@ case class BlackjackOptions(
   allowSurrender: Boolean = true, 
   splitLimit: Option[Int] = Some(3),
   hitOnSplitAces: Boolean = true,
-  resplitOnSplitAces: Boolean = true,
-  goal: Int = 30000) {
+  resplitOnSplitAces: Boolean = true) {
   
   require(deckCount >= 1 && deckCount <= 8, s"deckCount [$deckCount] is outside of allowed range 1-8")
 }

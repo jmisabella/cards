@@ -32,6 +32,9 @@ import cards.classes.bettingstrategy.BlackjackBettingStrategy._
 //                             based on whether bank increases by 15% after 250 games
 // completedHands: starts at 0 and increases with every hand won or lost, the number of completed hands is used to track updating every 25 and 250 
 //                 hands to determine when to refresh bankEvery25Hands and bankEvery250Hands
+// highestBank: tracks the highest bank amount ever achieved by the player
+// rounds: tracks the number of rounds played by the player
+// goal: overall goal upon which reaching player would leave the table
 case class BlackjackPlayerState(
   id: String, 
   bank: Int = 200, 
@@ -43,7 +46,10 @@ case class BlackjackPlayerState(
   oscarsGoal: Int = 0,
   bankedLastBettingAmountUpdate: Int = 1,
   bankedLastStrategyUpdate: Int = 1,
-  completedHands: Int = 0) extends PlayerState {
+  completedHands: Int = 0,
+  highestBank: Int = 0,
+  rounds: Int = 0,
+  goal: Int = 30000) extends PlayerState {
   
     val hands: Seq[Seq[Card]] = handsAndBets.map(_.hand)
     val oscarsGoalMet: Boolean = bank >= oscarsGoal 
@@ -69,6 +75,7 @@ object BlackjackPlayerState {
 }
 
 // dealer's hand's head is the face-up card, all other cards are face down
+// completedPlayers: players who have left the table due to either insufficient funds or reaching the goal
 case class BlackjackGameState(
   override val players: Seq[BlackjackPlayerState] = Nil,
   override val currentPlayerIndex: Option[Int] = None,
@@ -80,7 +87,7 @@ case class BlackjackGameState(
   minimumBet: Int = 1,
   maximumBet: Int = 999999,
   round: Int = 1,
-  highestBank: Int = 0) extends GameState[BlackjackPlayerState, BlackjackAction] {
+  completedPlayers: Seq[BlackjackPlayerState] = Nil) extends GameState[BlackjackPlayerState, BlackjackAction] {
 
     def currentCards(): Seq[Card] = current(currentPlayer().hands, currentHandIndex)
     def nextHandIndex(): Int = nextIndex(currentPlayer().hands, currentHandIndex)
