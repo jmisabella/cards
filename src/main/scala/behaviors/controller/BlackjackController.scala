@@ -31,7 +31,8 @@ trait BlackjackController extends Controller[BlackjackPlayerState, BlackjackActi
     if (game.currentPlayerIndex.isEmpty && (betting.isTimeToPlaceNewBets(game) || betting.isTimeToSettle(game))) {
       return game.copy(currentPlayerIndex = Some(0), currentHandIndex = Some(0))
     }
-    if (!game.currentHandIndex.isEmpty && game.players(game.currentHandIndex.getOrElse(0)).bank < 0) {
+    // if (!game.currentHandIndex.isEmpty && game.players(game.currentHandIndex.getOrElse(0)).bank < 0) { // TODO: does this prevent the index-out-of-bounds exception?
+    if (!game.currentHandIndex.isEmpty && game.currentHandIndex.getOrElse(0) < game.players.length && game.players(game.currentHandIndex.getOrElse(0)).bank < 0) {
       val newHistory: Seq[Action[BlackjackAction]] = Seq(Action(game.currentPlayer().id, LeaveTable))
       val updatedPlayerIndex: Option[Int] = game.currentPlayerIndex match {
         case None => None 
@@ -109,7 +110,7 @@ trait BlackjackController extends Controller[BlackjackPlayerState, BlackjackActi
   }
 
   def init(playerCount: Int = 1, tokens: Int = 2000, strategy: BlackjackBettingStrategy = NegativeProgression, deckCount: Int = 1): BlackjackGameState = {
-    val players: Seq[String] = for (i <- 0 to playerCount) yield s"player${i+1}"
+    val players: Seq[String] = for (i <- 0 until playerCount) yield s"player${i+1}"
     init(players, tokens, strategy, deckCount)
   }
 }

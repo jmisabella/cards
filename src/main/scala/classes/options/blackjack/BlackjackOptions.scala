@@ -26,6 +26,7 @@ object DealerHitLimit extends Enumeration {
 import cards.classes.options.blackjack.BlackjackPayout._
 import cards.classes.options.blackjack.DealerHitLimit._
 
+// goal is the goal bank amount, upon reaching would cause player to leave table
 case class BlackjackOptions(
   deckCount: Int = 1,
   dealerHitLimit: DealerHitLimit = S17,
@@ -33,7 +34,8 @@ case class BlackjackOptions(
   allowSurrender: Boolean = true, 
   splitLimit: Option[Int] = Some(3),
   hitOnSplitAces: Boolean = true,
-  resplitOnSplitAces: Boolean = true) {
+  resplitOnSplitAces: Boolean = true,
+  goal: Int = 30000) {
   
   require(deckCount >= 1 && deckCount <= 8, s"deckCount [$deckCount] is outside of allowed range 1-8")
 }

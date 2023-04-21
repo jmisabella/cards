@@ -79,7 +79,8 @@ case class BlackjackGameState(
   dealerHand: Hand = Hand.empty, // bets are only placed on dealer's hand when purchasing insurance
   minimumBet: Int = 1,
   maximumBet: Int = 999999,
-  round: Int = 1) extends GameState[BlackjackPlayerState, BlackjackAction] {
+  round: Int = 1,
+  highestBank: Int = 0) extends GameState[BlackjackPlayerState, BlackjackAction] {
 
     def currentCards(): Seq[Card] = current(currentPlayer().hands, currentHandIndex)
     def nextHandIndex(): Int = nextIndex(currentPlayer().hands, currentHandIndex)
@@ -123,3 +124,5 @@ case class BlackjackGameState(
         })
     }
 }
+
+// case class BlackjackFinalState(highestBank: Int = 0, history: Seq[Action[BlackjackAction]] = Nil)

@@ -253,4 +253,9 @@ class BlackjackControllerSpec extends AnyFlatSpec with GivenWhenThen {
     
     pending
   }
+
+  it should "determine complete run up to a given maximum limit" in {
+
+    pending 
+  }
 }

@@ -311,7 +311,7 @@ trait ThirtyOneController extends Controller[ThirtyOnePlayerState, ThirtyOneActi
   }
 
   def init(playerCount: Int = 1): ThirtyOneGameState = {
-    val players: Seq[String] = for (i <- 0 to playerCount) yield s"player${i+1}"
+    val players: Seq[String] = for (i <- 0 until playerCount) yield s"player${i+1}"
     init(players)
   }
 
