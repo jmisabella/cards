@@ -139,7 +139,7 @@ case class CompletedBlackjack(players: PlayerSummaries, history: Seq[Action[Blac
 }
 object CompletedBlackjack {
   def apply(game: BlackjackGameState): CompletedBlackjack = {
-    CompletedBlackjack(PlayerSummaries(game.completedPlayers.map(PlayerSummary(_))), game.history)
+    CompletedBlackjack(PlayerSummaries((game.completedPlayers ++ game.players).map(PlayerSummary(_)).distinct), game.history)
   }
   implicit val format: Format[CompletedBlackjack] = Json.format[CompletedBlackjack]
 }

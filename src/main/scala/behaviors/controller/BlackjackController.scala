@@ -120,7 +120,7 @@ trait BlackjackController extends Controller[BlackjackPlayerState, BlackjackActi
 
   def completeGame(playerCount: Int = 1, tokens: Int = 2000, goal: Int = 30000, strategy: BlackjackBettingStrategy = NegativeProgression, deckCount: Int = 1): CompletedBlackjack = {
     val initialState: BlackjackGameState = init(playerCount, tokens, goal, strategy, deckCount)
-    val finalState: BlackjackGameState = play(initialState, 40000)
+    val finalState: BlackjackGameState = play(initialState, 40000 * playerCount)
     CompletedBlackjack(finalState)
   }
 }
