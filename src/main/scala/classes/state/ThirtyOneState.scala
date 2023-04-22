@@ -9,7 +9,7 @@ import cards.classes.actions.ThirtyOneAction._
 
 case class ThirtyOnePlayerState(
   override val id: String, 
-  tokens: Int = 4, // simulates the idea of player having 3 tokens and then 1 free "on-the-house" play
+  override val bank: Int = 4, // simulates the idea of player having 3 tokens and then 1 free "on-the-house" play
   hand: Seq[Card] = Nil,
   suspectedSuitChange: Boolean = false,
   suspectedCards: Seq[Card] = Nil) extends PlayerState
@@ -41,7 +41,7 @@ case class ThirtyOneGameState(
     def updatedTokens(loserDebts: Map[String, Int]): Seq[ThirtyOnePlayerState] = {
       for (p <- players) yield {
         if (loserDebts.keySet.contains(p.id))
-          p.copy(tokens = p.tokens - loserDebts(p.id))
+          p.copy(bank = p.bank- loserDebts(p.id))
         else
           p
       }

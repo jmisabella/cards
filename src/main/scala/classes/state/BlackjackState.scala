@@ -1,6 +1,6 @@
 package cards.classes.state
 
-import cards.classes.state.{ PlayerState, GameState }
+import cards.classes.state.{ PlayerState, GameState, PlayerSummaries }
 import cards.classes.{ Card, Rank, Suit, Deck }
 import cards.classes.Rank._
 import cards.classes.Suit._
@@ -9,6 +9,7 @@ import cards.classes.options.blackjack.BlackjackOptions
 import cards.classes.actions.{ Action, BlackjackAction }
 import cards.classes.actions.BlackjackAction._
 import cards.classes.bettingstrategy.BlackjackBettingStrategy._
+import play.api.libs.json.{ Json, Format }
 
 // id: player's unique identifier
 // bank: player's available tokens
@@ -36,8 +37,8 @@ import cards.classes.bettingstrategy.BlackjackBettingStrategy._
 // rounds: tracks the number of rounds played by the player
 // goal: overall goal upon which reaching player would leave the table
 case class BlackjackPlayerState(
-  id: String, 
-  bank: Int = 200, 
+  override val id: String, 
+  override val bank: Int = 200, 
   handsAndBets: Seq[Hand] = Nil, 
   minBetMultiplier: Double = 1.0,
   maxBet: Option[Int] = None,
@@ -47,8 +48,8 @@ case class BlackjackPlayerState(
   bankedLastBettingAmountUpdate: Int = 1,
   bankedLastStrategyUpdate: Int = 1,
   completedHands: Int = 0,
-  highestBank: Int = 0,
-  rounds: Int = 0,
+  override val highestBank: Int = 0,
+  override val rounds: Int = 0,
   goal: Int = 30000) extends PlayerState {
   
     val hands: Seq[Seq[Card]] = handsAndBets.map(_.hand)
@@ -70,7 +71,7 @@ case class BlackjackPlayerState(
 }
 
 object BlackjackPlayerState {
-  def apply(hands: Seq[Seq[Card]], id: String, bank: Int): BlackjackPlayerState = BlackjackPlayerState(id, bank, hands.map(h => Hand(h)))
+  def apply(hands: Seq[Seq[Card]], id: String, bank: Int): BlackjackPlayerState = BlackjackPlayerState(id, bank, handsAndBets = hands.map(h => Hand(h)))
   def apply(id: String, hand: Seq[Card], bank: Int): BlackjackPlayerState = BlackjackPlayerState(Seq(hand), id, bank) 
 }
 
@@ -132,4 +133,11 @@ case class BlackjackGameState(
     }
 }
 
-// case class BlackjackFinalState(highestBank: Int = 0, history: Seq[Action[BlackjackAction]] = Nil)
+// game summary
+case class CompletedBlackjack(players: PlayerSummaries, history: Seq[Action[BlackjackAction]])
+object CompletedBlackjack {
+  def apply(game: BlackjackGameState): CompletedBlackjack = {
+    CompletedBlackjack(PlayerSummaries(game.completedPlayers.map(PlayerSummary(_))), game.history)
+  }
+  implicit val format: Format[CompletedBlackjack] = Json.format[CompletedBlackjack]
+}

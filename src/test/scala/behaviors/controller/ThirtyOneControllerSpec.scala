@@ -430,7 +430,7 @@ and next's potential score is less than current player's score""" in {
     paymentSettled = module.next(paymentSettled) // takes 2 turns to complete
     Then("the winner and knocked flags would both be disabled and the lowest player would have pay 1 token")
     paymentSettled.history.filter(a => a.action != Show && a.action != Win).reverse.head should equal (Action("player2", Pay, Nil, Some(1))) 
-    paymentSettled.players.filter(_.id == "player2").head.tokens should equal (2) 
+    paymentSettled.players.filter(_.id == "player2").head.bank should equal (2) 
     paymentSettled.winningPlayerId shouldBe empty
   }
 
@@ -482,7 +482,7 @@ and next's potential score is less than current player's score""" in {
     Then("the lone loser who is also the knocker must pay double (2) tokens")
     val history = paymentSettled.history.filter(a => a.action != Show && a.action != Win) 
     history.reverse.head should equal (Action("player3", Pay, Nil, Some(2)) )
-    paymentSettled.players.filter(_.id == "player3").head.tokens should equal (1) 
+    paymentSettled.players.filter(_.id == "player3").head.bank should equal (1) 
   }
 
   it should "make the knocker pay 2 tokens and the other player whose hand ties as lowest pay 1 token" in {
@@ -508,11 +508,11 @@ and next's potential score is less than current player's score""" in {
     history.reverse.head should (equal (Action("player2", Pay, Nil, Some(1))) or equal (Action("player3", Pay, Nil, Some(2))) )
     history.reverse.tail.head should (equal (Action("player2", Pay, Nil, Some(1))) or equal (Action("player3", Pay, Nil, Some(2))) )
     info("player1 didn't pay so should have all 3 tokens")
-    paymentSettled.players.filter(_.id == "player1").head.tokens should equal (3)
+    paymentSettled.players.filter(_.id == "player1").head.bank should equal (3)
     info("player2 payed 1 so should have 2 tokens remaining")
-    paymentSettled.players.filter(_.id == "player2").head.tokens should equal (2)
+    paymentSettled.players.filter(_.id == "player2").head.bank should equal (2)
     info("player3 payed 2 so should have only 1 token remaining")
-    paymentSettled.players.filter(_.id == "player3").head.tokens should equal (1)
+    paymentSettled.players.filter(_.id == "player3").head.bank should equal (1)
   }
 
   it should "make a player who runs out of tokens leave the game" in {
