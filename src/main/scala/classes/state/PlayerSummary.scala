@@ -24,5 +24,5 @@ case class PlayerSummaries(players: Seq[PlayerSummary]) {
 }
 object PlayerSummaries {
   implicit val format1: Format[PlayerSummary] = Json.format[PlayerSummary]
-  implicit val format2: Format[PlayerSummaries ] = Json.format[PlayerSummaries ]
+  implicit val format2: Format[PlayerSummaries] = Json.format[PlayerSummaries]
 }

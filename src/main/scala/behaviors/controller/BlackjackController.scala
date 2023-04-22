@@ -5,7 +5,7 @@ import cards.behaviors.betting.BlackjackBetting
 import cards.classes.bettingstrategy.BlackjackBettingStrategy
 import cards.classes.bettingstrategy.BlackjackBettingStrategy._
 import cards.behaviors.play.BlackjackPlay
-import cards.classes.state.{ BlackjackPlayerState, BlackjackGameState }
+import cards.classes.state.{ BlackjackPlayerState, BlackjackGameState, CompletedBlackjack }
 import cards.classes.{ Card, Deck }
 import cards.classes.Rank._
 import cards.classes.Suit._
@@ -116,5 +116,11 @@ trait BlackjackController extends Controller[BlackjackPlayerState, BlackjackActi
   def init(playerCount: Int = 1, tokens: Int = 2000, goal: Int = 30000, strategy: BlackjackBettingStrategy = NegativeProgression, deckCount: Int = 1): BlackjackGameState = {
     val players: Seq[String] = for (i <- 0 until playerCount) yield s"player${i+1}"
     init(players, tokens, goal, strategy, deckCount)
+  }
+
+  def completeGame(playerCount: Int = 1, tokens: Int = 2000, goal: Int = 30000, strategy: BlackjackBettingStrategy = NegativeProgression, deckCount: Int = 1): CompletedBlackjack = {
+    val initialState: BlackjackGameState = init(playerCount, tokens, goal, strategy, deckCount)
+    val finalState: BlackjackGameState = play(initialState, 40000)
+    CompletedBlackjack(finalState)
   }
 }

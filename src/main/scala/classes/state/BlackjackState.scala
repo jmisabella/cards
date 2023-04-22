@@ -134,7 +134,9 @@ case class BlackjackGameState(
 }
 
 // game summary
-case class CompletedBlackjack(players: PlayerSummaries, history: Seq[Action[BlackjackAction]])
+case class CompletedBlackjack(players: PlayerSummaries, history: Seq[Action[BlackjackAction]]) {
+  override def toString(): String = s"""{"blackjack": {"players": ${players.toString()}, "history": ${history.mkString("[", ", ", "]")}}}""" 
+}
 object CompletedBlackjack {
   def apply(game: BlackjackGameState): CompletedBlackjack = {
     CompletedBlackjack(PlayerSummaries(game.completedPlayers.map(PlayerSummary(_))), game.history)
