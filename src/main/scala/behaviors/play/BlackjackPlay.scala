@@ -23,6 +23,16 @@ trait BlackjackPlay {
   private def pairMatchingRank(cards: Seq[Card]): Boolean = cards.length == 2 && countRank(cards).values.toSeq.contains(2)
   private def pairOfAces(cards: Seq[Card]): Boolean = pairMatchingRank(cards) && cards.head.rank == Ace
 
+  def canDoubleDown(game: BlackjackGameState): Boolean = {
+    val hand = game.currentHand()
+    val player = game.currentPlayer() 
+    game.players.length > 0 && // at least 1 player 
+      game.currentPlayerIndex.isDefined && // current player exists
+      hand.hand.length == 2 && // current hand is length 2 
+      hand.bets.keySet.contains(player.id) && // current player has bet on his hand 
+      player.bank > 2 * hand.bets(player.id) // current player has enough in bank to cover the bet again
+  }
+
   // Players can only split on first play (only 2 cards) when both cards have same value
   // Tens, Jacks, Queens, and Kings are all considered the same value, meaning that player can split on Ten and Queen, etc... 
   // Dealers cannot split but this function doesn't check for this
@@ -193,7 +203,8 @@ trait BlackjackPlay {
     if (!isTimeToPlay(game)) {
       throw new IllegalArgumentException(s"Cannot play current hand because it's not currently time to play hand")
     }
-    val canDoubleDown: Boolean = game.currentCards().length == 2
+    // TODO: update this method to also inspect current player's last bet as well as their bank to determine whether they have funds to DoubleDown
+    val canDouble: Boolean = canDoubleDown(game)  //game.currentCards().length == 2
     // we only care about this current player's actions
     val previousActions: Seq[Action[BlackjackAction]] = game.history.filter(_.playerId == game.currentPlayer().id)
     // current player's split count from history
@@ -213,7 +224,7 @@ trait BlackjackPlay {
     val tens: Seq[Rank] = Seq(Ten, Jack, Queen, King) // ranks which have value of 10
 
     // this logic is Basic Strategy in Blackjack 
-    (highestRank, tailScore, totalScore, dealerFaceUpRank, canDoubleDown, eligibleToSplit, surrenderOffered) match {
+    (highestRank, tailScore, totalScore, dealerFaceUpRank, canDouble, eligibleToSplit, surrenderOffered) match {
       // **** case 1: pairs
       // eligible to split on aces, do it regardless of dealer's showing card
       case (Ace, _, _, _, _, true, _) => Split
