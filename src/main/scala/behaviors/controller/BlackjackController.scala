@@ -110,7 +110,7 @@ trait BlackjackController extends Controller[BlackjackPlayerState, BlackjackActi
 
   def init(playerNames: Seq[String], tokens: Int, goal: Int, strategy: BlackjackBettingStrategy, deckCount: Int): BlackjackGameState = {
     val players: Seq[BlackjackPlayerState] = for (player <- playerNames) yield BlackjackPlayerState(s"$player", tokens, goal = goal, bettingStrategy = strategy)
-    BlackjackGameState(players = players, minimumBet = (.025 * tokens).toInt)
+    BlackjackGameState(players = players, minimumBet = (.025 * tokens).toInt, deck = Deck(Seq(Card(LeftBower, Joker), Card(RightBower, Joker)), deckCount))
   }
 
   def init(playerCount: Int = 1, tokens: Int = 2000, goal: Int = 30000, strategy: BlackjackBettingStrategy = NegativeProgression, deckCount: Int = 1): BlackjackGameState = {
@@ -118,7 +118,47 @@ trait BlackjackController extends Controller[BlackjackPlayerState, BlackjackActi
     init(players, tokens, goal, strategy, deckCount)
   }
 
-  def completeGame(playerCount: Int = 1, tokens: Int = 2000, goal: Int = 30000, strategy: BlackjackBettingStrategy = NegativeProgression, deckCount: Int = 1): CompletedBlackjack = {
+  def init(state: CompletedBlackjack): BlackjackGameState = {
+    val remaining: Seq[BlackjackPlayerState] = state.players.players.filter(p => p.bank > 0).map(p => BlackjackPlayerState(p.id, p.bank, goal = p.highestBank * 4))
+    remaining match {
+      case Nil => init(0) // no players left
+      case xs => {
+        val lowest: Int = xs.map(_.bank).min
+        BlackjackGameState(players = xs, minimumBet = (.025 * lowest).toInt)
+      } 
+    }
+  }
+
+  def continuedState(previousGame: CompletedBlackjack, newGoal: Int = 30000, strategy: BlackjackBettingStrategy = NegativeProgression, deckCount: Int = 1): BlackjackGameState = {
+    val remaining = previousGame.players.players.filter(p => p.bank > 0)
+    remaining match {
+      case Nil => init(0) // no players left
+      case xs => {
+        val players: Seq[BlackjackPlayerState] = remaining.map(BlackjackPlayerState(_).copy(bettingStrategy = strategy, goal = newGoal))
+        val lowest: Int = players.map(_.bank).min
+        BlackjackGameState(players = players, minimumBet = (.025 * lowest).toInt)
+      } 
+    }
+  }
+
+  def completeGame(state: CompletedBlackjack, deckCount: Int): CompletedBlackjack = {
+    val highest: Int = state.players.players.map(_.bank).max
+    val initialState: BlackjackGameState = continuedState(state, newGoal = highest * 10, deckCount = deckCount)
+    completeGame(initialState)
+  }
+  
+  def completeGame(state: BlackjackGameState): CompletedBlackjack = {
+    val finalState: BlackjackGameState = play(state.copy(players = state.players.map(p => p.copy(goal = p.goal * 2))), 40000 * state.players.length)
+    CompletedBlackjack(finalState)
+  }
+
+  def completeGame(
+      playerCount: Int = 1, 
+      tokens: Int = 2000, 
+      goal: Int = 30000, 
+      strategy: BlackjackBettingStrategy = NegativeProgression, 
+      deckCount: Int = 1): CompletedBlackjack = {
+
     val initialState: BlackjackGameState = init(playerCount, tokens, goal, strategy, deckCount)
     val finalState: BlackjackGameState = play(initialState, 40000 * playerCount)
     CompletedBlackjack(finalState)

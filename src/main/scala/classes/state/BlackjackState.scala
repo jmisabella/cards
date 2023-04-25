@@ -1,6 +1,6 @@
 package cards.classes.state
 
-import cards.classes.state.{ PlayerState, GameState, PlayerSummaries }
+import cards.classes.state.{ PlayerState, GameState, PlayerSummary, PlayerSummaries }
 import cards.classes.{ Card, Rank, Suit, Deck }
 import cards.classes.Rank._
 import cards.classes.Suit._
@@ -73,6 +73,7 @@ case class BlackjackPlayerState(
 object BlackjackPlayerState {
   def apply(hands: Seq[Seq[Card]], id: String, bank: Int): BlackjackPlayerState = BlackjackPlayerState(id, bank, handsAndBets = hands.map(h => Hand(h)))
   def apply(id: String, hand: Seq[Card], bank: Int): BlackjackPlayerState = BlackjackPlayerState(Seq(hand), id, bank) 
+  def apply(summary: PlayerSummary): BlackjackPlayerState = BlackjackPlayerState(summary.id, Nil, summary.bank)
 }
 
 // dealer's hand's head is the face-up card, all other cards are face down

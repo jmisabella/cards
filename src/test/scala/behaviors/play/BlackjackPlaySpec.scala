@@ -876,4 +876,29 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
     Then("player cannot double-down, since player only has 100 left in bank and would need 200 in order to double-down")
     canDoubleDown(game) shouldBe (false)
   }
+
+  it should "not allow a player who'd bet 100 from a bank of 300 to double-down on 3 cards, since player should only double-down on exactly 2 cards" in {
+    Given("a game at the betting phase with a player who has bank of 300")
+    val player1 = BlackjackPlayerState(
+      "Jeffrey", 
+      300, 
+      Nil)
+    var game = BlackjackGameState(
+      options = BlackjackOptions(), 
+      minimumBet = 5, 
+      dealerHand = Hand(), 
+      players = Seq(player1), 
+      currentPlayerIndex = Some(0),
+      currentHandIndex = Some(0))
+    When("player bets 100 on initial hand of 2 cards")
+    val betAmount: Int = 100
+    game = game.copy(players = Seq(player1.copy(handsAndBets = Seq(Hand(Seq(Card(Seven, Hearts), Card(Two, Diamonds), Card(Two, Clubs)), Map("Jeffrey" -> betAmount))))))
+    Then("player has 1 hand")
+    game.players.head.hands should have length (1)
+    Then("player's hand has 3 cards")
+    game.players.head.hands.head should have length (3)
+    Then("player cannot double-down, since player has 3 cards")
+    canDoubleDown(game) shouldBe (false)
+  }
+
 }
