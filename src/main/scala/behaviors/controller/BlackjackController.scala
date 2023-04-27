@@ -110,7 +110,11 @@ trait BlackjackController extends Controller[BlackjackPlayerState, BlackjackActi
 
   def init(playerNames: Seq[String], tokens: Int, goal: Int, strategy: BlackjackBettingStrategy, deckCount: Int): BlackjackGameState = {
     val players: Seq[BlackjackPlayerState] = for (player <- playerNames) yield BlackjackPlayerState(s"$player", tokens, goal = goal, bettingStrategy = strategy)
-    BlackjackGameState(players = players, minimumBet = (.025 * tokens).toInt, deck = Deck(Seq(Card(LeftBower, Joker), Card(RightBower, Joker)), deckCount))
+    val minimum: Int = (.025 * tokens).toInt match {
+      case 0 => 1
+      case n => n 
+    } 
+    BlackjackGameState(players = players, minimumBet = minimum, deck = Deck(Seq(Card(LeftBower, Joker), Card(RightBower, Joker)), deckCount))
   }
 
   def init(playerCount: Int = 1, tokens: Int = 2000, goal: Int = 30000, strategy: BlackjackBettingStrategy = NegativeProgression, deckCount: Int = 1): BlackjackGameState = {
@@ -124,7 +128,11 @@ trait BlackjackController extends Controller[BlackjackPlayerState, BlackjackActi
       case Nil => init(0) // no players left
       case xs => {
         val lowest: Int = xs.map(_.bank).min
-        BlackjackGameState(players = xs, minimumBet = (.025 * lowest).toInt)
+        val minimum: Int = (.025 * lowest).toInt match {
+          case 0 => 1
+          case n => n 
+        } 
+        BlackjackGameState(players = xs.filter(p => p.bank >= minimum), minimumBet = minimum)
       } 
     }
   }
@@ -136,7 +144,11 @@ trait BlackjackController extends Controller[BlackjackPlayerState, BlackjackActi
       case xs => {
         val players: Seq[BlackjackPlayerState] = remaining.map(BlackjackPlayerState(_).copy(bettingStrategy = strategy, goal = newGoal))
         val lowest: Int = players.map(_.bank).min
-        BlackjackGameState(players = players, minimumBet = (.025 * lowest).toInt)
+        val minimum: Int = (.025 * lowest).toInt match {
+          case 0 => 1
+          case n => n 
+        } 
+        BlackjackGameState(players = players.filter(p => p.bank >= minimum), minimumBet = minimum)
       } 
     }
   }

@@ -86,7 +86,7 @@ case class BlackjackGameState(
   currentHandIndex: Option[Int] = None, 
   options: BlackjackOptions = BlackjackOptions(),
   dealerHand: Hand = Hand.empty, // bets are only placed on dealer's hand when purchasing insurance
-  minimumBet: Int = 1,
+  minimumBet: Int = 20,
   maximumBet: Int = 999999,
   round: Int = 1,
   completedPlayers: Seq[BlackjackPlayerState] = Nil) extends GameState[BlackjackPlayerState, BlackjackAction] {
