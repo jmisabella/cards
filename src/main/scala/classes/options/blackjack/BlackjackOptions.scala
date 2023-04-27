@@ -26,6 +26,7 @@ object DealerHitLimit extends Enumeration {
 import cards.classes.options.blackjack.BlackjackPayout._
 import cards.classes.options.blackjack.DealerHitLimit._
 
+// goal is the goal bank amount, upon reaching would cause player to leave table
 case class BlackjackOptions(
   deckCount: Int = 1,
   dealerHitLimit: DealerHitLimit = S17,

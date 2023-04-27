@@ -5,6 +5,9 @@ import cards.classes.actions.Action
 
 trait PlayerState {
   val id: String
+  val bank: Int
+  val highestBank: Int = 0
+  val rounds: Int = 0
 }
 
 trait GameState[A <: PlayerState, B <: Enumeration#Value] {
@@ -31,3 +34,4 @@ trait GameState[A <: PlayerState, B <: Enumeration#Value] {
       case (xs, Some(i)) => (i + 1) % xs.length
     } 
 }
+

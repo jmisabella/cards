@@ -142,7 +142,7 @@ trait ThirtyOneController extends Controller[ThirtyOnePlayerState, ThirtyOneActi
       val updatedPot: Int = gameState.pot + loserDebts.values.toList.foldLeft(0)(_ + _)
       val paymentHistory: Seq[Action[ThirtyOneAction]] = (for ((player, debt) <- loserDebts) yield Action(player, Pay, Nil, actionTokens = Some(debt))).toSeq
       var updatedPlayers: Seq[ThirtyOnePlayerState] = gameState.updatedTokens(loserDebts)
-      val removedPlayers: Seq[String] = updatedPlayers.filter(p => p.tokens <= 0).map(_.id)
+      val removedPlayers: Seq[String] = updatedPlayers.filter(p => p.bank <= 0).map(_.id)
       val lostPlayerHistory: Seq[Action[ThirtyOneAction]] = removedPlayers.map(p => Action(p, LeaveTable))
       val showCardsHistory: Seq[Action[ThirtyOneAction]] = gameState.players.map(p => Action(p.id, Show, p.hand))
       val returnedCards: Seq[Card] = gameState.players.flatMap(_.hand)
@@ -151,7 +151,7 @@ trait ThirtyOneController extends Controller[ThirtyOnePlayerState, ThirtyOneActi
         case false => Nil
         case true => {
           val winner: String = (gameState.players.map(_.id).diff(removedPlayers)).headOption.getOrElse("MISSING")
-          updatedPlayers = updatedPlayers.map(p => if (p.id == winner) p.copy(tokens = p.tokens + updatedPot) else p) 
+          updatedPlayers = updatedPlayers.map(p => if (p.id == winner) p.copy(bank = p.bank + updatedPot) else p) 
           Seq(Action(winner, Win, Nil, Some(gameState.pot)))
         }
       }
@@ -311,7 +311,7 @@ trait ThirtyOneController extends Controller[ThirtyOnePlayerState, ThirtyOneActi
   }
 
   def init(playerCount: Int = 1): ThirtyOneGameState = {
-    val players: Seq[String] = for (i <- 0 to playerCount) yield s"player${i+1}"
+    val players: Seq[String] = for (i <- 0 until playerCount) yield s"player${i+1}"
     init(players)
   }
 

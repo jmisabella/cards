@@ -1,6 +1,6 @@
 package cards.classes.state
 
-import cards.classes.state.{ PlayerState, GameState }
+import cards.classes.state.{ PlayerState, GameState, PlayerSummary, PlayerSummaries }
 import cards.classes.{ Card, Rank, Suit, Deck }
 import cards.classes.Rank._
 import cards.classes.Suit._
@@ -9,6 +9,7 @@ import cards.classes.options.blackjack.BlackjackOptions
 import cards.classes.actions.{ Action, BlackjackAction }
 import cards.classes.actions.BlackjackAction._
 import cards.classes.bettingstrategy.BlackjackBettingStrategy._
+import play.api.libs.json.{ Json, Format }
 
 // id: player's unique identifier
 // bank: player's available tokens
@@ -32,9 +33,12 @@ import cards.classes.bettingstrategy.BlackjackBettingStrategy._
 //                             based on whether bank increases by 15% after 250 games
 // completedHands: starts at 0 and increases with every hand won or lost, the number of completed hands is used to track updating every 25 and 250 
 //                 hands to determine when to refresh bankEvery25Hands and bankEvery250Hands
+// highestBank: tracks the highest bank amount ever achieved by the player
+// rounds: tracks the number of rounds played by the player
+// goal: overall goal upon which reaching player would leave the table
 case class BlackjackPlayerState(
-  id: String, 
-  bank: Int = 200, 
+  override val id: String, 
+  override val bank: Int = 200, 
   handsAndBets: Seq[Hand] = Nil, 
   minBetMultiplier: Double = 1.0,
   maxBet: Option[Int] = None,
@@ -43,7 +47,10 @@ case class BlackjackPlayerState(
   oscarsGoal: Int = 0,
   bankedLastBettingAmountUpdate: Int = 1,
   bankedLastStrategyUpdate: Int = 1,
-  completedHands: Int = 0) extends PlayerState {
+  completedHands: Int = 0,
+  override val highestBank: Int = 0,
+  override val rounds: Int = 0,
+  goal: Int = 30000) extends PlayerState {
   
     val hands: Seq[Seq[Card]] = handsAndBets.map(_.hand)
     val oscarsGoalMet: Boolean = bank >= oscarsGoal 
@@ -64,11 +71,13 @@ case class BlackjackPlayerState(
 }
 
 object BlackjackPlayerState {
-  def apply(hands: Seq[Seq[Card]], id: String, bank: Int): BlackjackPlayerState = BlackjackPlayerState(id, bank, hands.map(h => Hand(h)))
+  def apply(hands: Seq[Seq[Card]], id: String, bank: Int): BlackjackPlayerState = BlackjackPlayerState(id, bank, handsAndBets = hands.map(h => Hand(h)))
   def apply(id: String, hand: Seq[Card], bank: Int): BlackjackPlayerState = BlackjackPlayerState(Seq(hand), id, bank) 
+  def apply(summary: PlayerSummary): BlackjackPlayerState = BlackjackPlayerState(summary.id, Nil, summary.bank)
 }
 
 // dealer's hand's head is the face-up card, all other cards are face down
+// completedPlayers: players who have left the table due to either insufficient funds or reaching the goal
 case class BlackjackGameState(
   override val players: Seq[BlackjackPlayerState] = Nil,
   override val currentPlayerIndex: Option[Int] = None,
@@ -77,9 +86,10 @@ case class BlackjackGameState(
   currentHandIndex: Option[Int] = None, 
   options: BlackjackOptions = BlackjackOptions(),
   dealerHand: Hand = Hand.empty, // bets are only placed on dealer's hand when purchasing insurance
-  minimumBet: Int = 1,
+  minimumBet: Int = 20,
   maximumBet: Int = 999999,
-  round: Int = 1) extends GameState[BlackjackPlayerState, BlackjackAction] {
+  round: Int = 1,
+  completedPlayers: Seq[BlackjackPlayerState] = Nil) extends GameState[BlackjackPlayerState, BlackjackAction] {
 
     def currentCards(): Seq[Card] = current(currentPlayer().hands, currentHandIndex)
     def nextHandIndex(): Int = nextIndex(currentPlayer().hands, currentHandIndex)
@@ -122,4 +132,15 @@ case class BlackjackGameState(
           case Lose => false
         })
     }
+}
+
+// game summary
+case class CompletedBlackjack(players: PlayerSummaries, history: Seq[Action[BlackjackAction]]) {
+  override def toString(): String = s"""{"blackjack": {"players": ${players.toString()}, "history": ${history.mkString("[", ", ", "]")}}}""" 
+}
+object CompletedBlackjack {
+  def apply(game: BlackjackGameState): CompletedBlackjack = {
+    CompletedBlackjack(PlayerSummaries((game.completedPlayers ++ game.players).map(PlayerSummary(_)).distinct), game.history)
+  }
+  implicit val format: Format[CompletedBlackjack] = Json.format[CompletedBlackjack]
 }

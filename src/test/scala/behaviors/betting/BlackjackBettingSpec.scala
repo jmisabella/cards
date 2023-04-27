@@ -1609,6 +1609,22 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     result should be (true)
   }
 
-
+  it should "remove a player who cannot pay the minimum bet due to insufficient funds" in {
+    Given("table with minimum bet 50 and 2 players, 1 of whom has only 25 in bank and the other who has a bank of 200")
+    val player1 = BlackjackPlayerState(
+      id = "Jeffrey", 
+      bank = 25)
+    val player2 = BlackjackPlayerState(
+      id = "Brandon",
+      bank = 200)
+    val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1, player2), minimumBet = 50, maximumBet = 200, currentPlayerIndex = Some(0))
+    game.players should have length (2) 
+    When("it is time to take bets")
+    isTimeToPlaceNewBets(game) shouldBe (true) 
+    val nextState = placeBet(game) 
+    Then("the player with bank of 25 is removed from the game")
+    nextState.players should have length (1)
+    nextState.players.head.id should equal ("Brandon") 
+  }
 
 }
