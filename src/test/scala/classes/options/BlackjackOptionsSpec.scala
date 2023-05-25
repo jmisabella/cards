@@ -3,8 +3,12 @@ package cards.classes.options
 import cards.classes.options.blackjack.BlackjackOptions
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
+import org.scalatest.GivenWhenThen
+import cards.classes.options.blackjack.DealerHitLimit
+import cards.classes.options.blackjack.BlackjackPayout
+import play.api.libs.json.Json
 
-class BlackjackOptionsSpec extends AnyFlatSpec {
+class BlackjackOptionsSpec extends AnyFlatSpec with GivenWhenThen {
   "BlackjackOptions" should "allow between 1 and 8 decks to be used but disallow any number of decks outside of the allowed range 1-8" in {
     BlackjackOptions(1)
     BlackjackOptions(2)
@@ -17,4 +21,74 @@ class BlackjackOptionsSpec extends AnyFlatSpec {
     an [IllegalArgumentException] should be thrownBy BlackjackOptions(0)
     an [IllegalArgumentException] should be thrownBy BlackjackOptions(9)
   }
+
+  it should "be able to serialize as a json string" in {
+    Given("a blackjack options with deck count 1, dealer hit limit S17, 1:1 blackjack payout, split limit 3, and allowance of " + 
+      " surrender, hit on split aces, and resplit on split aces")
+    val options = BlackjackOptions(1, DealerHitLimit.S17, BlackjackPayout.OneToOne, true, Some(3), true, true)
+    When("converting the blackjack options object to a string representation")
+    val result: String = options.toString() 
+    Then("the result is in JSON format")
+    val expected: String = 
+      (Json.obj(
+        "deck-count" -> options.deckCount,
+        "dealer-hit-limit" -> options.dealerHitLimit,
+        "blackjack-payout" -> options.blackjackPayout,
+        "allow-surrender" -> options.allowSurrender,
+        "split-limit" -> options.splitLimit.get,
+        "hit-on-split-aces" -> options.hitOnSplitAces,
+        "resplit-on-split-aces" -> options.resplitOnSplitAces,
+      )).toString()
+    result should equal (expected)
+  }
+
+  it should "be able to deserialize a json string with split-limit specified to an object" in {
+    Given("JSON string which includes the following fields: deck count 1, dealer hit limit S17, 1:1 blackjack payout, split limit 3, and allowances of " + 
+      " surrender, hit on split aces, and resplit on split aces")
+    val json: String = 
+      (Json.obj(
+        "deck-count" -> 1,
+        "dealer-hit-limit" -> "S17",
+        "blackjack-payout" -> "OneToOne",
+        "allow-surrender" -> true,
+        "split-limit" -> 3,
+        "hit-on-split-aces" -> true,
+        "resplit-on-split-aces" -> true,
+      )).toString()
+    When("converting the JSON string into a blackjack options object")
+    val result = BlackjackOptions(json)
+    Then("the object should be created as expected without any deserialization errors")
+    result.splitLimit should equal (Some(3))
+    result.deckCount should equal (1)
+    result.blackjackPayout should equal (BlackjackPayout.OneToOne)
+    result.dealerHitLimit should equal (DealerHitLimit.S17)
+    result.allowSurrender shouldBe (true)
+    result.hitOnSplitAces shouldBe (true)
+    result.resplitOnSplitAces shouldBe (true)
+  }
+
+  it should "be able to deserialize a json string with no split-limit specified to an object" in {
+    Given("JSON string which includes the following fields: deck count 1, dealer hit limit H17, 3:2 blackjack payout, and allowances of " + 
+      " surrender, hit on split aces, and resplit on split aces")
+    val json: String = 
+      (Json.obj(
+        "deck-count" -> 1,
+        "dealer-hit-limit" -> "H17",
+        "blackjack-payout" -> "ThreeToTwo",
+        "allow-surrender" -> true,
+        "hit-on-split-aces" -> true,
+        "resplit-on-split-aces" -> true,
+      )).toString()
+    When("converting the JSON string into a blackjack options object")
+    val result = BlackjackOptions(json)
+    Then("the object should be created as expected without any deserialization errors")
+    result.splitLimit should equal (None)
+    result.deckCount should equal (1)
+    result.blackjackPayout should equal (BlackjackPayout.ThreeToTwo)
+    result.dealerHitLimit should equal (DealerHitLimit.H17)
+    result.allowSurrender shouldBe (true)
+    result.hitOnSplitAces shouldBe (true)
+    result.resplitOnSplitAces shouldBe (true)
+  }
+
 }
