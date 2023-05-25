@@ -9,6 +9,7 @@ import cards.classes.state.{ BlackjackPlayerState, BlackjackGameState, Completed
 import cards.classes.{ Card, Deck }
 import cards.classes.Rank._
 import cards.classes.Suit._
+import cards.classes.options.blackjack.BlackjackOptions
 import cards.classes.actions.{ Action, BlackjackAction }
 import cards.classes.actions.BlackjackAction._
 import scala.annotation.tailrec
@@ -108,24 +109,34 @@ trait BlackjackController extends Controller[BlackjackPlayerState, BlackjackActi
     turns(game, iterations)
   }
 
-  def init(playerNames: Seq[String], tokens: Int, goal: Int, strategy: BlackjackBettingStrategy, deckCount: Int): BlackjackGameState = {
-    val players: Seq[BlackjackPlayerState] = for (player <- playerNames) yield BlackjackPlayerState(s"$player", tokens, goal = goal, bettingStrategy = strategy)
+  def init(playerNames: Seq[String], tokens: Int, goal: Int, options: BlackjackOptions): BlackjackGameState = {
+    val players: Seq[BlackjackPlayerState] = for (player <- playerNames) yield BlackjackPlayerState(s"$player", tokens, goal = goal, bettingStrategy = NegativeProgression)
     val minimum: Int = (.025 * tokens).toInt match {
       case 0 => 1
       case n => n 
     } 
-    BlackjackGameState(players = players, minimumBet = minimum, deck = Deck(Seq(Card(LeftBower, Joker), Card(RightBower, Joker)), deckCount))
-  }
-
-  def init(playerCount: Int = 1, tokens: Int = 2000, goal: Int = 30000, strategy: BlackjackBettingStrategy = NegativeProgression, deckCount: Int = 1): BlackjackGameState = {
+    BlackjackGameState(players = players, minimumBet = minimum, options = options, deck = Deck(Seq(Card(LeftBower, Joker), Card(RightBower, Joker)), options.deckCount))
+  } 
+  
+  def init(playerCount: Int, tokens: Int, goal: Int, options: BlackjackOptions): BlackjackGameState = {
     val players: Seq[String] = for (i <- 0 until playerCount) yield s"player${i+1}"
-    init(players, tokens, goal, strategy, deckCount)
+    init(players, tokens, goal, options)
+  }
+  
+  def init(playerCount: Int, tokens: Int, options: BlackjackOptions): BlackjackGameState = {
+    val players: Seq[String] = for (i <- 0 until playerCount) yield s"player${i+1}"
+    init(players, tokens, 30000, options)
+  }
+  
+  def init(playerCount: Int, tokens: Int): BlackjackGameState = {
+    val players: Seq[String] = for (i <- 0 until playerCount) yield s"player${i+1}"
+    init(players, tokens, 30000, BlackjackOptions())
   }
 
   def init(state: CompletedBlackjack): BlackjackGameState = {
     val remaining: Seq[BlackjackPlayerState] = state.players.players.filter(p => p.bank > 0).map(p => BlackjackPlayerState(p.id, p.bank, goal = p.highestBank * 4))
     remaining match {
-      case Nil => init(0) // no players left
+      case Nil => init(0, 0) // no players left
       case xs => {
         val lowest: Int = xs.map(_.bank).min
         val minimum: Int = (.025 * lowest).toInt match {
@@ -140,7 +151,7 @@ trait BlackjackController extends Controller[BlackjackPlayerState, BlackjackActi
   def continuedState(previousGame: CompletedBlackjack, newGoal: Int = 30000, strategy: BlackjackBettingStrategy = NegativeProgression, deckCount: Int = 1): BlackjackGameState = {
     val remaining = previousGame.players.players.filter(p => p.bank > 0)
     remaining match {
-      case Nil => init(0) // no players left
+      case Nil => init(0, 0) // no players left
       case xs => {
         val players: Seq[BlackjackPlayerState] = remaining.map(BlackjackPlayerState(_).copy(bettingStrategy = strategy, goal = newGoal))
         val lowest: Int = players.map(_.bank).min
@@ -161,18 +172,6 @@ trait BlackjackController extends Controller[BlackjackPlayerState, BlackjackActi
   
   def completeGame(state: BlackjackGameState): CompletedBlackjack = {
     val finalState: BlackjackGameState = play(state.copy(players = state.players.map(p => p.copy(goal = p.goal * 2))), 40000 * state.players.length)
-    CompletedBlackjack(finalState)
-  }
-
-  def completeGame(
-      playerCount: Int = 1, 
-      tokens: Int = 2000, 
-      goal: Int = 30000, 
-      strategy: BlackjackBettingStrategy = NegativeProgression, 
-      deckCount: Int = 1): CompletedBlackjack = {
-
-    val initialState: BlackjackGameState = init(playerCount, tokens, goal, strategy, deckCount)
-    val finalState: BlackjackGameState = play(initialState, 40000 * playerCount)
     CompletedBlackjack(finalState)
   }
 }

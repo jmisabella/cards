@@ -1,6 +1,6 @@
 package cards.classes.options.blackjack
 
-import play.api.libs.json.{ Json, Format }
+import play.api.libs.json.{ Json, Format, JsSuccess }
 
 // payout ratio if player gets a blackjack
 object BlackjackPayout extends Enumeration {
@@ -37,7 +37,44 @@ case class BlackjackOptions(
   resplitOnSplitAces: Boolean = true) {
   
   require(deckCount >= 1 && deckCount <= 8, s"deckCount [$deckCount] is outside of allowed range 1-8")
+
+  override def toString(): String = splitLimit match {
+    case None => 
+      (Json.obj(
+        "deck-count" -> deckCount,
+        "dealer-hit-limit" -> dealerHitLimit,
+        "blackjack-payout" -> blackjackPayout,
+        "allow-surrender" -> allowSurrender,
+        "hit-on-split-aces" -> hitOnSplitAces,
+        "resplit-on-split-aces" -> resplitOnSplitAces,
+      )).toString()
+    case Some(limit) => 
+      (Json.obj(
+        "deck-count" -> deckCount,
+        "dealer-hit-limit" -> dealerHitLimit,
+        "blackjack-payout" -> blackjackPayout,
+        "allow-surrender" -> allowSurrender,
+        "split-limit" -> limit,
+        "hit-on-split-aces" -> hitOnSplitAces,
+        "resplit-on-split-aces" -> resplitOnSplitAces,
+      )).toString()
+  }
 }
 object BlackjackOptions {
   implicit val format: Format[BlackjackOptions] = Json.format[BlackjackOptions]
+
+  def apply(json: String): BlackjackOptions = {
+    val replacements: String = json
+      .replace("deck-count", "deckCount")
+      .replace("dealer-hit-limit", "dealerHitLimit")
+      .replace("blackjack-payout", "blackjackPayout")
+      .replace("allow-surrender", "allowSurrender")
+      .replace("split-limit", "splitLimit")
+      .replace("hit-on-split-aces", "hitOnSplitAces")
+      .replace("resplit-on-split-aces", "resplitOnSplitAces")
+    Json.parse(replacements).validate[BlackjackOptions] match {
+      case JsSuccess(opts, _) => opts
+      case e => throw new IllegalArgumentException(s"Error occurred deserializing json [$replacements] to a BlackjackOptions object: " + e.toString())
+    }
+  }
 }
