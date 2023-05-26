@@ -109,28 +109,24 @@ trait BlackjackController extends Controller[BlackjackPlayerState, BlackjackActi
     turns(game, iterations)
   }
 
-  def init(playerNames: Seq[String], tokens: Int, goal: Int, options: BlackjackOptions): BlackjackGameState = {
-    val players: Seq[BlackjackPlayerState] = for (player <- playerNames) yield BlackjackPlayerState(s"$player", tokens, goal = goal, bettingStrategy = NegativeProgression)
-    val minimum: Int = (.025 * tokens).toInt match {
+  def init(playerNames: Seq[String], options: BlackjackOptions): BlackjackGameState = {
+    val goal = options.initialBank * 10
+    val players: Seq[BlackjackPlayerState] = for (player <- playerNames) yield BlackjackPlayerState(s"$player", options.initialBank, goal = goal, bettingStrategy = NegativeProgression)
+    val minimum: Int = (.025 * options.initialBank).toInt match {
       case 0 => 1
       case n => n 
     } 
     BlackjackGameState(players = players, minimumBet = minimum, options = options, deck = Deck(Seq(Card(LeftBower, Joker), Card(RightBower, Joker)), options.deckCount))
   } 
   
-  def init(playerCount: Int, tokens: Int, goal: Int, options: BlackjackOptions): BlackjackGameState = {
+  def init(playerCount: Int, options: BlackjackOptions): BlackjackGameState = {
     val players: Seq[String] = for (i <- 0 until playerCount) yield s"player${i+1}"
-    init(players, tokens, goal, options)
+    init(players, options)
   }
   
-  def init(playerCount: Int, tokens: Int, options: BlackjackOptions): BlackjackGameState = {
+  def init(playerCount: Int, initialBank: Int): BlackjackGameState = {
     val players: Seq[String] = for (i <- 0 until playerCount) yield s"player${i+1}"
-    init(players, tokens, 30000, options)
-  }
-  
-  def init(playerCount: Int, tokens: Int): BlackjackGameState = {
-    val players: Seq[String] = for (i <- 0 until playerCount) yield s"player${i+1}"
-    init(players, tokens, 30000, BlackjackOptions())
+    init(players, BlackjackOptions(initialBank = initialBank))
   }
 
   def init(state: CompletedBlackjack): BlackjackGameState = {

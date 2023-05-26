@@ -34,7 +34,9 @@ case class BlackjackOptions(
   allowSurrender: Boolean = true, 
   splitLimit: Option[Int] = Some(3),
   hitOnSplitAces: Boolean = true,
-  resplitOnSplitAces: Boolean = true) {
+  resplitOnSplitAces: Boolean = true,
+  initialBank: Int = 2000
+  ) {
   
   require(deckCount >= 1 && deckCount <= 8, s"deckCount [$deckCount] is outside of allowed range 1-8")
 
@@ -47,6 +49,7 @@ case class BlackjackOptions(
         "allow-surrender" -> allowSurrender,
         "hit-on-split-aces" -> hitOnSplitAces,
         "resplit-on-split-aces" -> resplitOnSplitAces,
+        "initial-bank" -> initialBank
       )).toString()
     case Some(limit) => 
       (Json.obj(
@@ -57,6 +60,7 @@ case class BlackjackOptions(
         "split-limit" -> limit,
         "hit-on-split-aces" -> hitOnSplitAces,
         "resplit-on-split-aces" -> resplitOnSplitAces,
+        "initial-bank" -> initialBank
       )).toString()
   }
 }
@@ -72,6 +76,7 @@ object BlackjackOptions {
       .replace("split-limit", "splitLimit")
       .replace("hit-on-split-aces", "hitOnSplitAces")
       .replace("resplit-on-split-aces", "resplitOnSplitAces")
+      .replace("initial-bank", "initialBank")
     Json.parse(replacements).validate[BlackjackOptions] match {
       case JsSuccess(opts, _) => opts
       case e => throw new IllegalArgumentException(s"Error occurred deserializing json [$replacements] to a BlackjackOptions object: " + e.toString())
