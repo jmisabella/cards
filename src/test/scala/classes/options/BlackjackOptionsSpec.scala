@@ -38,6 +38,7 @@ class BlackjackOptionsSpec extends AnyFlatSpec with GivenWhenThen {
         "split-limit" -> options.splitLimit.get,
         "hit-on-split-aces" -> options.hitOnSplitAces,
         "resplit-on-split-aces" -> options.resplitOnSplitAces,
+        "initial-bank" -> 2000
       )).toString()
     result should equal (expected)
   }
@@ -54,6 +55,7 @@ class BlackjackOptionsSpec extends AnyFlatSpec with GivenWhenThen {
         "split-limit" -> 3,
         "hit-on-split-aces" -> true,
         "resplit-on-split-aces" -> true,
+        "initial-bank" -> 2000
       )).toString()
     When("converting the JSON string into a blackjack options object")
     val result = BlackjackOptions(json)
@@ -78,6 +80,7 @@ class BlackjackOptionsSpec extends AnyFlatSpec with GivenWhenThen {
         "allow-surrender" -> true,
         "hit-on-split-aces" -> true,
         "resplit-on-split-aces" -> true,
+        "initial-bank" -> 2000
       )).toString()
     When("converting the JSON string into a blackjack options object")
     val result = BlackjackOptions(json)
