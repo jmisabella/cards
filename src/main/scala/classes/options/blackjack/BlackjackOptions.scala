@@ -7,6 +7,8 @@ object BlackjackPayout extends Enumeration {
   type BlackjackPayout = Value
   val ThreeToTwo, SixToFive, OneToOne = Value
   implicit val format: Format[BlackjackPayout] = Json.formatEnum(this)
+
+  def withNameOpt(s: String): Option[Value] = values.find(_.toString == s)
 }
 // // late - if dealer 1st card ace or ten, then make sure no blackjack before surrender is offered to player
 // // early - player can surrender BEFORE dealer checks for blackjack
@@ -21,10 +23,27 @@ object DealerHitLimit extends Enumeration {
   type DealerHitLimit = Value
   val S17, H17 = Value
   implicit val format: Format[DealerHitLimit] = Json.formatEnum(this)
+
+  def withNameOpt(s: String): Option[Value] = values.find(_.toString == s)
 }
 
 import cards.classes.options.blackjack.BlackjackPayout._
 import cards.classes.options.blackjack.DealerHitLimit._
+
+private case class SerializedBlackjackOptions(
+  deckCount: String,
+  dealerHitLimit: String,
+  blackjackPayout: String,
+  allowSurrender: String, 
+  hitOnSplitAces: String,
+  resplitOnSplitAces: String,
+  initialBank: String,
+  splitLimit: Option[String] = None,
+)
+
+private object SerializedBlackjackOptions {
+  implicit val format: Format[SerializedBlackjackOptions] = Json.format[SerializedBlackjackOptions]
+}
 
 // goal is the goal bank amount, upon reaching would cause player to leave table
 case class BlackjackOptions(
@@ -67,6 +86,21 @@ case class BlackjackOptions(
 object BlackjackOptions {
   implicit val format: Format[BlackjackOptions] = Json.format[BlackjackOptions]
 
+  def apply(serialized: SerializedBlackjackOptions): BlackjackOptions = {
+    BlackjackOptions(
+      deckCount = serialized.deckCount.toInt,
+      dealerHitLimit = DealerHitLimit.withNameOpt(serialized.dealerHitLimit).getOrElse(throw new IllegalStateException(s"Cannot deserialize String value [${serialized.dealerHitLimit}] to a DealerHitLimit. Expected values: [S17, H17]")),
+      blackjackPayout = BlackjackPayout.withNameOpt(serialized.blackjackPayout).getOrElse(throw new IllegalStateException(s"Cannot deserialize String value [${serialized.blackjackPayout}] to a BlackjackPayout. Expected values: [OneToOne, ThreeToTwo, SixToFive]")),
+      allowSurrender = serialized.allowSurrender.toBoolean,
+      splitLimit = serialized.splitLimit match {
+        case Some(s) => Some(s.toInt)
+        case _ => None
+      },
+      hitOnSplitAces = serialized.hitOnSplitAces.toBoolean,
+      resplitOnSplitAces = serialized.resplitOnSplitAces.toBoolean,
+      initialBank = serialized.initialBank.toInt)
+  }
+
   def apply(json: String): BlackjackOptions = {
     val replacements: String = json
       .replace("deck-count", "deckCount")
@@ -77,9 +111,28 @@ object BlackjackOptions {
       .replace("hit-on-split-aces", "hitOnSplitAces")
       .replace("resplit-on-split-aces", "resplitOnSplitAces")
       .replace("initial-bank", "initialBank")
-    Json.parse(replacements).validate[BlackjackOptions] match {
-      case JsSuccess(opts, _) => opts
-      case e => throw new IllegalArgumentException(s"Error occurred deserializing json [$replacements] to a BlackjackOptions object: " + e.toString())
+
+    if (json.contains("\"deck-count\": \"") || 
+      json.contains("\"deck-count\":\"") ||
+      json.contains("\"initial-bank\": \"") ||
+      json.contains("\"initial-bank\":\"") ||
+      json.contains("\"allow-surrender\": \"") ||
+      json.contains("\"allow-surrender\":\"") ||
+      json.contains("\"hit-on-split-aces\": \"") ||
+      json.contains("\"hit-on-split-aces\":\"") ||
+      json.contains("\"resplit-on-split-aces\": \"") ||
+      json.contains("\"resplit-on-split-aces\":\"")) {
+      
+      Json.parse(replacements).validate[SerializedBlackjackOptions] match {
+        case JsSuccess(opts, _) => BlackjackOptions(opts)
+        case e => throw new IllegalArgumentException(s"Error occurred deserializing json [$replacements] to a SerializedBlackjackOptions object: " + e.toString())
+      }
+    } else {
+      Json.parse(replacements).validate[BlackjackOptions] match {
+        case JsSuccess(opts, _) => opts
+        case e => throw new IllegalArgumentException(s"Error occurred deserializing json [$replacements] to a BlackjackOptions object: " + e.toString())
+      }
     }
+    
   }
 }
