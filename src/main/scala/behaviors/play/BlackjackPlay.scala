@@ -370,32 +370,22 @@ trait BlackjackPlay {
     // perform the action
     val (outcomeHands, updatedDeck, newHistory): (Seq[Hand], Deck, Seq[Action[BlackjackAction]]) = 
       performPlayAction(game.currentPlayer().id, action, game.currentHand(), game.deck)
-    
-    // check for an additional hand (from splitting)  
-    val (updatedCurrentHand, splitHand): (Hand, Option[Hand]) = outcomeHands.length match {
-      case 1 => (outcomeHands.head, None)
-      case _ => (outcomeHands.head, Some(outcomeHands.tail.head))
-    }
-    // current player's updated hands (hand added via split will be added momentarly, hence the mutable)
-    var updatedHands: Seq[Hand] = 
-      game.currentPlayer().handsAndBets.map { hand => hand.hand match {
-        case cs if (cs == game.currentCards()) => updatedCurrentHand
-        case _ => hand
+
+    val updatedPlayers: Seq[BlackjackPlayerState] = game.players.map{ p => 
+      if (p.id == game.currentPlayer().id) {
+        p.copy(handsAndBets = outcomeHands)
+      } else {
+        p
       }
     }
-    // check whether an additional hand needs to be added (due to split)
-    updatedHands = splitHand match {
-      case Some(h) => updatedHands ++ Seq(h) // split occurred, add new hand
-      case None => updatedHands 
+    val updatedState: BlackjackGameState = game.copy(deck = updatedDeck, history = game.history ++ newHistory, players = updatedPlayers)
+    if (outcomeHands.length == 1) {
+      // only increment to the next hand if player did NOT split into an additional hand
+      updatedState.toNextHand(action, evaluation.eval(outcomeHands.head.hand) > 21)
+    } else {
+      // player has split into 2 hands, don't proceed yet to the next hand, player still needs to play this current first split hand
+      updatedState 
     }
-
-    // yield updated game state (but player's current hand or current player will not increment; not this function's responsibility) 
-    game.copy(deck = updatedDeck, history = game.history ++ newHistory, players = for (p <- game.players) yield {
-      if (p == game.currentPlayer())
-        p.copy(handsAndBets = updatedHands)
-      else p 
-    }).toNextHand(action, evaluation.eval(outcomeHands.head.hand) > 21)
-    // if player Stands or Surrenders, or if current hand busted, then iterate to next hand, or if it doesn't exist then to the next player
   }
 
   // returns updated cards (seq of hands to account for Splits), updated deck, and new history

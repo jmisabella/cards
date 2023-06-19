@@ -901,4 +901,98 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
     canDoubleDown(game) shouldBe (false)
   }
 
+  it should "split into 2 hands on 2 aces when calling performPlayAction Split" in {
+    Given("a player with pair of aces and has not yet split any cards and who has bet minimum bet on his hand")
+    val player1 = BlackjackPlayerState(
+      "Jeffrey", 
+      25, 
+      Seq( 
+        Hand(hand = Seq(Card(Ace, Hearts), Card(Ace, Clubs)), bets = Map("Jeffrey" -> 5), outcome = None)))
+    Given("dealer hand of 2 cards and two is face up card")
+    var dealer = Hand(Seq(Card(Two, Hearts), Card(Two, Clubs)))
+    var game = BlackjackGameState(
+      options = BlackjackOptions(), 
+      minimumBet = 5, 
+      dealerHand = dealer, 
+      players = Seq(player1), 
+      currentPlayerIndex = Some(0), 
+      currentHandIndex = Some(0))
+    When("checking player's initial hand count")
+    var handCount: Int = game.players.filter(_.id == "Jeffrey").head.hands.length
+    Then("player should have 1 hand")
+    handCount should equal (1)
+    When("performing play action Split")
+    val (outcomeHands, updatedDeck, updatedHistory) = performPlayAction("Jeffrey", Split, game.currentHand(), game.deck)
+    Then("history should reflect the player splitting")
+    assert(updatedHistory.count(a => a.playerId == "Jeffrey" && a.action == Split && a.actionTokens == Some(5)) >= 1)  
+    When("checking player's most recent history")
+    var lastHistory: Action[BlackjackAction] = updatedHistory.reverse.head
+    Then("history should belong to the player")
+    lastHistory.playerId should equal ("Jeffrey") 
+    Then("action should be Split")
+    lastHistory.action should equal (Split)
+    Then("Split action's afterCards should haver length 2")
+    lastHistory.afterCards should have length (2)
+    When("checking updated hand count (since splitting)")
+    handCount = outcomeHands.length
+    Then("length should equal 2")
+    handCount should equal (2)
+  }
+
+  it should "split into 2 hands on 2 aces when calling playHand" in {
+    Given("a player with pair of aces and has not yet split any cards and who has bet minimum bet on his hand")
+    val player1 = BlackjackPlayerState(
+      "Jeffrey", 
+      25, 
+      Seq( 
+        Hand(hand = Seq(Card(Ace, Hearts), Card(Ace, Clubs)), bets = Map("Jeffrey" -> 5), outcome = None)))
+    Given("dealer hand of 2 cards and two is face up card")
+    var dealer = Hand(Seq(Card(Two, Hearts), Card(Two, Clubs)))
+    var game = BlackjackGameState(
+      options = BlackjackOptions(), 
+      minimumBet = 5, 
+      dealerHand = dealer, 
+      players = Seq(player1), 
+      currentPlayerIndex = Some(0), 
+      currentHandIndex = Some(0))
+    When("checking player's initial hand count")
+    var handCount: Int = game.players.filter(_.id == "Jeffrey").head.hands.length
+    Then("player should have 1 hand")
+    handCount should equal (1)
+    When("checking the next expected hand index")
+    var nextHandIndex: Int = game.nextHandIndex()
+    Then("hand index should remain at 0, since player has exactly 1 hand")
+    nextHandIndex should equal (0)
+    When("playing player's hand")
+    var result = playHand(game)
+    Then("player should split")
+    assert(result.history.count(a => a.playerId == "Jeffrey" && a.action == Split && a.actionTokens == Some(5)) >= 1)  
+    When("checking player's most recent history")
+    var lastHistory: Action[BlackjackAction] = result.history.reverse.head
+    Then("history should belong to the player")
+    lastHistory.playerId should equal ("Jeffrey") 
+    Then("action should be Split")
+    lastHistory.action should equal (Split) 
+    Then("Split action's afterCards should haver length 2")
+    lastHistory.afterCards should have length (2) 
+    When("checking who is the current player")
+    var currentPlayer: String = result.currentPlayer().id
+    Then("current player should remain Jeffrey")
+    currentPlayer should equal ("Jeffrey")
+    When("checking player's new hand count (since splitting)")
+    handCount = result.players.filter(_.id == "Jeffrey").head.hands.length
+    Then("player should have 2 hands")
+    handCount should equal (2)
+    When("checking current hand index")
+    Then("current hand index should remain at 0")
+    result.currentHandIndex should equal (Some(0))
+    When("checking next hand index")
+    nextHandIndex = result.nextHandIndex()
+    Then("next hand index should be 1, since player now has 2 hands")
+    nextHandIndex should equal (1)
+
+
+  }
+
+
 }
