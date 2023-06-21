@@ -990,9 +990,55 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
     nextHandIndex = result.nextHandIndex()
     Then("next hand index should be 1, since player now has 2 hands")
     nextHandIndex should equal (1)
-
-
   }
 
+  it should "not allow player or dealer to continue playing after player has busted" in {
+    Given("a game with 1 player having 3 cards and whose hand is busted, a dealer with no cards")
+    val player1 = BlackjackPlayerState(
+      "Jeffrey", 
+      25, 
+      Seq( 
+        Hand(hand = Seq(Card(Ten, Hearts), Card(Eight, Clubs), Card(Four, Clubs)), bets = Map("Jeffrey" -> 5), outcome = None)) )
+    val history = Seq(Action("Jeffrey", Hit, Seq(Card(Four, Clubs)), None, Seq(Card(Ten, Hearts), Card(Eight, Clubs)), Seq(Seq(Card(Ten, Hearts), Card(Eight, Clubs), Card(Four, Clubs)))))
+    val game = BlackjackGameState(
+      options = BlackjackOptions(dealerHitLimit = H17), 
+      minimumBet = 5, 
+      players = Seq(player1), 
+      history = history, 
+      currentPlayerIndex = Some(0),
+      currentHandIndex = Some(0))
+    When("performing Hit play action")
+    val (updatedHands, updatedDeck, updatedHistory) = performPlayAction("Jeffrey", Hit, game.currentHand(), game.deck)
+    Then("round should end with player Busting before Losing")
+    updatedHistory.reverse.head.action should equal (Lose)
+    updatedHistory.reverse.head.playerId should equal ("Jeffrey")
+    updatedHistory.reverse.tail.head.action should equal (Bust)
+    updatedHistory.reverse.tail.head.playerId should equal ("Jeffrey")
+  }
+
+  it should "not allow player or dealer to continue playing after player has achieved 21 (blackjack)" in {
+    Given("a game with 1 player having 3 cards and whose hand equals 21, a dealer with no cards")
+    val hand = Seq(Card(Ten, Hearts), Card(Eight, Clubs), Card(Three, Clubs))
+    val player1 = BlackjackPlayerState(
+      "Jeffrey", 
+      25, 
+      Seq( 
+        Hand(hand = hand, bets = Map("Jeffrey" -> 5), outcome = None)) )
+    val history = Seq(Action("Jeffrey", Hit, Seq(Card(Four, Clubs)), None, hand, Seq(hand)))
+    val game = BlackjackGameState(
+      options = BlackjackOptions(dealerHitLimit = H17), 
+      minimumBet = 5, 
+      players = Seq(player1), 
+      history = history, 
+      currentPlayerIndex = Some(0),
+      currentHandIndex = Some(0))
+    When("performing Hit play action")
+    val (updatedHands, updatedDeck, updatedHistory) = performPlayAction("Jeffrey", Hit, game.currentHand(), game.deck)
+    Then("round should end with player Busting before Losing")
+    updatedHistory.reverse.head.action should equal (Win)
+    updatedHistory.reverse.head.playerId should equal ("Jeffrey")
+    updatedHistory.reverse.tail.head.action should equal (Blackjack)
+    updatedHistory.reverse.tail.head.playerId should equal ("Jeffrey")
+  }
 
 }

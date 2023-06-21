@@ -414,9 +414,21 @@ trait BlackjackPlay {
           }
           case _ => (0, hand.bets)
         }
-        val updatedHand: Hand = hand.copy(hand = hand.hand ++ dealt, bets = nextBets)
-        // (Seq(updatedHand), nextDeck, Seq(Action(playerId, a, dealt, additionalBet, hand.hand, Seq(updatedHand.hand))))
-        (Seq(updatedHand), nextDeck, Seq(Action(playerId, a, dealt, Some(additionalBet), Nil, Seq(updatedHand.hand))))
+        var updatedHand: Hand = hand.copy(hand = hand.hand ++ dealt, bets = nextBets)
+        var history = Seq(Action(playerId, a, dealt, Some(additionalBet), Nil, Seq(updatedHand.hand)))
+        var deckGoingForward = nextDeck
+        if (eval(updatedHand.hand) == 21) {
+          history = history ++ Seq(Action(playerId, Blackjack, dealt, Some(additionalBet), Nil, Nil))
+          history = history ++ Seq(Action(playerId, Win, dealt, Some(additionalBet), Nil, Nil))
+        } else if (eval(hand.hand) == 21) {
+          history = history ++ Seq(Action(playerId, Blackjack, dealt, Some(additionalBet), Nil, Nil))
+          history = history ++ Seq(Action(playerId, Win, dealt, Some(additionalBet), Nil, Nil))
+          updatedHand = hand 
+        } else if (eval(updatedHand.hand) > 21) {
+          history = history ++ Seq(Action(playerId, Bust, dealt, Some(additionalBet), Nil, Nil))
+          history = history ++ Seq(Action(playerId, Lose, dealt, Some(additionalBet), Nil, Nil))
+        }
+        (Seq(updatedHand), deckGoingForward, history)
       }
       case Split => {
         // deal 2 cards, 1 for each split hand 
