@@ -19,7 +19,9 @@ object BlackjackAction extends Enumeration {
     ShowCards, 
     InsufficientFunds, 
     GoalReached, 
-    LeaveTable = Value
+    LeaveTable,
+    Bust,
+    Blackjack = Value
   
   implicit val format: Format[BlackjackAction] = Json.formatEnum(this)
 }
