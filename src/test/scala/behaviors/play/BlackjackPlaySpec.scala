@@ -992,7 +992,7 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
     nextHandIndex should equal (1)
   }
 
-  it should "not allow player or dealer to continue playing after player has busted" in {
+  it should "not allow player or dealer to continue playing after player with 3 card hand has busted" in {
     Given("a game with 1 player having 3 cards and whose hand is busted, a dealer with no cards")
     val player1 = BlackjackPlayerState(
       "Jeffrey", 
@@ -1016,7 +1016,7 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
     updatedHistory.reverse.tail.head.playerId should equal ("Jeffrey")
   }
 
-  it should "not allow player or dealer to continue playing after player has achieved 21 (blackjack)" in {
+  it should "not allow player or dealer to continue playing after player with 3 card hand has achieved 21 (blackjack)" in {
     Given("a game with 1 player having 3 cards and whose hand equals 21, a dealer with no cards")
     val hand = Seq(Card(Ten, Hearts), Card(Eight, Clubs), Card(Three, Clubs))
     val player1 = BlackjackPlayerState(
@@ -1039,6 +1039,29 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
     updatedHistory.reverse.head.playerId should equal ("Jeffrey")
     updatedHistory.reverse.tail.head.action should equal (Blackjack)
     updatedHistory.reverse.tail.head.playerId should equal ("Jeffrey")
+  }
+
+  it should "not allow player or dealer to continue playing after player has been dealt a blackjack" in {
+    Given("a game with 1 player having 2 cards and whose hand equals 21, a dealer with no cards")
+    val hand = Seq(Card(Ten, Hearts), Card(Ace, Clubs))
+    val player1 = BlackjackPlayerState(
+      "Jeffrey", 
+      25, 
+      Seq( 
+        Hand(hand = hand, bets = Map("Jeffrey" -> 5), outcome = None)) )
+    val game = BlackjackGameState(
+      options = BlackjackOptions(dealerHitLimit = H17), 
+      minimumBet = 5, 
+      players = Seq(player1), 
+      currentPlayerIndex = Some(0),
+      currentHandIndex = Some(0))
+    When("playing player's hand")
+    var result = playHand(game)
+    Then("player should have actions Blackjack and Win recorded in history")
+    result.history.reverse.head.playerId should equal ("Jeffrey")
+    result.history.reverse.head.action should equal (Win)
+    result.history.reverse.tail.head.playerId should equal ("Jeffrey")
+    result.history.reverse.tail.head.action should equal (Blackjack)
   }
 
 }
