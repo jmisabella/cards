@@ -359,15 +359,17 @@ trait BlackjackPlay {
     if (game.currentCards().length < 2) {
       throw new IllegalArgumentException(s"Cannot play current hand because current hand length [${game.currentCards().length}] is less than length 2")
     }
-    if (game.currentCards().length == 2 && evaluation.eval(game.currentCards()) == 21) {
-      val bet: Option[Int] = game.currentPlayer().handsAndBets.filter(h => h.hand == game.currentCards()).head.bets.get(game.currentPlayer().id)
-      val newHistory: Seq[Action[BlackjackAction]] = Seq(
-        Action(game.currentPlayer().id, Blackjack, game.currentCards(), bet, Nil, Nil, None, None),
-        Action(game.currentPlayer().id, Win, game.currentCards(), bet, Nil, Nil, None, None)
-      )
-      return game.copy(history = game.history ++ newHistory)
-    }
-
+    // if (game.currentCards().length == 2 && evaluation.eval(game.currentCards()) == 21) {
+    //   val bet: Option[Int] = game.currentPlayer().handsAndBets.filter(h => h.hand == game.currentCards()).head.bets.get(game.currentPlayer().id)
+    //   val newHistory: Seq[Action[BlackjackAction]] = Seq(
+    //     Action(game.currentPlayer().id, Blackjack, game.currentCards(), bet, Nil, Nil, None, None),
+    //     Action(game.currentPlayer().id, Win, game.currentCards(), bet, Nil, Nil, None, None)
+    //   )
+    //   return game.copy(history = game.history ++ newHistory)
+    // }
+    if (eval(game.currentCards()) >= 21) {
+      return evaluation.outcomes(game) 
+    } 
     if (game.dealerHand.hand.length != 2) {
       throw new IllegalArgumentException(s"Cannot play current hand because dealer's hand length [${game.dealerHand.hand.length}] is not length 2")
     }

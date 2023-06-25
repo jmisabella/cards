@@ -118,6 +118,44 @@ class BlackjackControllerSpec extends AnyFlatSpec with GivenWhenThen {
     an [IllegalStateException] shouldBe thrownBy (module.next(gameState)) 
   }
 
+  it should "settle when current hand has busted but dealer doesn't have any cards" in {
+    Given("a game state with 1 existing player (Jeffrey) but only Jeffrey has a busted hand dealer doesn't have a hand")
+    val player1 = BlackjackPlayerState(
+      "Jeffrey", 
+      25, 
+      Seq( 
+        Hand(Seq(Card(Eight, Hearts), Card(Jack, Diamonds), Card(Five, Clubs)), 
+        bets = Map("Jeffrey" -> 15), 
+        outcome = Some(Outcome.Lose))))
+    val gameState = BlackjackGameState(
+      options = BlackjackOptions(), 
+      players = Seq(player1),
+      currentPlayerIndex = Some(0))
+    When("progressing to the next state")
+    val nextState: BlackjackGameState = module.next(gameState)
+    Then("Jeffrey's bank should be less than initial bank") 
+    nextState.players.filter(_.id == "Jeffrey").head.bank shouldBe < (25)
+  }
+  
+  it should "settle when current hand has blackjack but dealer doesn't have any cards" in {
+    Given("a game state with 1 existing player (Jeffrey) but only Jeffrey has a 2-card blackjack hand dealer doesn't have a hand")
+    val player1 = BlackjackPlayerState(
+      "Jeffrey", 
+      25, 
+      Seq( 
+        Hand(Seq(Card(Ace, Hearts), Card(Jack, Diamonds)), 
+        bets = Map("Jeffrey" -> 15), 
+        outcome = Some(Outcome.Win))))
+    val gameState = BlackjackGameState(
+      options = BlackjackOptions(), 
+      players = Seq(player1),
+      currentPlayerIndex = Some(0))
+    When("progressing to the next state")
+    val nextState: BlackjackGameState = module.next(gameState)
+    Then("Jeffrey's bank should be greater than initial bank") 
+    nextState.players.filter(_.id == "Jeffrey").head.bank shouldBe > (25)
+  }
+
   it should "settle when all hands have either won or lost" in {
     Given("a game state with 3 existing players (Jeffrey, Alice, Brandon) who each have 1 or more hands, all of which have either won or lost")
     val player1 = BlackjackPlayerState(

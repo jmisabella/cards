@@ -1627,4 +1627,42 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     nextState.players.head.id should equal ("Brandon") 
   }
 
+  it should "know it's time to settle when current hand has blackjack but dealer doesn't have any cards" in {
+    Given("a game state with 1 existing player (Jeffrey) but only Jeffrey has a 2-card blackjack hand and dealer doesn't have a hand")
+    val player1 = BlackjackPlayerState(
+      "Jeffrey", 
+      25, 
+      Seq( 
+        Hand(Seq(Card(Ace, Hearts), Card(Jack, Diamonds)), 
+        bets = Map("Jeffrey" -> 15), 
+        outcome = Some(Outcome.Win))))
+    val gameState = BlackjackGameState(
+      options = BlackjackOptions(), 
+      players = Seq(player1),
+      currentPlayerIndex = Some(0))
+    When("determining whether it's time to settle")
+    val result: Boolean = isTimeToSettle(gameState)
+    Then("it's determined it's time to settle")
+    result shouldBe (true)
+  }
+
+  it should "know it's time to settle when current hand has busted but dealer doesn't have any cards" in {
+    Given("a game state with 1 existing player (Jeffrey) but only Jeffrey has a busted hand dealer doesn't have a hand")
+    val player1 = BlackjackPlayerState(
+      "Jeffrey", 
+      25, 
+      Seq( 
+        Hand(Seq(Card(Eight, Hearts), Card(Jack, Diamonds), Card(Five, Clubs)), 
+        bets = Map("Jeffrey" -> 15), 
+        outcome = Some(Outcome.Lose))))
+    val gameState = BlackjackGameState(
+      options = BlackjackOptions(), 
+      players = Seq(player1),
+      currentPlayerIndex = Some(0))
+    When("determining whether it's time to settle")
+    val result: Boolean = isTimeToSettle(gameState)
+    Then("it's determined it's time to settle")
+    result shouldBe (true)
+  }
+
 }

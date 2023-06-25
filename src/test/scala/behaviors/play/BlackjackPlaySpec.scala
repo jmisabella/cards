@@ -1041,27 +1041,27 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
     updatedHistory.reverse.tail.head.playerId should equal ("Jeffrey")
   }
 
-  it should "not allow player or dealer to continue playing after player has been dealt a blackjack" in {
-    Given("a game with 1 player having 2 cards and whose hand equals 21, a dealer with no cards")
-    val hand = Seq(Card(Ten, Hearts), Card(Ace, Clubs))
-    val player1 = BlackjackPlayerState(
-      "Jeffrey", 
-      25, 
-      Seq( 
-        Hand(hand = hand, bets = Map("Jeffrey" -> 5), outcome = None)) )
-    val game = BlackjackGameState(
-      options = BlackjackOptions(dealerHitLimit = H17), 
-      minimumBet = 5, 
-      players = Seq(player1), 
-      currentPlayerIndex = Some(0),
-      currentHandIndex = Some(0))
-    When("playing player's hand")
-    var result = playHand(game)
-    Then("player should have actions Blackjack and Win recorded in history")
-    result.history.reverse.head.playerId should equal ("Jeffrey")
-    result.history.reverse.head.action should equal (Win)
-    result.history.reverse.tail.head.playerId should equal ("Jeffrey")
-    result.history.reverse.tail.head.action should equal (Blackjack)
-  }
+  // it should "not allow player or dealer to continue playing after player has been dealt a blackjack" in {
+  //   Given("a game with 1 player having 2 cards and whose hand equals 21, a dealer with no cards")
+  //   val hand = Seq(Card(Ten, Hearts), Card(Ace, Clubs))
+  //   val player1 = BlackjackPlayerState(
+  //     "Jeffrey", 
+  //     25, 
+  //     Seq( 
+  //       Hand(hand = hand, bets = Map("Jeffrey" -> 5), outcome = None)) )
+  //   val game = BlackjackGameState(
+  //     options = BlackjackOptions(dealerHitLimit = H17), 
+  //     minimumBet = 5, 
+  //     players = Seq(player1), 
+  //     currentPlayerIndex = Some(0),
+  //     currentHandIndex = Some(0))
+  //   When("playing player's hand")
+  //   var result = playHand(game)
+  //   Then("player should have actions Blackjack and Win recorded in history")
+  //   result.history.reverse.head.playerId should equal ("Jeffrey")
+  //   result.history.reverse.head.action should equal (Win)
+  //   result.history.reverse.tail.head.playerId should equal ("Jeffrey")
+  //   result.history.reverse.tail.head.action should equal (Blackjack)
+  // }
 
 }
