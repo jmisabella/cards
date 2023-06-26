@@ -132,9 +132,15 @@ class BlackjackControllerSpec extends AnyFlatSpec with GivenWhenThen {
       players = Seq(player1),
       currentPlayerIndex = Some(0))
     When("progressing to the next state")
-    val nextState: BlackjackGameState = module.next(gameState)
+    // val result: BlackjackGameState = module.next(gameState)
+    val result: BlackjackGameState = module.next(gameState, iterations = 1, purgeHistoryAfterRound = false)
     Then("Jeffrey's bank should be less than initial bank") 
-    nextState.players.filter(_.id == "Jeffrey").head.bank shouldBe < (25)
+    result.players.filter(_.id == "Jeffrey").head.bank shouldBe < (25)
+    Then("History should reflect that Jeffrey has Busted and has Lost")
+    result.history.reverse.head.playerId should equal ("Jeffrey")
+    result.history.reverse.head.action should equal (Lose)
+    // result.history.reverse.tail.head.playerId should equal ("Jeffrey")
+    // result.history.reverse.tail.head.action should equal (Bust)
   }
   
   it should "settle when current hand has blackjack but dealer doesn't have any cards" in {
@@ -151,9 +157,17 @@ class BlackjackControllerSpec extends AnyFlatSpec with GivenWhenThen {
       players = Seq(player1),
       currentPlayerIndex = Some(0))
     When("progressing to the next state")
-    val nextState: BlackjackGameState = module.next(gameState)
+    // val result: BlackjackGameState = module.next(gameState)
+    val result: BlackjackGameState = module.next(gameState, iterations = 1, purgeHistoryAfterRound = false)
     Then("Jeffrey's bank should be greater than initial bank") 
-    nextState.players.filter(_.id == "Jeffrey").head.bank shouldBe > (25)
+    result.players.filter(_.id == "Jeffrey").head.bank shouldBe > (25)
+    Then("History should reflect that Jeffrey has gotten a Blackjack and has Won")
+    // Then("HERE: " + result.players(0).handsAndBets.mkString(","))
+    Then("HISTORY: " + result.history.mkString(", "))
+    result.history.reverse.head.playerId should equal ("Jeffrey")
+    result.history.reverse.head.action should equal (Win)
+    // result.history.reverse.tail.head.playerId should equal ("Jeffrey")
+    // result.history.reverse.tail.head.action should equal (Blackjack)
   }
 
   it should "settle when all hands have either won or lost" in {

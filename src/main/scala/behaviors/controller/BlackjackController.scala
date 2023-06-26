@@ -21,6 +21,28 @@ trait BlackjackController extends Controller[BlackjackPlayerState, BlackjackActi
   val play: PLAY
 
   private def go(game: BlackjackGameState): BlackjackGameState = {
+
+    // TODO: remove this experimental block
+    // if (game.currentPlayerIndex.isDefined && game.currentHandIndex.isDefined && game.currentCards().length > 0) {
+    //   val score: Long = play.evaluation.eval(game.currentCards())
+    //   if (score >= 21) {
+    //     val bet: Option[Int] = game.currentPlayer().handsAndBets.filter(h => h.hand == game.currentCards()).head.bets.get(game.currentPlayer().id)
+    //     val blackjack: Boolean = game.currentCards().length == 2 && score == 21
+    //     val busted: Boolean = score > 21
+    //     val history: Seq[Action[BlackjackAction]] = (blackjack, busted) match {
+    //       case (true, _) => Seq(
+    //         Action(game.currentPlayer().id, Blackjack, game.currentCards(), bet, Nil, Nil, None, None),
+    //         Action(game.currentPlayer().id, Win, game.currentCards(), bet, Nil, Nil, None, None)) 
+    //       case (_, true) => Seq(
+    //         Action(game.currentPlayer().id, Bust, game.currentCards(), bet, Nil, Nil, None, None),
+    //         Action(game.currentPlayer().id, Lose, game.currentCards(), bet, Nil, Nil, None, None))
+    //       case (false, false) => Nil
+    //     }
+    //     val result = play.evaluation.outcomes(game)
+    //     return result.copy(history = result.history ++ history) 
+    //   } 
+    // }
+
     if (game.deck.length == 0) {
       throw new IllegalStateException(
         s"Cannot proceed to next state because deck is empty")
@@ -55,6 +77,26 @@ trait BlackjackController extends Controller[BlackjackPlayerState, BlackjackActi
       val adjustedBetting: BlackjackGameState = betting.alterMinBet(adjustedStrategy.currentPlayer(), adjustedStrategy)
       return betting.placeBet(adjustedBetting)
     }
+
+    // TODO: remove this experimental debugging block
+    val score: Long = play.evaluation.eval(game.currentCards())
+    if (score >= 21) {
+      val bet: Option[Int] = game.currentPlayer().handsAndBets.filter(h => h.hand == game.currentCards()).head.bets.get(game.currentPlayer().id)
+      val blackjack: Boolean = game.currentCards().length == 2 && score == 21
+      val busted: Boolean = score > 21
+      val history: Seq[Action[BlackjackAction]] = (blackjack, busted) match {
+        case (true, _) => Seq(
+          Action(game.currentPlayer().id, Blackjack, game.currentCards(), bet, Nil, Nil, None, None),
+          Action(game.currentPlayer().id, Win, game.currentCards(), bet, Nil, Nil, None, None)) 
+        case (_, true) => Seq(
+          Action(game.currentPlayer().id, Bust, game.currentCards(), bet, Nil, Nil, None, None),
+          Action(game.currentPlayer().id, Lose, game.currentCards(), bet, Nil, Nil, None, None))
+        case (false, false) => Nil
+      }
+      val result = play.evaluation.outcomes(game)
+      return result.copy(history = result.history ++ history) 
+    } 
+
     if (play.isTimeForDealerToPlay(game)) {
       // THIS HASN'T HAPPENED SINCE, SHOULD TEST THIS: IMPORTANT: TODO: when a player splits with more than one hand, isTimeToSettle is never true, so dealer continues playing infinitly
       return play.dealerPlay(game)

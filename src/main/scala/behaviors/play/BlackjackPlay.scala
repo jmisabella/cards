@@ -359,17 +359,23 @@ trait BlackjackPlay {
     if (game.currentCards().length < 2) {
       throw new IllegalArgumentException(s"Cannot play current hand because current hand length [${game.currentCards().length}] is less than length 2")
     }
-    // if (game.currentCards().length == 2 && evaluation.eval(game.currentCards()) == 21) {
+    // val score: Long = evaluation.eval(game.currentCards())
+    // if (score >= 21) {
     //   val bet: Option[Int] = game.currentPlayer().handsAndBets.filter(h => h.hand == game.currentCards()).head.bets.get(game.currentPlayer().id)
-    //   val newHistory: Seq[Action[BlackjackAction]] = Seq(
-    //     Action(game.currentPlayer().id, Blackjack, game.currentCards(), bet, Nil, Nil, None, None),
-    //     Action(game.currentPlayer().id, Win, game.currentCards(), bet, Nil, Nil, None, None)
-    //   )
-    //   return game.copy(history = game.history ++ newHistory)
-    // }
-    if (eval(game.currentCards()) >= 21) {
-      return evaluation.outcomes(game) 
-    } 
+    //   val blackjack: Boolean = game.currentCards().length == 2 && score == 21
+    //   val busted: Boolean = score > 21
+    //   val history: Seq[Action[BlackjackAction]] = (blackjack, busted) match {
+    //     case (true, _) => Seq(
+    //       Action(game.currentPlayer().id, Blackjack, game.currentCards(), bet, Nil, Nil, None, None),
+    //       Action(game.currentPlayer().id, Win, game.currentCards(), bet, Nil, Nil, None, None)) 
+    //     case (_, true) => Seq(
+    //       Action(game.currentPlayer().id, Bust, game.currentCards(), bet, Nil, Nil, None, None),
+    //       Action(game.currentPlayer().id, Lose, game.currentCards(), bet, Nil, Nil, None, None))
+    //     case (false, false) => Nil
+    //   }
+    //   val result = evaluation.outcomes(game)
+    //   return result.copy(history = result.history ++ history) 
+    // } 
     if (game.dealerHand.hand.length != 2) {
       throw new IllegalArgumentException(s"Cannot play current hand because dealer's hand length [${game.dealerHand.hand.length}] is not length 2")
     }
@@ -428,11 +434,16 @@ trait BlackjackPlay {
         var updatedHand: Hand = hand.copy(hand = hand.hand ++ dealt, bets = nextBets)
         var history = Seq(Action(playerId, a, dealt, Some(additionalBet), Nil, Seq(updatedHand.hand)))
         var deckGoingForward = nextDeck
-        if (eval(updatedHand.hand) == 21) {
+        if (eval(updatedHand.hand) == 21 && updatedHand.hand.length == 2) {
           history = history ++ Seq(Action(playerId, Blackjack, dealt, Some(additionalBet), Nil, Nil))
           history = history ++ Seq(Action(playerId, Win, dealt, Some(additionalBet), Nil, Nil))
-        } else if (eval(hand.hand) == 21) {
+        } else if (eval(hand.hand) == 21 && hand.hand.length == 2) {
           history = history ++ Seq(Action(playerId, Blackjack, dealt, Some(additionalBet), Nil, Nil))
+          history = history ++ Seq(Action(playerId, Win, dealt, Some(additionalBet), Nil, Nil))
+          updatedHand = hand 
+        } else if (eval(updatedHand.hand) == 21) {
+          history = history ++ Seq(Action(playerId, Win, dealt, Some(additionalBet), Nil, Nil))
+        } else if (eval(hand.hand) == 21) {
           history = history ++ Seq(Action(playerId, Win, dealt, Some(additionalBet), Nil, Nil))
           updatedHand = hand 
         } else if (eval(updatedHand.hand) > 21) {
