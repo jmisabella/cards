@@ -3,7 +3,6 @@ package cards.behaviors.betting
 import cards.classes.{ Card, Rank, Suit, Deck }
 import cards.classes.Rank.Ace
 import cards.classes.hand.Hand
-import cards.classes.Outcome
 import cards.classes.options.blackjack.BlackjackOptions
 import cards.classes.options.blackjack.BlackjackPayout._
 import cards.classes.options.blackjack.DealerHitLimit._
@@ -246,7 +245,7 @@ trait BlackjackBetting {
       (hand: Hand) => Hand(hand.hand, hand.bets.map(b => if (evaluation.eval(hand.hand) == 21) b._1 -> b._2 * numerator / denominator else b).toMap, Nil, hand.outcome) 
     }
     val dealerBlackjackWinAdjustedPayout: Hand => Hand = (dealerHand: Hand) => {
-      if (evaluation.eval(dealerHand.hand) == 21 && dealerHand.hand.length == 2 && dealerHand.outcome == Some(Outcome.Win))
+      if (evaluation.eval(dealerHand.hand) == 21 && dealerHand.hand.length == 2 && dealerHand.outcome == Some(BlackjackAction.Win))
         Hand(dealerHand.hand, dealerHand.bets.map(mapEntry => mapEntry._1 -> mapEntry._2 * 2), Nil, dealerHand.outcome) // insurance pays 2-to-1
       else 
         dealerHand
@@ -264,8 +263,8 @@ trait BlackjackBetting {
           .groupBy(_._1)
           .map(tup => (tup._1, tup._2.foldLeft(0)((acc, x) => x._2 + acc))) 
       }
-      val winningWagers: Map[String, Int] = winningOrLosingWagers(game.players, Outcome.Win)
-      val losingWagers: Map[String, Int] = winningOrLosingWagers(game.players, Outcome.Lose)
+      val winningWagers: Map[String, Int] = winningOrLosingWagers(game.players, BlackjackAction.Win)
+      val losingWagers: Map[String, Int] = winningOrLosingWagers(game.players, BlackjackAction.Lose)
       val wagers: Map[String, Int] = 
         (winningWagers.toSeq ++ losingWagers.toSeq.map(tup => (tup._1, -tup._2)))
           .groupBy(_._1)
