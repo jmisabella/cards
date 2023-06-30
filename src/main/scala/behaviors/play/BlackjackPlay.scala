@@ -425,9 +425,9 @@ trait BlackjackPlay {
           newHistory = newHistory ++ Seq(Action(playerId, Blackjack, actionCards, actionBet, Nil, Nil))
           newHistory = newHistory ++ Seq(Action(playerId, Win, actionCards, actionBet, Nil, Nil))
           newHand = newHand.copy(outcome = Some(Blackjack))
-        } else if (eval(hand.hand) == 21) {
-          newHistory = newHistory ++ Seq(Action(playerId, Win, actionCards, actionBet, Nil, Nil))
-          newHand = newHand.copy(outcome = Some(Win))
+        // } else if (eval(hand.hand) == 21) {
+        //   newHistory = newHistory ++ Seq(Action(playerId, Win, actionCards, actionBet, Nil, Nil))
+        //   newHand = newHand.copy(outcome = Some(Win))
         } else if (eval(hand.hand) > 21) {
           newHistory = newHistory ++ Seq(Action(playerId, Bust, actionCards, actionBet, Nil, Nil))
           newHistory = newHistory ++ Seq(Action(playerId, Lose, actionCards, actionBet, Nil, Nil))

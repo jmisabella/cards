@@ -278,7 +278,7 @@ trait BlackjackBetting {
       val losingWagers1: Seq[Action[BlackjackAction]] = winningOrLosingWagers(game.players, BlackjackAction.Bust, negateAmount = true)
       val losingWagers2: Seq[Action[BlackjackAction]] = winningOrLosingWagers(game.players, BlackjackAction.Lose, negateAmount = true)
       val ties: Seq[Action[BlackjackAction]] = game.players.filter(p => p.handsAndBets.count(h => h.outcome == Some(Tie)) > 0).map(p => Action(p.id, Tie))
-     val wagers: Seq[Action[BlackjackAction]] = (ties ++ winningWagers1 ++ winningWagers2 ++ losingWagers1 ++ losingWagers2).map { action => 
+      val wagers: Seq[Action[BlackjackAction]] = (ties ++ winningWagers1 ++ winningWagers2 ++ losingWagers1 ++ losingWagers2).map { action => 
         val amount: Option[Int] = action.actionTokens
         val bank: Int = game.players.filter(p => p.id == action.playerId).head.bank
         amount match {
@@ -302,9 +302,8 @@ trait BlackjackBetting {
   }
 
   def settleBets(game: BlackjackGameState): BlackjackGameState = isTimeToSettle(game) match {
-    case false => println("NOT SETTLING AT THIS TIME..."); game
+    case false => game
     case true => {
-      println("SETTLING BETS!!!!")
       def winningOrLosingWagers(players: Seq[BlackjackPlayerState], outcome: BlackjackAction, negateAmount: Boolean = false): Seq[Action[BlackjackAction]] = {
         val (adjustedWinningHandPayouts, adjustedInsurancePayouts): (Seq[BlackjackPlayerState], Hand) = adjustBetPayouts(players, game.dealerHand, game.options)
         val payouts: Map[String, Int] = (adjustedWinningHandPayouts.flatMap(_.handsAndBets.filter(_.outcome == Some(outcome))) ++ Seq(adjustedInsurancePayouts).filter(_.outcome == Some(outcome)))
