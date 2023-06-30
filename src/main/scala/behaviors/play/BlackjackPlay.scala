@@ -359,23 +359,23 @@ trait BlackjackPlay {
     if (game.currentCards().length < 2) {
       throw new IllegalArgumentException(s"Cannot play current hand because current hand length [${game.currentCards().length}] is less than length 2")
     }
-    val score: Long = evaluation.eval(game.currentCards())
-    if (score >= 21) {
-      val bet: Option[Int] = game.currentPlayer().handsAndBets.filter(h => h.hand == game.currentCards()).head.bets.get(game.currentPlayer().id)
-      val blackjack: Boolean = game.currentCards().length == 2 && score == 21
-      val busted: Boolean = score > 21
-      val history: Seq[Action[BlackjackAction]] = (blackjack, busted) match {
-        case (true, _) => Seq(
-          Action(game.currentPlayer().id, Blackjack, game.currentCards(), bet, Nil, Nil, None, None),
-          Action(game.currentPlayer().id, Win, game.currentCards(), bet, Nil, Nil, None, None)) 
-        case (_, true) => Seq(
-          Action(game.currentPlayer().id, Bust, game.currentCards(), bet, Nil, Nil, None, None),
-          Action(game.currentPlayer().id, Lose, game.currentCards(), bet, Nil, Nil, None, None))
-        case (_, _) => Seq(Action(game.currentPlayer().id, Win, game.currentCards(), bet, Nil, Nil, None, None)) // else 21 but not blackjack
-      }
-      val result = evaluation.outcomes(game)
-      return result.copy(history = result.history ++ history) 
-    } 
+    // val score: Long = evaluation.eval(game.currentCards())
+    // if (score >= 21) {
+    //   val bet: Option[Int] = game.currentPlayer().handsAndBets.filter(h => h.hand == game.currentCards()).head.bets.get(game.currentPlayer().id)
+    //   val blackjack: Boolean = game.currentCards().length == 2 && score == 21
+    //   val busted: Boolean = score > 21
+    //   val history: Seq[Action[BlackjackAction]] = (blackjack, busted) match {
+    //     case (true, _) => Seq(
+    //       Action(game.currentPlayer().id, Blackjack, game.currentCards(), bet, Nil, Nil, None, None),
+    //       Action(game.currentPlayer().id, Win, game.currentCards(), bet, Nil, Nil, None, None)) 
+    //     case (_, true) => Seq(
+    //       Action(game.currentPlayer().id, Bust, game.currentCards(), bet, Nil, Nil, None, None),
+    //       Action(game.currentPlayer().id, Lose, game.currentCards(), bet, Nil, Nil, None, None))
+    //     case (_, _) => Seq(Action(game.currentPlayer().id, Win, game.currentCards(), bet, Nil, Nil, None, None)) // else 21 but not blackjack
+    //   }
+    //   val result = evaluation.outcomes(game)
+    //   return result.copy(history = result.history ++ history) 
+    // } 
     // if (score < 21 && game.dealerHand.hand.length != 2) {
     if (game.dealerHand.hand.length != 2) {
       throw new IllegalArgumentException(s"Cannot play current hand because dealer's hand length [${game.dealerHand.hand.length}] is not length 2")
@@ -407,13 +407,44 @@ trait BlackjackPlay {
   }
 
   // returns updated cards (seq of hands to account for Splits), updated deck, and new history
+  // TODO BUG: This method is setting the history but is not setting the outcomes of the hand!! Because of this, bets are not getting settles properly...
   def performPlayAction(
     playerId: String, 
     action: BlackjackAction, 
     hand: Hand, 
-    deck: Deck): (Seq[Hand], Deck, Seq[Action[BlackjackAction]]) = action match {
+    deck: Deck): (Seq[Hand], Deck, Seq[Action[BlackjackAction]]) = {
+      def addBustedOrBlackjackToHistory(
+        playerId: String,
+        hand: Hand,
+        history: Seq[Action[BlackjackAction]] = Nil,
+        actionCards: Seq[Card] = Nil,
+        actionBet: Option[Int]): (Hand, Seq[Action[BlackjackAction]]) = {
+        var newHistory = history
+        var newHand = hand
+        if (eval(hand.hand) == 21 && hand.hand.length == 2) {
+          newHistory = newHistory ++ Seq(Action(playerId, Blackjack, actionCards, actionBet, Nil, Nil))
+          newHistory = newHistory ++ Seq(Action(playerId, Win, actionCards, actionBet, Nil, Nil))
+          newHand = newHand.copy(outcome = Some(Blackjack))
+        } else if (eval(hand.hand) == 21) {
+          newHistory = newHistory ++ Seq(Action(playerId, Win, actionCards, actionBet, Nil, Nil))
+          newHand = newHand.copy(outcome = Some(Win))
+        } else if (eval(hand.hand) > 21) {
+          newHistory = newHistory ++ Seq(Action(playerId, Bust, actionCards, actionBet, Nil, Nil))
+          newHistory = newHistory ++ Seq(Action(playerId, Lose, actionCards, actionBet, Nil, Nil))
+          newHand = newHand.copy(outcome = Some(Bust))
+        }
+        (newHand, newHistory)
+      }  
+      action match {
       // case Stand => (Seq(hand), deck, Seq(Action(playerId, Stand, Nil, 0, hand.hand, Seq(hand.hand))))
-      case Stand => (Seq(hand), deck, Seq(Action(playerId, Stand, Nil, None, Nil, Seq(hand.hand))))
+      case Stand => {
+        val (updatedHand, updatedHistory) = addBustedOrBlackjackToHistory(playerId, hand, Nil, Nil, None)
+        updatedHistory match {
+          case Nil => Seq(Action(playerId, Stand, Nil, None, Nil, Seq(hand.hand)))
+          case xs => xs // either Busted or Blackjack occurred
+        }
+        (Seq(updatedHand), deck, updatedHistory)
+      }
       case a if (a == Hit || a == DoubleDown) => {
         // Hit and DoubleDown both deal 1 card 
         val (dealt, nextDeck): (Seq[Card], Deck) = deck.deal()
@@ -432,26 +463,28 @@ trait BlackjackPlay {
           }
           case _ => (0, hand.bets)
         }
-        var updatedHand: Hand = hand.copy(hand = hand.hand ++ dealt, bets = nextBets)
-        var history = Seq(Action(playerId, a, dealt, Some(additionalBet), Nil, Seq(updatedHand.hand)))
+        val newHand: Hand = hand.copy(hand = hand.hand ++ dealt, bets = nextBets)
+        val newHistory: Seq[Action[BlackjackAction]] = Seq(Action(playerId, a, dealt, Some(additionalBet), Nil, Seq(newHand.hand)))
         var deckGoingForward = nextDeck
-        if (eval(updatedHand.hand) == 21 && updatedHand.hand.length == 2) {
-          history = history ++ Seq(Action(playerId, Blackjack, dealt, Some(additionalBet), Nil, Nil))
-          history = history ++ Seq(Action(playerId, Win, dealt, Some(additionalBet), Nil, Nil))
-        } else if (eval(hand.hand) == 21 && hand.hand.length == 2) {
-          history = history ++ Seq(Action(playerId, Blackjack, dealt, Some(additionalBet), Nil, Nil))
-          history = history ++ Seq(Action(playerId, Win, dealt, Some(additionalBet), Nil, Nil))
-          updatedHand = hand 
-        } else if (eval(updatedHand.hand) == 21) {
-          history = history ++ Seq(Action(playerId, Win, dealt, Some(additionalBet), Nil, Nil))
-        } else if (eval(hand.hand) == 21) {
-          history = history ++ Seq(Action(playerId, Win, dealt, Some(additionalBet), Nil, Nil))
-          updatedHand = hand 
-        } else if (eval(updatedHand.hand) > 21) {
-          history = history ++ Seq(Action(playerId, Bust, dealt, Some(additionalBet), Nil, Nil))
-          history = history ++ Seq(Action(playerId, Lose, dealt, Some(additionalBet), Nil, Nil))
-        }
-        (Seq(updatedHand), deckGoingForward, history)
+
+        val (updatedHand, updatedHistory) = addBustedOrBlackjackToHistory(playerId, newHand, newHistory, dealt, Some(additionalBet))
+        // if (eval(updatedHand.hand) == 21 && updatedHand.hand.length == 2) {
+        //   history = history ++ Seq(Action(playerId, Blackjack, dealt, Some(additionalBet), Nil, Nil))
+        //   history = history ++ Seq(Action(playerId, Win, dealt, Some(additionalBet), Nil, Nil))
+        // } else if (eval(hand.hand) == 21 && hand.hand.length == 2) {
+        //   history = history ++ Seq(Action(playerId, Blackjack, dealt, Some(additionalBet), Nil, Nil))
+        //   history = history ++ Seq(Action(playerId, Win, dealt, Some(additionalBet), Nil, Nil))
+        //   updatedHand = hand 
+        // } else if (eval(updatedHand.hand) == 21) {
+        //   history = history ++ Seq(Action(playerId, Win, dealt, Some(additionalBet), Nil, Nil))
+        // } else if (eval(hand.hand) == 21) {
+        //   history = history ++ Seq(Action(playerId, Win, dealt, Some(additionalBet), Nil, Nil))
+        //   updatedHand = hand 
+        // } else if (eval(updatedHand.hand) > 21) {
+        //   history = history ++ Seq(Action(playerId, Bust, dealt, Some(additionalBet), Nil, Nil))
+        //   history = history ++ Seq(Action(playerId, Lose, dealt, Some(additionalBet), Nil, Nil))
+        // }
+        (Seq(updatedHand), deckGoingForward, updatedHistory)
       }
       case Split => {
         // deal 2 cards, 1 for each split hand 
@@ -481,6 +514,7 @@ trait BlackjackPlay {
       }
       case a => throw new IllegalArgumentException(s"Unexpected BlackjackAction [$a], at this phase the only expected actions are [Hit, Stand, DoubleDown, Split, Surrender]")
     }
+  }
 
 
 }

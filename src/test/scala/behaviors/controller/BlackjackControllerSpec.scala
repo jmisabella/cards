@@ -125,22 +125,26 @@ class BlackjackControllerSpec extends AnyFlatSpec with GivenWhenThen {
       25, 
       Seq( 
         Hand(Seq(Card(Eight, Hearts), Card(Jack, Diamonds), Card(Five, Clubs)), 
-        bets = Map("Jeffrey" -> 15), 
-        outcome = Some(BlackjackAction.Lose))))
+        bets = Map("Jeffrey" -> 15))))//,
+        // outcome = Some(BlackjackAction.Lose))))
     val gameState = BlackjackGameState(
       options = BlackjackOptions(), 
       players = Seq(player1),
-      currentPlayerIndex = Some(0))
+      currentPlayerIndex = Some(0),
+      currentHandIndex = Some(0))
     When("progressing to the next state")
-    // val result: BlackjackGameState = module.next(gameState)
-    val result: BlackjackGameState = module.next(gameState, iterations = 1, purgeHistoryAfterRound = false)
-    Then("Jeffrey's bank should be less than initial bank") 
-    result.players.filter(_.id == "Jeffrey").head.bank shouldBe < (25)
+    var result: BlackjackGameState = module.next(gameState, iterations = 1, purgeHistoryAfterRound = false)
     Then("History should reflect that Jeffrey has Busted and has Lost")
     result.history.reverse.head.playerId should equal ("Jeffrey")
     result.history.reverse.head.action should equal (Lose)
     result.history.reverse.tail.head.playerId should equal ("Jeffrey")
     result.history.reverse.tail.head.action should equal (Bust)
+    Then("it should be time to settle")
+    module.betting.isTimeToSettle(result) shouldBe (true)
+    When("progressing to the next state") 
+    result = module.next(result, iterations = 1, purgeHistoryAfterRound = false)
+    Then("Jeffrey's bank should be less than initial bank") 
+    result.players.filter(_.id == "Jeffrey").head.bank shouldBe < (25)
   }
   
   it should "settle when current hand has blackjack but dealer doesn't have any cards" in {
@@ -150,24 +154,26 @@ class BlackjackControllerSpec extends AnyFlatSpec with GivenWhenThen {
       25, 
       Seq( 
         Hand(Seq(Card(Ace, Hearts), Card(Jack, Diamonds)), 
-        bets = Map("Jeffrey" -> 15), 
-        outcome = Some(BlackjackAction.Win))))
+        bets = Map("Jeffrey" -> 15)))) //, 
+        // outcome = Some(BlackjackAction.Win))))
     val gameState = BlackjackGameState(
       options = BlackjackOptions(), 
       players = Seq(player1),
-      currentPlayerIndex = Some(0))
+      currentPlayerIndex = Some(0),
+      currentHandIndex = Some(0))
     When("progressing to the next state")
-    // val result: BlackjackGameState = module.next(gameState)
-    val result: BlackjackGameState = module.next(gameState, iterations = 1, purgeHistoryAfterRound = false)
-    Then("Jeffrey's bank should be greater than initial bank") 
-    result.players.filter(_.id == "Jeffrey").head.bank shouldBe > (25)
+    var result: BlackjackGameState = module.next(gameState, iterations = 1, purgeHistoryAfterRound = false)
     Then("History should reflect that Jeffrey has gotten a Blackjack and has Won")
-    // Then("HERE: " + result.players(0).handsAndBets.mkString(","))
-    Then("HISTORY: " + result.history.mkString(", "))
     result.history.reverse.head.playerId should equal ("Jeffrey")
     result.history.reverse.head.action should equal (Win)
     result.history.reverse.tail.head.playerId should equal ("Jeffrey")
     result.history.reverse.tail.head.action should equal (Blackjack)
+    Then("it should be time to settle")
+    module.betting.isTimeToSettle(result) shouldBe (true)
+    When("progressing to the next state") 
+    result = module.next(result, iterations = 1, purgeHistoryAfterRound = false)
+    Then("Jeffrey's bank should be greater than initial bank") 
+    result.players.filter(_.id == "Jeffrey").head.bank shouldBe > (25)
   }
 
   it should "settle when all hands have either won or lost" in {

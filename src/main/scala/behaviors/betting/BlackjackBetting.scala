@@ -245,7 +245,8 @@ trait BlackjackBetting {
       (hand: Hand) => Hand(hand.hand, hand.bets.map(b => if (evaluation.eval(hand.hand) == 21) b._1 -> b._2 * numerator / denominator else b).toMap, Nil, hand.outcome) 
     }
     val dealerBlackjackWinAdjustedPayout: Hand => Hand = (dealerHand: Hand) => {
-      if (evaluation.eval(dealerHand.hand) == 21 && dealerHand.hand.length == 2 && dealerHand.outcome == Some(BlackjackAction.Win))
+      // if (evaluation.eval(dealerHand.hand) == 21 && dealerHand.hand.length == 2 && dealerHand.outcome == Some(BlackjackAction.Win))
+      if (evaluation.eval(dealerHand.hand) == 21 && dealerHand.hand.length == 2 && (dealerHand.outcome == Some(BlackjackAction.Win) || dealerHand.outcome == Some(BlackjackAction.Blackjack)))
         Hand(dealerHand.hand, dealerHand.bets.map(mapEntry => mapEntry._1 -> mapEntry._2 * 2), Nil, dealerHand.outcome) // insurance pays 2-to-1
       else 
         dealerHand
@@ -253,34 +254,107 @@ trait BlackjackBetting {
     (players.map(p => BlackjackPlayerState(p.id, p.bank, p.handsAndBets.map(h => playerBlackjackWinAdjustedPayout(h)) )), dealerBlackjackWinAdjustedPayout(dealerHand))
   }
 
-  def settleBets(game: BlackjackGameState): BlackjackGameState = isTimeToSettle(game) match {
+
+  def settleBetsDoesNotWork(game: BlackjackGameState): BlackjackGameState = isTimeToSettle(game) match {
     case false => game
     case true => {
-      def winningOrLosingWagers(players: Seq[BlackjackPlayerState], outcome: Enumeration#Value): Map[String, Int] = {
+      def winningOrLosingWagers(players: Seq[BlackjackPlayerState], outcome: BlackjackAction, negateAmount: Boolean = false): Seq[Action[BlackjackAction]] = {
         val (adjustedWinningHandPayouts, adjustedInsurancePayouts): (Seq[BlackjackPlayerState], Hand) = adjustBetPayouts(players, game.dealerHand, game.options)
-        (adjustedWinningHandPayouts.flatMap(_.handsAndBets.filter(_.outcome == Some(outcome))) ++ Seq(adjustedInsurancePayouts).filter(_.outcome == Some(outcome)))
+        val payouts: Map[String, Int] = (adjustedWinningHandPayouts.flatMap(_.handsAndBets.filter(_.outcome == Some(outcome))) ++ Seq(adjustedInsurancePayouts).filter(_.outcome == Some(outcome)))
           .flatMap(_.bets)
           .groupBy(_._1)
           .map(tup => (tup._1, tup._2.foldLeft(0)((acc, x) => x._2 + acc))) 
+        (for ((player, amount) <- payouts) yield { 
+          Action(
+            player, 
+            outcome, 
+            actionTokens = if (negateAmount) Some(-amount) else Some(amount))
+        }).toSeq
       }
-      val winningWagers: Map[String, Int] = winningOrLosingWagers(game.players, BlackjackAction.Win)
-      val losingWagers: Map[String, Int] = winningOrLosingWagers(game.players, BlackjackAction.Lose)
-      val wagers: Map[String, Int] = 
-        (winningWagers.toSeq ++ losingWagers.toSeq.map(tup => (tup._1, -tup._2)))
-          .groupBy(_._1)
-          .map(tup => (tup._1, tup._2.foldLeft(0)((acc, x) => x._2 + acc)))
-
-      val nextHistory: Seq[Action[BlackjackAction]] = game.history ++ wagers.toSeq.map(tup => {
-        val amount: Int = tup._2.abs
-        val player: BlackjackPlayerState = game.players.filter(p => p.id == tup._1).head
-        val (action, bank): (BlackjackAction, Option[Int]) = tup._2 match {
-          case n if (n < 0) => (Lose, Some(player.bank - amount))
-          case n if (n > 0) => (Win, Some(player.bank + amount))
-          case _ => (Tie, None)
+      // Using Action instead of Map in order to also pass one of these Blackjack actions: Win, Lose, Tie, Bust, Blackjack
+      // Wager amount is captured in actionTokens, player is playerId, and action indicates the outcome
+      val winningWagers1: Seq[Action[BlackjackAction]] = winningOrLosingWagers(game.players, BlackjackAction.Blackjack)
+      val winningWagers2: Seq[Action[BlackjackAction]] = winningOrLosingWagers(game.players, BlackjackAction.Win)
+      val losingWagers1: Seq[Action[BlackjackAction]] = winningOrLosingWagers(game.players, BlackjackAction.Bust, negateAmount = true)
+      val losingWagers2: Seq[Action[BlackjackAction]] = winningOrLosingWagers(game.players, BlackjackAction.Lose, negateAmount = true)
+      val ties: Seq[Action[BlackjackAction]] = game.players.filter(p => p.handsAndBets.count(h => h.outcome == Some(Tie)) > 0).map(p => Action(p.id, Tie))
+     val wagers: Seq[Action[BlackjackAction]] = (ties ++ winningWagers1 ++ winningWagers2 ++ losingWagers1 ++ losingWagers2).map { action => 
+        val amount: Option[Int] = action.actionTokens
+        val bank: Int = game.players.filter(p => p.id == action.playerId).head.bank
+        amount match {
+          case None => action.copy(afterTokens = Some(bank))
+          case Some(x) => action.copy(afterTokens = Some(bank + x))
         }
-        Action(tup._1, action, Nil, Some(amount)).copy(afterTokens = bank) 
-      }).toSeq
+      }
+      val updatedPlayers: Seq[BlackjackPlayerState] = game.players.map { p => 
+        val updatedBank: Int = wagers.filter(a => a.playerId == p.id).reverse.head.afterTokens.getOrElse(0)
+        val maxBank: Int = wagers.filter(a => a.playerId == p.id).map(a => a.afterTokens.getOrElse(0)).max
+        p.copy(bank = updatedBank, handsAndBets = Nil, highestBank = maxBank, rounds = p.rounds + 1)
+      }
+      game.copy(
+        players = updatedPlayers, 
+        history = game.history ++ wagers, 
+        dealerHand = Hand(), 
+        currentPlayerIndex = None, 
+        currentHandIndex = None, 
+        round = game.round + 1)
+    } 
+  }
 
+  def settleBets(game: BlackjackGameState): BlackjackGameState = isTimeToSettle(game) match {
+    case false => println("NOT SETTLING AT THIS TIME..."); game
+    case true => {
+      println("SETTLING BETS!!!!")
+      def winningOrLosingWagers(players: Seq[BlackjackPlayerState], outcome: BlackjackAction, negateAmount: Boolean = false): Seq[Action[BlackjackAction]] = {
+        val (adjustedWinningHandPayouts, adjustedInsurancePayouts): (Seq[BlackjackPlayerState], Hand) = adjustBetPayouts(players, game.dealerHand, game.options)
+        val payouts: Map[String, Int] = (adjustedWinningHandPayouts.flatMap(_.handsAndBets.filter(_.outcome == Some(outcome))) ++ Seq(adjustedInsurancePayouts).filter(_.outcome == Some(outcome)))
+          .flatMap(_.bets)
+          .groupBy(_._1)
+          .map(tup => (tup._1, tup._2.foldLeft(0)((acc, x) => x._2 + acc))) 
+        (for ((player, amount) <- payouts) yield { 
+          Action(
+            player, 
+            outcome, 
+            actionTokens = if (negateAmount) Some(-amount) else Some(amount))
+        }).toSeq
+      }
+      // def winningOrLosingWagers(players: Seq[BlackjackPlayerState], outcome: Enumeration#Value): Map[String, Int] = {
+      //   val (adjustedWinningHandPayouts, adjustedInsurancePayouts): (Seq[BlackjackPlayerState], Hand) = adjustBetPayouts(players, game.dealerHand, game.options)
+      //   (adjustedWinningHandPayouts.flatMap(_.handsAndBets.filter(_.outcome == Some(outcome))) ++ Seq(adjustedInsurancePayouts).filter(_.outcome == Some(outcome)))
+      //     .flatMap(_.bets)
+      //     .groupBy(_._1)
+      //     .map(tup => (tup._1, tup._2.foldLeft(0)((acc, x) => x._2 + acc))) 
+      // }
+      // val winningWagers: Map[String, Int] = winningOrLosingWagers(game.players, BlackjackAction.Win)
+      // val losingWagers: Map[String, Int] = winningOrLosingWagers(game.players, BlackjackAction.Lose)
+      val winningWagers1: Seq[Action[BlackjackAction]] = winningOrLosingWagers(game.players, BlackjackAction.Blackjack)
+      val winningWagers2: Seq[Action[BlackjackAction]] = winningOrLosingWagers(game.players, BlackjackAction.Win)
+      val losingWagers1: Seq[Action[BlackjackAction]] = winningOrLosingWagers(game.players, BlackjackAction.Bust, negateAmount = true)
+      val losingWagers2: Seq[Action[BlackjackAction]] = winningOrLosingWagers(game.players, BlackjackAction.Lose, negateAmount = true)
+      val ties: Seq[Action[BlackjackAction]] = game.players.filter(p => p.handsAndBets.count(h => h.outcome == Some(Tie)) > 0).map(p => Action(p.id, Tie))
+      // println("WINNERS 1: " + winningWagers1.mkString(", "))
+      // println("WINNERS 2: " + winningWagers2.mkString(", "))
+      // println("LOSERS 1: " + losingWagers1.mkString(", "))
+      // println("LOSERS 2: " + losingWagers2.mkString(", "))
+      def getWagers(actions: Seq[Action[BlackjackAction]]): Map[String, Int] = {
+        (actions.map(action => (action.playerId, action.actionTokens.getOrElse(0)))
+          .groupBy(_._1)
+          .map(tup => (tup._1, tup._2.foldLeft(0)((acc, x) => x._2 + acc))))
+      }
+      val nextActions: Seq[Action[BlackjackAction]] = ties ++ losingWagers1 ++ losingWagers2 ++ winningWagers1 ++ winningWagers2
+      val wagers: Map[String, Int] = getWagers(nextActions)
+      // val nextHistory: Seq[Action[BlackjackAction]] = game.history ++ wagers.toSeq.map(tup => {
+      //   val amount: Int = tup._2.abs
+      //   val player: BlackjackPlayerState = game.players.filter(p => p.id == tup._1).head
+      //   // TODO: This is where the actual outcome originates; how can we make this reflect blackjacks and busts???
+      //   val (action, bank): (BlackjackAction, Option[Int]) = tup._2 match {
+      //     case n if (n < 0) => (Lose, Some(player.bank - amount))
+      //     case n if (n > 0) => (Win, Some(player.bank + amount))
+      //     case _ => (Tie, None)
+      //   }
+      //   Action(tup._1, action, Nil, Some(amount)).copy(afterTokens = bank) 
+      // }).toSeq
+      val nextHistory: Seq[Action[BlackjackAction]] = game.history ++ nextActions
       val updatedPlayers: Seq[BlackjackPlayerState] = game.players.map { p => 
         val updatedBank: Int = wagers.keySet.contains(p.id) match {
           case false => p.bank
@@ -301,6 +375,59 @@ trait BlackjackBetting {
         round = game.round + 1)
     } 
   }
+
+  def settleBetsOriginal(game: BlackjackGameState): BlackjackGameState = isTimeToSettle(game) match {
+    case false => game
+    case true => {
+      def winningOrLosingWagers(players: Seq[BlackjackPlayerState], outcome: Enumeration#Value): Map[String, Int] = {
+        val (adjustedWinningHandPayouts, adjustedInsurancePayouts): (Seq[BlackjackPlayerState], Hand) = adjustBetPayouts(players, game.dealerHand, game.options)
+        (adjustedWinningHandPayouts.flatMap(_.handsAndBets.filter(_.outcome == Some(outcome))) ++ Seq(adjustedInsurancePayouts).filter(_.outcome == Some(outcome)))
+          .flatMap(_.bets)
+          .groupBy(_._1)
+          .map(tup => (tup._1, tup._2.foldLeft(0)((acc, x) => x._2 + acc))) 
+      }
+      val winningWagers: Map[String, Int] = winningOrLosingWagers(game.players, BlackjackAction.Win)
+      val losingWagers: Map[String, Int] = winningOrLosingWagers(game.players, BlackjackAction.Lose)
+      val wagers: Map[String, Int] = 
+        (winningWagers.toSeq ++ losingWagers.toSeq.map(tup => (tup._1, -tup._2)))
+          .groupBy(_._1)
+          .map(tup => (tup._1, tup._2.foldLeft(0)((acc, x) => x._2 + acc)))
+      val nextHistory: Seq[Action[BlackjackAction]] = game.history ++ wagers.toSeq.map(tup => {
+        val amount: Int = tup._2.abs
+        val player: BlackjackPlayerState = game.players.filter(p => p.id == tup._1).head
+        // TODO: This is where the actual outcome originates; how can we make this reflect blackjacks and busts???
+        val (action, bank): (BlackjackAction, Option[Int]) = tup._2 match {
+          case n if (n < 0) => (Lose, Some(player.bank - amount))
+          case n if (n > 0) => (Win, Some(player.bank + amount))
+          case _ => (Tie, None)
+        }
+        Action(tup._1, action, Nil, Some(amount)).copy(afterTokens = bank) 
+      }).toSeq
+      val updatedPlayers: Seq[BlackjackPlayerState] = game.players.map { p => 
+        val updatedBank: Int = wagers.keySet.contains(p.id) match {
+          case false => p.bank
+          case true => p.bank + wagers(p.id)
+        }
+        val maxBank: Int = (p.highestBank, updatedBank) match {
+          case (highest, current) if (current > highest) => current
+          case (highest, _) => highest
+        }
+        p.copy(bank = updatedBank, handsAndBets = Nil, highestBank = maxBank, rounds = p.rounds + 1)
+      }
+      game.copy(
+        players = updatedPlayers, 
+        history = nextHistory, 
+        dealerHand = Hand(), 
+        currentPlayerIndex = None, 
+        currentHandIndex = None, 
+        round = game.round + 1)
+    } 
+  }
+
+
+
+
+
 
   // Players eligible for insurance only if dealer's first hand (only 2 cards) shows an ace as the face-up card  
   // Dealer's first card in hand is considered the face-up card 

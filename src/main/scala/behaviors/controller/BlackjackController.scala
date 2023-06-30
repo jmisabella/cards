@@ -40,7 +40,7 @@ trait BlackjackController extends Controller[BlackjackPlayerState, BlackjackActi
     //     }
     //     val result = play.evaluation.outcomes(game)
     //     return result.copy(history = result.history ++ history) 
-    //   } 
+    //   }
     // }
 
     if (game.deck.length == 0) {
@@ -69,7 +69,6 @@ trait BlackjackController extends Controller[BlackjackPlayerState, BlackjackActi
         currentPlayerIndex = updatedPlayerIndex)
     }
     val shuffleLimit: Int = (game.players.flatMap(_.hands).length + 1) * 5
-
     // if (game.currentPlayerIndex.isDefined && game.currentHandIndex.isDefined) {
     //   val score: Long = play.evaluation.eval(game.currentCards())
     //   if (score >= 21) {
@@ -88,8 +87,7 @@ trait BlackjackController extends Controller[BlackjackPlayerState, BlackjackActi
     //     val result = play.evaluation.outcomes(game)
     //     return result.copy(history = result.history ++ history).toNextHand(Hit, busted)
     //   } 
-    // } 
-
+    // }
     if (betting.isTimeToSettle(game)) {
       return betting.settleBets(game)
     }

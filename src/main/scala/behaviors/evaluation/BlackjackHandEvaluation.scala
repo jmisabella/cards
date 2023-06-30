@@ -38,8 +38,9 @@ trait BlackjackHandEvaluation extends HandEvaluation {
   // TODO: update this method to account for blackjack and busts, use blackjack and bust action when appropriate
   // when comparing 2 hands, yield the hands with outcome set as Win, Lose, or Tie
   def outcomes(hand1: Hand, hand2: Hand): (Hand, Hand) = {
-    val h1Blackjack: Boolean = hand1.hand.length == 2 && eval(hand1.hand) == 21
-    val h2Blackjack: Boolean = hand2.hand.length == 2 && eval(hand2.hand) == 21
+    def isBlackjack(hand: Hand): Boolean = hand.hand.length == 2 && eval(hand.hand) == 21
+    val h1Blackjack: Boolean = isBlackjack(hand1) 
+    val h2Blackjack: Boolean = isBlackjack(hand2)
     (h1Blackjack, h2Blackjack) match {
       case (true, true) => (hand1.copy(outcome = Some(Blackjack)), hand2.copy(outcome = Some(Blackjack)))
       case (true, false) => (hand1.copy(outcome = Some(Blackjack)), hand2.copy(outcome = Some(Lose)))

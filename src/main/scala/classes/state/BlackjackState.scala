@@ -126,10 +126,12 @@ case class BlackjackGameState(
     // true indicates a win, false indicates a loss; order is in the original order played, so most recent is last item
     def winningHistory(playerId: String): Seq[Boolean] = {
       history
-        .filter ( a => a.playerId == playerId && Seq(Win, Lose).contains(a.action))
+        .filter ( a => a.playerId == playerId && Seq(Win, Blackjack, Lose, Bust).contains(a.action))
         .map ( a => a.action match {
           case Win => true
+          case Blackjack => true
           case Lose => false
+          case Bust => false
         })
     }
 }
