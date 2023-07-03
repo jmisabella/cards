@@ -35,7 +35,6 @@ trait BlackjackHandEvaluation extends HandEvaluation {
       , cards.count(_.rank == Ace)) // ace count
   }
 
-  // TODO: update this method to account for blackjack and busts, use blackjack and bust action when appropriate
   // when comparing 2 hands, yield the hands with outcome set as Win, Lose, or Tie
   def outcomes(hand1: Hand, hand2: Hand): (Hand, Hand) = {
     def isBlackjack(hand: Hand): Boolean = hand.hand.length == 2 && eval(hand.hand) == 21
