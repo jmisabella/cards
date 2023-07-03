@@ -317,24 +317,12 @@ trait BlackjackBetting {
             actionTokens = if (negateAmount) Some(-amount) else Some(amount))
         }).toSeq
       }
-      // def winningOrLosingWagers(players: Seq[BlackjackPlayerState], outcome: Enumeration#Value): Map[String, Int] = {
-      //   val (adjustedWinningHandPayouts, adjustedInsurancePayouts): (Seq[BlackjackPlayerState], Hand) = adjustBetPayouts(players, game.dealerHand, game.options)
-      //   (adjustedWinningHandPayouts.flatMap(_.handsAndBets.filter(_.outcome == Some(outcome))) ++ Seq(adjustedInsurancePayouts).filter(_.outcome == Some(outcome)))
-      //     .flatMap(_.bets)
-      //     .groupBy(_._1)
-      //     .map(tup => (tup._1, tup._2.foldLeft(0)((acc, x) => x._2 + acc))) 
-      // }
-      // val winningWagers: Map[String, Int] = winningOrLosingWagers(game.players, BlackjackAction.Win)
-      // val losingWagers: Map[String, Int] = winningOrLosingWagers(game.players, BlackjackAction.Lose)
       val winningWagers1: Seq[Action[BlackjackAction]] = winningOrLosingWagers(game.players, BlackjackAction.Blackjack)
       val winningWagers2: Seq[Action[BlackjackAction]] = winningOrLosingWagers(game.players, BlackjackAction.Win)
       val losingWagers1: Seq[Action[BlackjackAction]] = winningOrLosingWagers(game.players, BlackjackAction.Bust, negateAmount = true)
       val losingWagers2: Seq[Action[BlackjackAction]] = winningOrLosingWagers(game.players, BlackjackAction.Lose, negateAmount = true)
       val ties: Seq[Action[BlackjackAction]] = game.players.filter(p => p.handsAndBets.count(h => h.outcome == Some(Tie)) > 0).map(p => Action(p.id, Tie))
-      // println("WINNERS 1: " + winningWagers1.mkString(", "))
-      // println("WINNERS 2: " + winningWagers2.mkString(", "))
-      // println("LOSERS 1: " + losingWagers1.mkString(", "))
-      // println("LOSERS 2: " + losingWagers2.mkString(", "))
+      
       def getWagers(actions: Seq[Action[BlackjackAction]]): Map[String, Int] = {
         (actions.map(action => (action.playerId, action.actionTokens.getOrElse(0)))
           .groupBy(_._1)
@@ -342,17 +330,6 @@ trait BlackjackBetting {
       }
       val nextActions: Seq[Action[BlackjackAction]] = ties ++ losingWagers1 ++ losingWagers2 ++ winningWagers1 ++ winningWagers2
       val wagers: Map[String, Int] = getWagers(nextActions)
-      // val nextHistory: Seq[Action[BlackjackAction]] = game.history ++ wagers.toSeq.map(tup => {
-      //   val amount: Int = tup._2.abs
-      //   val player: BlackjackPlayerState = game.players.filter(p => p.id == tup._1).head
-      //   // TODO: This is where the actual outcome originates; how can we make this reflect blackjacks and busts???
-      //   val (action, bank): (BlackjackAction, Option[Int]) = tup._2 match {
-      //     case n if (n < 0) => (Lose, Some(player.bank - amount))
-      //     case n if (n > 0) => (Win, Some(player.bank + amount))
-      //     case _ => (Tie, None)
-      //   }
-      //   Action(tup._1, action, Nil, Some(amount)).copy(afterTokens = bank) 
-      // }).toSeq
       val nextHistory: Seq[Action[BlackjackAction]] = game.history ++ nextActions
       val updatedPlayers: Seq[BlackjackPlayerState] = game.players.map { p => 
         val updatedBank: Int = wagers.keySet.contains(p.id) match {
@@ -422,11 +399,6 @@ trait BlackjackBetting {
         round = game.round + 1)
     } 
   }
-
-
-
-
-
 
   // Players eligible for insurance only if dealer's first hand (only 2 cards) shows an ace as the face-up card  
   // Dealer's first card in hand is considered the face-up card 

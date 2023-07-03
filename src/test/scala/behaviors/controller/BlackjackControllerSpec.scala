@@ -13,6 +13,7 @@ import cards.classes.hand.Hand
 import cards.classes.state.{ BlackjackGameState, BlackjackPlayerState }
 import cards.classes.options.blackjack.BlackjackOptions
 import cards.classes.options.blackjack.BlackjackPayout._
+import cards.classes.options.blackjack.DealerHitLimit._
 import cards.classes.actions.{ Action, BlackjackAction }
 import cards.classes.actions.BlackjackAction._
 import org.scalatest.flatspec.AnyFlatSpec
@@ -189,6 +190,94 @@ class BlackjackControllerSpec extends AnyFlatSpec with GivenWhenThen {
     // result.history.reverse.head.playerId should equal ("Jeffrey")
     // result.history.reverse.head.action should equal (Win)
   }
+
+  it should "not allow player or dealer to continue playing after player with 3 card hand has busted" in {
+    Given("a game with 1 player having 3 cards and whose hand is busted, a dealer with no cards")
+    val player1 = BlackjackPlayerState(
+      "Jeffrey", 
+      25, 
+      Seq( 
+        Hand(hand = Seq(Card(Ten, Hearts), Card(Eight, Clubs), Card(Four, Clubs)), bets = Map("Jeffrey" -> 5), outcome = None)) )
+    val history = Seq(Action("Jeffrey", Hit, Seq(Card(Four, Clubs)), None, Seq(Card(Ten, Hearts), Card(Eight, Clubs)), Seq(Seq(Card(Ten, Hearts), Card(Eight, Clubs), Card(Four, Clubs)))))
+    val game = BlackjackGameState(
+      options = BlackjackOptions(dealerHitLimit = H17), 
+      minimumBet = 5, 
+      players = Seq(player1), 
+      history = history, 
+      currentPlayerIndex = Some(0),
+      currentHandIndex = Some(0))
+    When("progressing to the next state")
+    var result: BlackjackGameState = module.next(game, iterations = 1, purgeHistoryAfterRound = false)
+    Then("it should be time to settle")
+    module.betting.isTimeToSettle(result) shouldBe (true)
+    When("progressing to the next state") 
+    result = module.next(result, iterations = 1, purgeHistoryAfterRound = false)
+    Then("Jeffrey's bank should be less than initial bank") 
+    result.players.filter(_.id == "Jeffrey").head.bank shouldBe < (25)
+    Then("round should end with player Busting before Losing")
+    result.history.reverse.head.action should equal (Bust)
+    result.history.reverse.head.playerId should equal ("Jeffrey")
+    // result.history.reverse.tail.head.action should equal (Bust)
+    // result.history.reverse.tail.head.playerId should equal ("Jeffrey")
+  }
+
+  it should "not allow player or dealer to continue playing after player with 3 card hand has achieved 21" in {
+    Given("a game with 1 player having 3 cards and whose hand equals 21, a dealer with no cards")
+    val hand = Seq(Card(Ten, Hearts), Card(Eight, Clubs), Card(Three, Clubs))
+    val player1 = BlackjackPlayerState(
+      "Jeffrey", 
+      25, 
+      Seq( 
+        Hand(hand = hand, bets = Map("Jeffrey" -> 5), outcome = None)) )
+    val history = Seq(Action("Jeffrey", Hit, Seq(Card(Four, Clubs)), None, hand, Seq(hand)))
+    val game = BlackjackGameState(
+      options = BlackjackOptions(dealerHitLimit = H17),
+      minimumBet = 5, 
+      players = Seq(player1), 
+      history = history, 
+      currentPlayerIndex = Some(0),
+      currentHandIndex = Some(0))
+    When("progressing to the next state")
+    var result: BlackjackGameState = module.next(game, iterations = 1, purgeHistoryAfterRound = false)
+    // Then("it should be time to settle")
+    // module.betting.isTimeToSettle(result) shouldBe (true)
+    When("progressing to the next state") 
+    result = module.next(result, iterations = 1, purgeHistoryAfterRound = false)
+    Then("HISTORY PRINTED: " + result.history.mkString("\r\n"))
+    Then("round should end with player Busting before Losing")
+    result.history.reverse.head.playerId should equal ("Jeffrey")
+    result.history.reverse.head.action should equal (Win)
+  }
+
+  it should "not allow player or dealer to continue playing after player has been dealt a blackjack" in {
+    Given("a game with 1 player having 2 cards and whose hand equals 21, a dealer with no cards")
+    val hand = Seq(Card(Ten, Hearts), Card(Ace, Clubs))
+    val player1 = BlackjackPlayerState(
+      "Jeffrey", 
+      25,
+      Seq(
+        Hand(hand = hand, bets = Map("Jeffrey" -> 5), outcome = None)) )
+    val game = BlackjackGameState(
+      options = BlackjackOptions(dealerHitLimit = H17), 
+      minimumBet = 5, 
+      players = Seq(player1),
+      currentPlayerIndex = Some(0),
+      currentHandIndex = Some(0))
+    When("progressing to the next state")
+    var result: BlackjackGameState = module.next(game, iterations = 1, purgeHistoryAfterRound = false)
+    Then("it should be time to settle")
+    module.betting.isTimeToSettle(result) shouldBe (true)
+    When("progressing to the next state") 
+    result = module.next(result, iterations = 1, purgeHistoryAfterRound = false)
+    Then("Jeffrey's bank should be greater than initial bank") 
+    result.players.filter(_.id == "Jeffrey").head.bank shouldBe > (25)
+    Then("player should have actions Blackjack and Win recorded in history")
+    result.history.reverse.head.playerId should equal ("Jeffrey")
+    result.history.reverse.head.action should equal (Blackjack)
+    // result.history.reverse.tail.head.playerId should equal ("Jeffrey")
+    // result.history.reverse.tail.head.action should equal (Blackjack)
+  }
+
 
   it should "settle when all hands have either won or lost" in {
     Given("a game state with 3 existing players (Jeffrey, Alice, Brandon) who each have 1 or more hands, all of which have either won or lost")
