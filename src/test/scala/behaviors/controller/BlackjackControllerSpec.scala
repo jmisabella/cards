@@ -135,24 +135,19 @@ class BlackjackControllerSpec extends AnyFlatSpec with GivenWhenThen {
       currentHandIndex = Some(0))
     When("progressing to the next state")
     var result: BlackjackGameState = module.next(gameState, iterations = 1, purgeHistoryAfterRound = false)
-    // Then("History should reflect that Jeffrey has Busted")
-    // result.history.reverse.head.playerId should equal ("Jeffrey")
-    // result.history.reverse.head.action should equal (Lose)
-    // result.history.reverse.tail.head.playerId should equal ("Jeffrey")
-    // result.history.reverse.tail.head.action should equal (Bust)
     Then("it should be time to settle")
     module.betting.isTimeToSettle(result) shouldBe (true)
     When("progressing to the next state") 
     result = module.next(result, iterations = 1, purgeHistoryAfterRound = false)
-    Then("Jeffrey's bank should be less than initial bank") 
-    result.players.filter(_.id == "Jeffrey").head.bank shouldBe < (25)
-    Then("History should reflect that Jeffrey has has Busted")
+    Then("Jeffrey's bank should be less than initial bank")
+    val updatedPlayer = result.players.filter(_.id == "Jeffrey").head
+    updatedPlayer.bank shouldBe < (25)
+    Then("history should reflect that Jeffrey has has Busted")
     // Then("HERE IS HISTORY: " + result.history.mkString("\r\n\r\n"))
     result.history.reverse.head.playerId should equal ("Jeffrey")
     result.history.reverse.head.action should equal (Bust)
-    // Then("History should reflect that Jeffrey has has Lost")
-    // result.history.reverse.head.action should equal (Lose)
-    // true shouldBe (false)
+    Then("history afterTokens should match Jeffrey's new bank amount")
+    result.history.reverse.head.afterTokens should equal (Some(updatedPlayer.bank))
   }
   
   it should "settle when current hand has blackjack but dealer doesn't have any cards" in {
@@ -171,24 +166,18 @@ class BlackjackControllerSpec extends AnyFlatSpec with GivenWhenThen {
       currentHandIndex = Some(0))
     When("progressing to the next state")
     var result: BlackjackGameState = module.next(gameState, iterations = 1, purgeHistoryAfterRound = false)
-    // Then("History should reflect that Jeffrey has gotten a Blackjack")
-    // result.history.reverse.head.playerId should equal ("Jeffrey")
-    // result.history.reverse.head.action should equal (Win)
-    // result.history.reverse.tail.head.playerId should equal ("Jeffrey")
-    // result.history.reverse.tail.head.action should equal (Blackjack)
     Then("it should be time to settle")
     module.betting.isTimeToSettle(result) shouldBe (true)
     When("progressing to the next state") 
     result = module.next(result, iterations = 1, purgeHistoryAfterRound = false)
     Then("Jeffrey's bank should be greater than initial bank") 
-    result.players.filter(_.id == "Jeffrey").head.bank shouldBe > (25)
-    // TODO: bug is putting Blackjack, Win, Blackjack into history 
+    val updatedPlayer = result.players.filter(_.id == "Jeffrey").head
+    updatedPlayer.bank shouldBe > (25)
     Then("History should reflect that Jeffrey has Blackjack")
     result.history.reverse.head.playerId should equal ("Jeffrey")
     result.history.reverse.head.action should equal (Blackjack)
-    // Then("History should reflect that Jeffrey has Won")
-    // result.history.reverse.head.playerId should equal ("Jeffrey")
-    // result.history.reverse.head.action should equal (Win)
+    Then("history afterTokens should match Jeffrey's new bank amount")
+    result.history.reverse.head.afterTokens should equal (Some(updatedPlayer.bank))
   }
 
   it should "not allow player or dealer to continue playing after player with 3 card hand has busted" in {
@@ -213,12 +202,13 @@ class BlackjackControllerSpec extends AnyFlatSpec with GivenWhenThen {
     When("progressing to the next state") 
     result = module.next(result, iterations = 1, purgeHistoryAfterRound = false)
     Then("Jeffrey's bank should be less than initial bank") 
-    result.players.filter(_.id == "Jeffrey").head.bank shouldBe < (25)
+    val updatedPlayer = result.players.filter(_.id == "Jeffrey").head
+    updatedPlayer.bank shouldBe < (25)
     Then("round should end with player Busting before Losing")
     result.history.reverse.head.action should equal (Bust)
     result.history.reverse.head.playerId should equal ("Jeffrey")
-    // result.history.reverse.tail.head.action should equal (Bust)
-    // result.history.reverse.tail.head.playerId should equal ("Jeffrey")
+    Then("history afterTokens should match Jeffrey's new bank amount")
+    result.history.reverse.head.afterTokens should equal (Some(updatedPlayer.bank))
   }
 
   it should "not allow player or dealer to continue playing after player with 3 card hand has achieved 21" in {
@@ -239,11 +229,8 @@ class BlackjackControllerSpec extends AnyFlatSpec with GivenWhenThen {
       currentHandIndex = Some(0))
     When("progressing to the next state")
     var result: BlackjackGameState = module.next(game, iterations = 1, purgeHistoryAfterRound = false)
-    // Then("it should be time to settle")
-    // module.betting.isTimeToSettle(result) shouldBe (true)
     When("progressing to the next state") 
     result = module.next(result, iterations = 1, purgeHistoryAfterRound = false)
-    Then("HISTORY PRINTED: " + result.history.mkString("\r\n"))
     Then("round should end with player Busting before Losing")
     result.history.reverse.head.playerId should equal ("Jeffrey")
     result.history.reverse.head.action should equal (Win)
@@ -270,14 +257,14 @@ class BlackjackControllerSpec extends AnyFlatSpec with GivenWhenThen {
     When("progressing to the next state") 
     result = module.next(result, iterations = 1, purgeHistoryAfterRound = false)
     Then("Jeffrey's bank should be greater than initial bank") 
-    result.players.filter(_.id == "Jeffrey").head.bank shouldBe > (25)
+    val updatedPlayer = result.players.filter(_.id == "Jeffrey").head
+    updatedPlayer.bank shouldBe > (25)
     Then("player should have actions Blackjack and Win recorded in history")
     result.history.reverse.head.playerId should equal ("Jeffrey")
     result.history.reverse.head.action should equal (Blackjack)
-    // result.history.reverse.tail.head.playerId should equal ("Jeffrey")
-    // result.history.reverse.tail.head.action should equal (Blackjack)
+    Then("history afterTokens should match Jeffrey's new bank amount")
+    result.history.reverse.head.afterTokens should equal (Some(updatedPlayer.bank))
   }
-
 
   it should "settle when all hands have either won or lost" in {
     Given("a game state with 3 existing players (Jeffrey, Alice, Brandon) who each have 1 or more hands, all of which have either won or lost")
@@ -411,12 +398,25 @@ class BlackjackControllerSpec extends AnyFlatSpec with GivenWhenThen {
   }
 
   it should "stand on a 3 card hand whose value is 20" in {
-    
-    pending
+    Given("a game with 1 player who has a 3-card hand whose value is twenty")
+    val player1 = BlackjackPlayerState(
+      "Jeffrey", 
+      20, 
+      Seq( 
+        Hand(Seq(Card(Two, Hearts), Card(Eight, Diamonds), Card(Ten, Clubs)), 
+        bets = Map("Jeffrey" -> 5))))
+    val dealerCards: Hand = Hand(Seq(Card(Nine, Diamonds), Card(Ten, Spades)), Map("Jeffrey" -> 1), Nil, None)
+    val gameState = BlackjackGameState(
+      dealerHand = dealerCards, 
+      players = Seq(player1),
+      currentPlayerIndex = Some(0),
+      currentHandIndex = Some(0))
+    When("progressing to the next game state")
+    val result = module.next(gameState)  
+    Then("the player should Stand")
+    val playerHistory = result.history.filter(_.playerId == "Jeffrey")
+    playerHistory.reverse.head.playerId should equal ("Jeffrey")
+    playerHistory.reverse.head.action should equal (Stand)
   }
 
-  it should "determine complete run up to a given maximum limit" in {
-
-    pending 
-  }
 }

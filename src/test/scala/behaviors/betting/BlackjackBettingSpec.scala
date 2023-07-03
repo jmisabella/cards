@@ -1533,20 +1533,19 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     updatedPlayer1.minBetMultiplier should equal (player1.minBetMultiplier)
   }
 
-  // TEST GROUPING: determine when a player is not doing well with a betting strategy and should switch to a different betting strategy
-  it should "change betting strategies to a random strategy if, after 250 games have been completed " + 
+  // determine when a player is not doing well with a betting strategy and should switch to a different betting strategy
+  it should "change betting strategies to a random strategy if, after 6 games have been completed " + 
   "and player's bank has not increased by 15%" in {
-    Given("a game with a player whose bank has not increased by 15% after 250 games")
+    Given("a game with a player whose bank has not increased by 15% after 6 games")
     val player1 = BlackjackPlayerState(
       id = "Jeffrey", 
-      bank = 1149, // less than 15% of 1000 
+      bank = 1149, // less than 15% increase from 1000 
       handsAndBets = Nil,
       minBetMultiplier = 1,
       maxBet = None: Option[Int],
       bettingStrategy = Steady,
-      completedHands = 250,
+      completedHands = 6,
       bankedLastStrategyUpdate = 1000)
-    pending // pending while we work through issues via console, this test would potentially change to reflect new adjustments
     val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 200, currentPlayerIndex = Some(0))
     When("checking whether player should change to a different betting strategy")
     val alteredStrategy: BlackjackGameState = alterBettingStrategy(player1, game) 
@@ -1554,6 +1553,28 @@ class BlackjackBettingSpec extends AnyFlatSpec with GivenWhenThen {
     val updatedPlayer1: BlackjackPlayerState = alteredStrategy.players.filter(_.id == "Jeffrey").head
     updatedPlayer1.bettingStrategy should not equal (player1.bettingStrategy)
   }
+
+  // determine when a player is not doing well with a betting strategy and should switch to a different betting strategy
+  it should "not change betting strategies to a random strategy if, after 6 games have been completed " + 
+  "and player's bank has increased by 15%" in {
+    Given("a game with a player whose bank has increased by exactly 15% after 6 games")
+    val player1 = BlackjackPlayerState(
+      id = "Jeffrey", 
+      bank = 1150, // an exactly 15% increase from 1000 
+      handsAndBets = Nil,
+      minBetMultiplier = 1,
+      maxBet = None: Option[Int],
+      bettingStrategy = Steady,
+      completedHands = 6,
+      bankedLastStrategyUpdate = 1000)
+    val game = BlackjackGameState(dealerHand = Hand.empty, players = Seq(player1), minimumBet = 25, maximumBet = 200, currentPlayerIndex = Some(0))
+    When("checking whether player should change to a different betting strategy")
+    val alteredStrategy: BlackjackGameState = alterBettingStrategy(player1, game) 
+    Then("player's betting strategy should randomly change to a different strategy")
+    val updatedPlayer1: BlackjackPlayerState = alteredStrategy.players.filter(_.id == "Jeffrey").head
+    updatedPlayer1.bettingStrategy should equal (player1.bettingStrategy)
+  }
+
 
   it should 
   "throw an illegal argument exception when checking whether to change a player's betting strategy when the player does not belong to the game" in {
