@@ -3,8 +3,8 @@ package cards.behaviors.evaluation
 import cards.classes.Card
 import cards.classes.hand.Hand
 import cards.classes.state.BlackjackGameState
+import cards.classes.actions.BlackjackAction._
 import cards.classes.Rank._
-import cards.classes.Outcome._
 import cards.behaviors.Commons
 import scala.annotation.tailrec
 
@@ -35,15 +35,34 @@ trait BlackjackHandEvaluation extends HandEvaluation {
       , cards.count(_.rank == Ace)) // ace count
   }
 
+  // TODO: update this method to account for blackjack and busts, use blackjack and bust action when appropriate
   // when comparing 2 hands, yield the hands with outcome set as Win, Lose, or Tie
-  def outcomes(hand1: Hand, hand2: Hand): (Hand, Hand) = (eval(hand1.hand), eval(hand2.hand)) match {
-    case (n1, n2) if (n1 > 21 && n2 > 21) => (hand1.copy(outcome = Some(Lose)), hand2.copy(outcome = Some(Lose)))
-    case (n, _) if (n > 21) => (hand1.copy(outcome = Some(Lose)), hand2.copy(outcome = Some(Win)))
-    case (_, n) if (n > 21) => (hand1.copy(outcome = Some(Win)), hand2.copy(outcome = Some(Lose)))
-    case (n1, n2) if (n1 > n2) => (hand1.copy(outcome = Some(Win)), hand2.copy(outcome = Some(Lose)))
-    case (n1, n2) if (n1 < n2) => (hand1.copy(outcome = Some(Lose)), hand2.copy(outcome = Some(Win)))
-    case (_, _) => (hand1.copy(outcome = Some(Tie)), hand2.copy(outcome = Some(Tie)))
+  def outcomes(hand1: Hand, hand2: Hand): (Hand, Hand) = {
+    def isBlackjack(hand: Hand): Boolean = hand.hand.length == 2 && eval(hand.hand) == 21
+    val h1Blackjack: Boolean = isBlackjack(hand1) 
+    val h2Blackjack: Boolean = isBlackjack(hand2)
+    (h1Blackjack, h2Blackjack) match {
+      case (true, true) => (hand1.copy(outcome = Some(Blackjack)), hand2.copy(outcome = Some(Blackjack)))
+      case (true, false) => (hand1.copy(outcome = Some(Blackjack)), hand2.copy(outcome = Some(Lose)))
+      case (false, true) => (hand1.copy(outcome = Some(Lose)), hand2.copy(outcome = Some(Blackjack)))
+      case (false, false) => (eval(hand1.hand), eval(hand2.hand)) match {
+        case (n1, n2) if (n1 > 21 && n2 > 21) => (hand1.copy(outcome = Some(Bust)), hand2.copy(outcome = Some(Bust)))
+        case (n, _) if (n > 21) => (hand1.copy(outcome = Some(Bust)), hand2.copy(outcome = Some(Win)))
+        case (_, n) if (n > 21) => (hand1.copy(outcome = Some(Win)), hand2.copy(outcome = Some(Bust)))
+        case (n1, n2) if (n1 > n2) => (hand1.copy(outcome = Some(Win)), hand2.copy(outcome = Some(Lose)))
+        case (n1, n2) if (n1 < n2) => (hand1.copy(outcome = Some(Lose)), hand2.copy(outcome = Some(Win)))
+        case (_, _) => (hand1.copy(outcome = Some(Tie)), hand2.copy(outcome = Some(Tie)))
+      }
+    }
   }
+  // def outcomes(hand1: Hand, hand2: Hand): (Hand, Hand) = (eval(hand1.hand), eval(hand2.hand)) match {
+  //   case (n1, n2) if (n1 > 21 && n2 > 21) => (hand1.copy(outcome = Some(Lose)), hand2.copy(outcome = Some(Lose)))
+  //   case (n, _) if (n > 21) => (hand1.copy(outcome = Some(Lose)), hand2.copy(outcome = Some(Win)))
+  //   case (_, n) if (n > 21) => (hand1.copy(outcome = Some(Win)), hand2.copy(outcome = Some(Lose)))
+  //   case (n1, n2) if (n1 > n2) => (hand1.copy(outcome = Some(Win)), hand2.copy(outcome = Some(Lose)))
+  //   case (n1, n2) if (n1 < n2) => (hand1.copy(outcome = Some(Lose)), hand2.copy(outcome = Some(Win)))
+  //   case (_, _) => (hand1.copy(outcome = Some(Tie)), hand2.copy(outcome = Some(Tie)))
+  // }
 
   def outcomes(game: BlackjackGameState): BlackjackGameState = {
     val players = game.players.map { p =>

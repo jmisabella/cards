@@ -1,7 +1,7 @@
 package behaviors.play
 
 import cards.behaviors.play.PokerPlay
-import cards.classes.{ Card, Rank, Suit, Deck, DeckType, Outcome }
+import cards.classes.{ Card, Rank, Suit, Deck, DeckType }
 import cards.classes.DeckType._
 import cards.classes.Rank._
 import cards.classes.Suit._
