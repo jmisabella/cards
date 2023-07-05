@@ -419,7 +419,7 @@ class BlackjackControllerSpec extends AnyFlatSpec with GivenWhenThen {
     playerHistory.reverse.head.action should equal (Stand)
   }
 
-  it should "have history reflect when dealer has busted or achieve 21 for a hand of 3 cards" in {
+  it should "have history reflect when dealer has busted or achieved 21 for a hand of 3 cards" in {
     Given("a game with 1 player who Stands on a 3-card hand with score of 18 and it's dealer's turn and dealer has a hand of 16")
     val player1 = BlackjackPlayerState(
       "Jeffrey", 
@@ -449,7 +449,6 @@ class BlackjackControllerSpec extends AnyFlatSpec with GivenWhenThen {
       result.history.count(a => a.playerId.toLowerCase == "dealer" && a.action == ShowCards) shouldBe > (0)
       Then("history should not show dealer standing")
       result.history.count(a => a.playerId.toLowerCase == "dealer" && a.action == Stand) should equal (0)
-      // TODO: get this to pass
     }
 
   }
