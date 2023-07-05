@@ -172,14 +172,18 @@ trait BlackjackPlay {
       deck = newDeck, 
       history = game.history ++ newHistory, 
       dealerHand = game.dealerHand.copy(hand = newDealerCards))
-
     // if dealer's 21 or busted or is Standing, then game is over and bets should be settled
-    val gameOver: Boolean = eval(newDealerCards) >= 21 || action == Stand || nextState.history.reverse.head.action == ShowCards
+    val gameOverHistory: Seq[Action[BlackjackAction]] = (eval(newDealerCards), action, nextState.history.reverse.head.action) match {
+      case (n, _, _) if (n > 21) => Seq(Action("Dealer", Bust, newDealerCards))
+      case (_, Stand, _) => Seq(Action("Dealer", ShowCards, newDealerCards))
+      case (_, _, ShowCards) => Seq(Action("Dealer", ShowCards, newDealerCards))
+      case (_, _, _) => Nil // game not yet over
+    } 
+    val gameOver: Boolean = gameOverHistory != Nil
     gameOver match {
       case false => nextState
       case true => { 
-        val dealerShowCards = Action("Dealer", ShowCards, newDealerCards) 
-        evaluation.outcomes(nextState.copy(history = nextState.history ++ Seq(dealerShowCards))) // game over: evaluate each hand against dealer's to prepare to settleBets
+        evaluation.outcomes(nextState.copy(history = nextState.history ++ gameOverHistory)) // game over: evaluate each hand against dealer's to prepare to settleBets
       }
     }
   }

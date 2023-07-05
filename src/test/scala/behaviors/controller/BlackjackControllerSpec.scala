@@ -419,4 +419,38 @@ class BlackjackControllerSpec extends AnyFlatSpec with GivenWhenThen {
     playerHistory.reverse.head.action should equal (Stand)
   }
 
+  it should "have history reflect when dealer has busted or achieved 21 for a hand of 3 cards" in {
+    Given("a game with 1 player who Stands on a 3-card hand with score of 18 and it's dealer's turn and dealer has a hand of 16")
+    val player1 = BlackjackPlayerState(
+      "Jeffrey", 
+      20, 
+      Seq( 
+        Hand(Seq(Card(Two, Hearts), Card(Eight, Diamonds), Card(Eight, Clubs)), 
+        bets = Map("Jeffrey" -> 5))))
+    val playerHistory: Seq[Action[BlackjackAction]] = Seq(Action("Jeffrey", Stand))
+    val dealerCards: Hand = Hand(Seq(Card(Six, Diamonds), Card(Ten, Spades)), Map(), Nil, None)
+    val game = BlackjackGameState(
+      dealerHand = dealerCards, 
+      players = Seq(player1),
+      currentPlayerIndex = None,
+      currentHandIndex = None)
+    module.play.isTimeForDealerToPlay(game) shouldBe (true)
+    var result = module.next(game, iterations = 1, purgeHistoryAfterRound = false)
+    var dealerScore: Long = module.play.evaluation.eval(result.dealerHand.hand)
+    if (dealerScore > 21) {
+      When("dealer's hand exceeds 21")
+      Then("history should show dealer has Busted")
+      result.history.count(a => a.playerId.toLowerCase == "dealer" && a.action == Bust) shouldBe > (0)
+    } else if (dealerScore == 21) {
+      When("dealer's hand reaches 21")
+      Then("history should show dealer hitting")
+      result.history.count(a => a.playerId.toLowerCase == "dealer" && a.action == Hit) shouldBe > (0)
+      Then("history should show dealer showing cards")
+      result.history.count(a => a.playerId.toLowerCase == "dealer" && a.action == ShowCards) shouldBe > (0)
+      Then("history should not show dealer standing")
+      result.history.count(a => a.playerId.toLowerCase == "dealer" && a.action == Stand) should equal (0)
+    }
+
+  }
+
 }
