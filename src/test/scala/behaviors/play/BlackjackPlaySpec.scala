@@ -992,4 +992,35 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
     nextHandIndex should equal (1)
   }
 
+  it should "surrender on a hand of two Eights when dealer shows an Ace" in {
+    Given("a player with pair of eights who has bet minimum bet on his hand and dealer whose initial hand shows an ace")
+    val player1 = BlackjackPlayerState(
+      "Jeffrey", 
+      25, 
+      Seq( 
+        Hand(hand = Seq(Card(Eight, Hearts), Card(Eight, Clubs)), bets = Map("Jeffrey" -> 5), outcome = None)))
+    var dealer = Hand(Seq(Card(Two, Hearts), Card(Ace, Clubs)))
+    var game = BlackjackGameState(
+      options = BlackjackOptions(),
+      minimumBet = 5,
+      dealerHand = dealer,
+      players = Seq(player1),
+      currentPlayerIndex = Some(0),
+      currentHandIndex = Some(0))
+    When("determining next play action")
+    val action = nextAction(game) 
+    Then("player should Surrender")
+    action should equal (Surrender)
+    When("playing hand")
+    var result = playHand(game)
+    Then("player should Surrender")
+    val lastAction = result.history.reverse.head
+    Then("player's cards should remain as \"afterCards\" after surrendering")
+    lastAction.playerId should equal ("Jeffrey")
+    lastAction.action should equal (Surrender)
+    lastAction.afterCards should not be (empty)
+    lastAction.afterCards should have length (1)
+    lastAction.afterCards.head should equal (player1.hands.head)
+  }
+
 }

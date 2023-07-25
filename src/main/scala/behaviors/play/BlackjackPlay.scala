@@ -472,8 +472,9 @@ trait BlackjackPlay {
             }).toMap
           )
         }
-        // afterwards player does not have any cards in the hand since player has surrendered; bet is adjusted so player only pays half
-        (Seq(hand.copy(hand = Nil, bets = nextBets)), deck, Seq(Action(playerId, Surrender, Nil, Some(surrenderAmount), hand.hand, Nil)))
+        // afterwards bet is adjusted so player only pays half
+        (Seq(hand.copy(bets = nextBets)), deck, Seq(Action(playerId, Surrender, Nil, Some(surrenderAmount), hand.hand, Seq(hand.hand))))
+        
       }
       case a => throw new IllegalArgumentException(s"Unexpected BlackjackAction [$a], at this phase the only expected actions are [Hit, Stand, DoubleDown, Split, Surrender]")
     }
