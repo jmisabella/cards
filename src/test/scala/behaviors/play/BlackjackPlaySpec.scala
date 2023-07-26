@@ -999,7 +999,7 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
       25, 
       Seq( 
         Hand(hand = Seq(Card(Eight, Hearts), Card(Eight, Clubs)), bets = Map("Jeffrey" -> 5), outcome = None)))
-    var dealer = Hand(Seq(Card(Two, Hearts), Card(Ace, Clubs)))
+    val dealer = Hand(Seq(Card(Two, Hearts), Card(Ace, Clubs)))
     var game = BlackjackGameState(
       options = BlackjackOptions(),
       minimumBet = 5,
@@ -1013,14 +1013,49 @@ class BlackjackPlaySpec extends AnyFlatSpec with GivenWhenThen {
     action should equal (Surrender)
     When("playing hand")
     var result = playHand(game)
-    Then("player should Surrender")
     val lastAction = result.history.reverse.head
-    Then("player's cards should remain as \"afterCards\" after surrendering")
+    Then("player should Surrender")
     lastAction.playerId should equal ("Jeffrey")
     lastAction.action should equal (Surrender)
+    Then("player's cards should remain as \"afterCards\" after surrendering")
     lastAction.afterCards should not be (empty)
     lastAction.afterCards should have length (1)
     lastAction.afterCards.head should equal (player1.hands.head)
+  }
+
+  it should "split on two Sevens when dealer shows a Seven" in {
+    Given("a player with pair of sevens who has bet minimum bet on her hand and dealer who shows a seven")
+    val player1 = BlackjackPlayerState(
+      "Brittany", 
+      25, 
+      Seq( 
+        Hand(hand = Seq(Card(Seven, Spades), Card(Seven, Diamonds)), bets = Map("Brittany" -> 5), outcome = None)))
+    val dealer = Hand(Seq(Card(Queen, Hearts), Card(Seven, Clubs)))
+    var game = BlackjackGameState(
+      options = BlackjackOptions(),
+      minimumBet = 5,
+      dealerHand = dealer,
+      players = Seq(player1),
+      currentPlayerIndex = Some(0),
+      currentHandIndex = Some(0))
+    When("determining next play action")
+    val action = nextAction(game) 
+    Then("player should Split")
+    action should equal (Split)
+    When("playing hand")
+    var result = playHand(game)
+    Then("player should Split")
+    val lastAction = result.history.reverse.head
+    lastAction.playerId should equal ("Brittany")
+    lastAction.action should equal (Split)
+    Then("player's 2 split hands should exist in the \"afterCards\" array after splitting")
+    lastAction.afterCards should not be (empty)
+    lastAction.afterCards should have length (2)
+    Then("player's newly-dealt 2 cards should exist in \"actionCards\"")
+    lastAction.actionCards should not be (empty)
+    lastAction.actionCards should have length (2)
+    lastAction.afterCards.head.map(_.rank) should contain (Seven)
+    lastAction.afterCards.tail.head.map(_.rank) should contain (Seven)
   }
 
 }
