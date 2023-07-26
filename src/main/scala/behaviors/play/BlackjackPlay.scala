@@ -472,121 +472,12 @@ trait BlackjackPlay {
             }).toMap
           )
         }
-        // afterwards player does not have any cards in the hand since player has surrendered; bet is adjusted so player only pays half
-        (Seq(hand.copy(hand = Nil, bets = nextBets)), deck, Seq(Action(playerId, Surrender, Nil, Some(surrenderAmount), hand.hand, Nil)))
+        // afterwards bet is adjusted so player only pays half
+        (Seq(hand.copy(bets = nextBets)), deck, Seq(Action(playerId, Surrender, Nil, Some(surrenderAmount), hand.hand, Seq(hand.hand))))
+        
       }
       case a => throw new IllegalArgumentException(s"Unexpected BlackjackAction [$a], at this phase the only expected actions are [Hit, Stand, DoubleDown, Split, Surrender]")
     }
   }
-
-  ///// ORIGINAL  
-  // returns updated cards (seq of hands to account for Splits), updated deck, and new history
-  // TODO BUG: This method is setting the history but is not setting the outcomes of the hand!! Because of this, bets are not getting settles properly...
-  // def performPlayAction(
-  //   playerId: String, 
-  //   action: BlackjackAction, 
-  //   hand: Hand, 
-  //   deck: Deck): (Seq[Hand], Deck, Seq[Action[BlackjackAction]]) = {
-  //     def addBustedOrBlackjackToHistory(
-  //       playerId: String,
-  //       hand: Hand,
-  //       history: Seq[Action[BlackjackAction]] = Nil,
-  //       actionCards: Seq[Card] = Nil,
-  //       actionBet: Option[Int]): (Hand, Seq[Action[BlackjackAction]]) = {
-  //       var newHistory = history
-  //       var newHand = hand
-  //       if (eval(hand.hand) == 21 && hand.hand.length == 2) {
-  //         newHistory = newHistory ++ Seq(Action(playerId, Blackjack, actionCards, actionBet, Nil, Nil))
-  //         newHistory = newHistory ++ Seq(Action(playerId, Win, actionCards, actionBet, Nil, Nil))
-  //         newHand = newHand.copy(outcome = Some(Blackjack))
-  //       // } else if (eval(hand.hand) == 21) {
-  //       //   newHistory = newHistory ++ Seq(Action(playerId, Win, actionCards, actionBet, Nil, Nil))
-  //       //   newHand = newHand.copy(outcome = Some(Win))
-  //       } else if (eval(hand.hand) > 21) {
-  //         newHistory = newHistory ++ Seq(Action(playerId, Bust, actionCards, actionBet, Nil, Nil))
-  //         newHistory = newHistory ++ Seq(Action(playerId, Lose, actionCards, actionBet, Nil, Nil))
-  //         newHand = newHand.copy(outcome = Some(Bust))
-  //       }
-  //       (newHand, newHistory)
-  //     }  
-  //     action match {
-  //     // case Stand => (Seq(hand), deck, Seq(Action(playerId, Stand, Nil, 0, hand.hand, Seq(hand.hand))))
-  //     case Stand => {
-  //       val (updatedHand, updatedHistory) = addBustedOrBlackjackToHistory(playerId, hand, Nil, Nil, None)
-  //       updatedHistory match {
-  //         case Nil => Seq(Action(playerId, Stand, Nil, None, Nil, Seq(hand.hand)))
-  //         case xs => xs // either Busted or Blackjack occurred
-  //       }
-  //       (Seq(updatedHand), deck, updatedHistory)
-  //     }
-  //     case a if (a == Hit || a == DoubleDown) => {
-  //       // Hit and DoubleDown both deal 1 card 
-  //       val (dealt, nextDeck): (Seq[Card], Deck) = deck.deal()
-  //       // bets is potentially modified (if player doubled-down) 
-  //       val (additionalBet, nextBets): (Int, Map[String, Int]) = a match {
-  //         case DoubleDown => {
-  //           ( // additional bet is same that player already had bet (doubling it)
-  //             hand.bets(playerId),
-  //             // bets adjusted to double player's bet 
-  //             (for ((player, bet) <- hand.bets) yield {
-  //               if (player == playerId)
-  //                 player -> bet * 2
-  //               else 
-  //                 player -> bet
-  //             }).toMap)
-  //         }
-  //         case _ => (0, hand.bets)
-  //       }
-  //       val newHand: Hand = hand.copy(hand = hand.hand ++ dealt, bets = nextBets)
-  //       val newHistory: Seq[Action[BlackjackAction]] = Seq(Action(playerId, a, dealt, Some(additionalBet), Nil, Seq(newHand.hand)))
-  //       var deckGoingForward = nextDeck
-  //       val (updatedHand, updatedHistory) = addBustedOrBlackjackToHistory(playerId, newHand, newHistory, dealt, Some(additionalBet))
-  //       // if (eval(updatedHand.hand) == 21 && updatedHand.hand.length == 2) {
-  //       //   history = history ++ Seq(Action(playerId, Blackjack, dealt, Some(additionalBet), Nil, Nil))
-  //       //   history = history ++ Seq(Action(playerId, Win, dealt, Some(additionalBet), Nil, Nil))
-  //       // } else if (eval(hand.hand) == 21 && hand.hand.length == 2) {
-  //       //   history = history ++ Seq(Action(playerId, Blackjack, dealt, Some(additionalBet), Nil, Nil))
-  //       //   history = history ++ Seq(Action(playerId, Win, dealt, Some(additionalBet), Nil, Nil))
-  //       //   updatedHand = hand 
-  //       // } else if (eval(updatedHand.hand) == 21) {
-  //       //   history = history ++ Seq(Action(playerId, Win, dealt, Some(additionalBet), Nil, Nil))
-  //       // } else if (eval(hand.hand) == 21) {
-  //       //   history = history ++ Seq(Action(playerId, Win, dealt, Some(additionalBet), Nil, Nil))
-  //       //   updatedHand = hand 
-  //       // } else if (eval(updatedHand.hand) > 21) {
-  //       //   history = history ++ Seq(Action(playerId, Bust, dealt, Some(additionalBet), Nil, Nil))
-  //       //   history = history ++ Seq(Action(playerId, Lose, dealt, Some(additionalBet), Nil, Nil))
-  //       // }
-  //       (Seq(updatedHand), deckGoingForward, updatedHistory)
-  //     }
-  //     case Split => {
-  //       // deal 2 cards, 1 for each split hand 
-  //       val (dealt, nextDeck): (Seq[Card], Deck) = deck.deal(2)
-  //       val hand1: Hand = Hand(Seq(hand.hand.head, dealt.head), hand.bets)
-  //       val hand2: Hand = Hand(Seq(hand.hand.tail.head, dealt.tail.head), hand.bets)
-  //       // original bet amount is added as as new bet to the new hand 
-  //       val additionalBet: Int = hand.bets(playerId)
-  //       // (Seq(hand1, hand2), nextDeck, Seq(Action(playerId, Split, dealt, additionalBet, hand.hand, Seq(hand1, hand2).map(_.hand)))) 
-  //       (Seq(hand1, hand2), nextDeck, Seq(Action(playerId, Split, dealt, Some(additionalBet), Nil, Seq(hand1, hand2).map(_.hand)))) 
-  //     }
-  //     case Surrender => {
-  //       val (surrenderAmount, nextBets): (Int, Map[String, Int]) = {
-  //         (
-  //           hand.bets(playerId) / 2, // surrender bet is half original bet
-  //           // bets adjusted to halve player's bet 
-  //           (for ((player, bet) <- hand.bets) yield {
-  //             if (player == playerId)
-  //               player -> bet / 2 // halved 
-  //             else 
-  //               player -> bet
-  //           }).toMap
-  //         )
-  //       }
-  //       // afterwards player does not have any cards in the hand since player has surrendered; bet is adjusted so player only pays half
-  //       (Seq(hand.copy(hand = Nil, bets = nextBets)), deck, Seq(Action(playerId, Surrender, Nil, Some(surrenderAmount), hand.hand, Nil)))
-  //     }
-  //     case a => throw new IllegalArgumentException(s"Unexpected BlackjackAction [$a], at this phase the only expected actions are [Hit, Stand, DoubleDown, Split, Surrender]")
-  //   }
-  // }
 
 }
