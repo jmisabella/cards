@@ -450,7 +450,48 @@ class BlackjackControllerSpec extends AnyFlatSpec with GivenWhenThen {
       // Then("history should not show dealer standing")
       // result.history.count(a => a.playerId.toLowerCase == "dealer" && a.action == Stand) should equal (0)
     }
+  }
 
+  it should "init a new game with both player and dealer initial ranks to be overridden" in {
+    Given("a BlackjackOptions which specifies player initial ranks override of [Two, Two] and dealer initial rank overrides of [Three, Ace]")
+    val options = BlackjackOptions(
+      deckCount = 1,
+      dealerHitLimit = S17,
+      blackjackPayout = ThreeToTwo,
+      allowSurrender = true,
+      hitOnSplitAces = true,
+      resplitOnSplitAces = true,
+      initialBank = 200, 
+      playerInitialRanks = Seq(Two, Two), 
+      dealerInitialRanks = Seq(Three, Ace)) 
+    When("initializing a new 1-player game") 
+    val game = module.init(1, options)
+    Then("game players should be length 1 and whose only player has playerId 'player1'")
+    game.players should have length (1)
+    game.players.head.id should equal ("player1")
+    Then("deck should reflect that 2 Twos have been dealt")
+    game.deck.count(_.rank == Two) should equal (2)
+    Then("deck should reflect that 1 Three has been dealt")
+    game.deck.count(_.rank == Three) should equal (3)
+    Then("deck should reflect that 1 Ace has been dealt")
+    game.deck.count(_.rank == Ace) should equal (3)
+    Then("history should reflect that player has bet minimum bet and has been dealt 2 Twos, and deck should reflect that 2 Twos have been dealt")
+    game.history should contain (Action(playerId = "player1", action = Bet, actionTokens = Some(game.minimumBet)))
+  }
+
+  it should "not allow init when only player's initial ranks are overridden but not the dealer's" in {
+
+   pending 
+  }
+
+  it should "not allow init when only dealer's initial ranks are overridden but not the player's" in {
+
+    pending
+  }
+
+  it should "not allow init when player's and dealer's overridden initial hands have 3 cards" in {
+
+    pending
   }
 
 }
