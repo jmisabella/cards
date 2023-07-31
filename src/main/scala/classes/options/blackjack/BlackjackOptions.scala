@@ -1,5 +1,6 @@
 package cards.classes.options.blackjack
 
+import cards.classes.Rank._
 import play.api.libs.json.{ Json, Format, JsSuccess }
 
 // payout ratio if player gets a blackjack
@@ -46,6 +47,10 @@ private object SerializedBlackjackOptions {
 }
 
 // goal is the goal bank amount, upon reaching would cause player to leave table
+// playerInitialRanks: optionally specify player's first 2 ranks, for seeing how specific scenarios play out
+//    notice that playerInitialRanks length must match dealerInitialRanks length, both must be either 0 or 2 in length
+// dealerInitialRanks: optionally specify dealer's first 2 ranks, for seeing how specific scenarios play out
+//    notice that playerInitialRanks length must match dealerInitialRanks length, both must be either 0 or 2 in length
 case class BlackjackOptions(
   deckCount: Int = 1,
   dealerHitLimit: DealerHitLimit = S17,
@@ -54,10 +59,19 @@ case class BlackjackOptions(
   splitLimit: Option[Int] = Some(3),
   hitOnSplitAces: Boolean = true,
   resplitOnSplitAces: Boolean = true,
-  initialBank: Int = 2000
-  ) {
+  initialBank: Int = 2000,
+  playerInitialRanks: Seq[Rank] = Nil,
+  dealerInitialRanks: Seq[Rank] = Nil ) {
   
-  require(deckCount >= 1 && deckCount <= 8, s"deckCount [$deckCount] is outside of allowed range 1-8")
+  require(
+    deckCount >= 1 && 
+    deckCount <= 8, 
+    s"deckCount [$deckCount] is outside of allowed range 1-8")
+  require(
+    playerInitialRanks.length == dealerInitialRanks.length && 
+    (dealerInitialRanks == Nil || dealerInitialRanks.length == 2),
+    "Optional initial rank overrides (for player and dealer) must both be either empty or exactly length 2, however " + 
+    s"player initial rank length is [${playerInitialRanks.length}] and dealer initial rank length is [${dealerInitialRanks.length}]")
 
   override def toString(): String = splitLimit match {
     case None => 
@@ -68,7 +82,9 @@ case class BlackjackOptions(
         "allow-surrender" -> allowSurrender,
         "hit-on-split-aces" -> hitOnSplitAces,
         "resplit-on-split-aces" -> resplitOnSplitAces,
-        "initial-bank" -> initialBank
+        "initial-bank" -> initialBank,
+        "initial-player-ranks" -> playerInitialRanks.mkString("[", ",", "]"),
+        "initial-dealer-ranks" -> dealerInitialRanks.mkString("[", ",", "]")
       )).toString()
     case Some(limit) => 
       (Json.obj(
@@ -79,7 +95,9 @@ case class BlackjackOptions(
         "split-limit" -> limit,
         "hit-on-split-aces" -> hitOnSplitAces,
         "resplit-on-split-aces" -> resplitOnSplitAces,
-        "initial-bank" -> initialBank
+        "initial-bank" -> initialBank,
+        "initial-player-ranks" -> playerInitialRanks.mkString("[", ",", "]"),
+        "initial-dealer-ranks" -> dealerInitialRanks.mkString("[", ",", "]")
       )).toString()
   }
 }
@@ -111,7 +129,9 @@ object BlackjackOptions {
       .replace("hit-on-split-aces", "hitOnSplitAces")
       .replace("resplit-on-split-aces", "resplitOnSplitAces")
       .replace("initial-bank", "initialBank")
-
+      .replace("initial-player-ranks", "playerInitialRanks")
+      .replace("initial-dealer-ranks", "dealerInitialRanks")
+    
     if (json.contains("\"deck-count\": \"") || 
       json.contains("\"deck-count\":\"") ||
       json.contains("\"initial-bank\": \"") ||
