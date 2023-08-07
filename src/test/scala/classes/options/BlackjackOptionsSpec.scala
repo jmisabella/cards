@@ -1,6 +1,7 @@
 package cards.classes.options
 
 import cards.classes.options.blackjack.BlackjackOptions
+import cards.classes.Rank._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 import org.scalatest.GivenWhenThen
@@ -38,7 +39,9 @@ class BlackjackOptionsSpec extends AnyFlatSpec with GivenWhenThen {
         "split-limit" -> options.splitLimit.get,
         "hit-on-split-aces" -> options.hitOnSplitAces,
         "resplit-on-split-aces" -> options.resplitOnSplitAces,
-        "initial-bank" -> 2000
+        "initial-bank" -> 2000,
+        "initial-player-ranks" -> options.playerInitialRanks.mkString("[", ",", "]"),
+        "initial-dealer-ranks" -> options.dealerInitialRanks.mkString("[", ",", "]")
       )).toString()
     result should equal (expected)
   }
@@ -55,7 +58,9 @@ class BlackjackOptionsSpec extends AnyFlatSpec with GivenWhenThen {
         "split-limit" -> 3,
         "hit-on-split-aces" -> true,
         "resplit-on-split-aces" -> true,
-        "initial-bank" -> 2000
+        "initial-bank" -> 2000,
+        "initial-player-ranks" -> Nil,
+        "initial-dealer-ranks" -> Nil
       )).toString()
     When("converting the JSON string into a blackjack options object")
     val result = BlackjackOptions(json)
@@ -81,7 +86,9 @@ class BlackjackOptionsSpec extends AnyFlatSpec with GivenWhenThen {
         "split-limit" -> 3.toString(),
         "hit-on-split-aces" -> true.toString(),
         "resplit-on-split-aces" -> true.toString(),
-        "initial-bank" -> 2000.toString()
+        "initial-bank" -> 2000.toString(),
+        "initial-player-ranks" -> Nil.mkString("[", ",", "]"),
+        "initial-dealer-ranks" -> Nil.mkString("[", ",", "]")
       )).toString()
     When("converting the JSON string into a blackjack options object")
     val result = BlackjackOptions(json)
@@ -100,13 +107,15 @@ class BlackjackOptionsSpec extends AnyFlatSpec with GivenWhenThen {
       " surrender, hit on split aces, and resplit on split aces")
     val json: String = 
       (Json.obj(
-        "deck-count" -> 1,
+        "deck-count" -> 1.toString(),
         "dealer-hit-limit" -> "H17",
         "blackjack-payout" -> "ThreeToTwo",
-        "allow-surrender" -> true,
-        "hit-on-split-aces" -> true,
-        "resplit-on-split-aces" -> true,
-        "initial-bank" -> 2000
+        "allow-surrender" -> true.toString(),
+        "hit-on-split-aces" -> true.toString(),
+        "resplit-on-split-aces" -> true.toString(),
+        "initial-bank" -> 2000.toString(),
+        "initial-player-ranks" -> Nil.mkString("[", ",", "]"),
+        "initial-dealer-ranks" -> Nil.mkString("[", ",", "]")
       )).toString()
     When("converting the JSON string into a blackjack options object")
     val result = BlackjackOptions(json)

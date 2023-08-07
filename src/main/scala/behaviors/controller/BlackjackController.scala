@@ -7,6 +7,7 @@ import cards.classes.bettingstrategy.BlackjackBettingStrategy._
 import cards.behaviors.play.BlackjackPlay
 import cards.classes.state.{ BlackjackPlayerState, BlackjackGameState, CompletedBlackjack }
 import cards.classes.{ Card, Deck }
+import cards.classes.hand.Hand
 import cards.classes.Rank._
 import cards.classes.Suit._
 import cards.classes.options.blackjack.BlackjackOptions
@@ -110,14 +111,45 @@ trait BlackjackController extends Controller[BlackjackPlayerState, BlackjackActi
   }
 
   def init(playerNames: Seq[String], options: BlackjackOptions): BlackjackGameState = {
+    def removeFirst[T](list: List[T])(pred: (T) => Boolean): List[T] = {
+      val (before, atAndAfter) = list span (x => !pred(x))
+      before ::: atAndAfter.drop(1)
+    }
     val goal = options.initialBank * 10
-    val players: Seq[BlackjackPlayerState] = for (player <- playerNames) yield BlackjackPlayerState(s"$player", options.initialBank, goal = goal, bettingStrategy = NegativeProgression)
+    var players: Seq[BlackjackPlayerState] = for (player <- playerNames) yield BlackjackPlayerState(s"$player", options.initialBank, goal = goal, bettingStrategy = NegativeProgression)
+    var dealerHand: Hand = Hand()
+    var history: Seq[Action[BlackjackAction]] = Nil
     val minimum: Int = (.025 * options.initialBank).toInt match {
       case 0 => 1
       case n => n 
     } 
-    BlackjackGameState(players = players, minimumBet = minimum, options = options, deck = Deck(Seq(Card(LeftBower, Joker), Card(RightBower, Joker)), options.deckCount))
-  } 
+    val deck = Deck(Seq(Card(LeftBower, Joker), Card(RightBower, Joker)), options.deckCount)
+    var remaining: List[Card] = deck.cards
+    if (options.playerInitialRanks.length == 2 && options.dealerInitialRanks.length == 2) {
+      val playerRankFirstCards: Seq[Card] = deck.cards.filter(_.rank == options.playerInitialRanks.head).take(players.length)
+      val playerRankSecondCards: Seq[Card] = deck.cards.filter(_.rank == options.playerInitialRanks.tail.head).reverse.take(players.length)
+      val dealtPlayerHands: Seq[Seq[Card]] = for ((c1, c2) <- (playerRankFirstCards zip playerRankSecondCards)) yield {
+        Seq(c1, c2)
+      }
+      val dealerRankFirstCard: Card = deck.cards.filter(_.rank == options.dealerInitialRanks.head).take(1).head
+      val dealerRankSecondCard: Card = deck.cards.filter(_.rank == options.dealerInitialRanks.tail.head).take(1).head
+      for (card <- (playerRankFirstCards ++ playerRankSecondCards ++ Seq(dealerRankFirstCard, dealerRankSecondCard))) {
+        remaining = removeFirst(remaining)(c => c.rank == card.rank)
+      }
+      players = for ( (p, cs) <- (players zip dealtPlayerHands)) yield {
+        p.copy(handsAndBets = Seq(Hand(cs, Map(p.id -> minimum))))
+      }
+      dealerHand = Hand(Seq(dealerRankFirstCard, dealerRankSecondCard), Map())
+      for (p <- players) {
+        history = history ++ Seq(Action(p.id, Bet, actionTokens = Some(minimum)))
+      }
+      for (p <- players) {
+        history = history ++ Seq(Action(p.id, IsDealt, actionCards = p.hands.headOption.getOrElse(Nil), afterCards = p.hands))
+      }
+      history = history ++ Seq(Action("dealer", IsDealt, actionCards = dealerHand.hand, afterCards = Seq(dealerHand.hand)))
+    }
+    BlackjackGameState(players = players, minimumBet = minimum, options = options, deck = deck.copy(cards = remaining), dealerHand = dealerHand, history = history)
+  }
   
   def init(playerCount: Int, options: BlackjackOptions): BlackjackGameState = {
     val players: Seq[String] = for (i <- 0 until playerCount) yield s"player${i+1}"
