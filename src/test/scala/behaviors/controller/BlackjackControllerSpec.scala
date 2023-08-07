@@ -452,7 +452,7 @@ class BlackjackControllerSpec extends AnyFlatSpec with GivenWhenThen {
     }
   }
 
-  it should "init a new game with both player and dealer initial ranks to be overridden" in {
+  it should "init a new single player game with both player and dealer initial ranks to be overridden" in {
     Given("a BlackjackOptions which specifies player initial ranks override of [Two, Two] and dealer initial rank overrides of [Three, Ace]")
     val options = BlackjackOptions(
       deckCount = 1,
@@ -475,8 +475,119 @@ class BlackjackControllerSpec extends AnyFlatSpec with GivenWhenThen {
     game.deck.count(_.rank == Three) should equal (3)
     Then("deck should reflect that 1 Ace has been dealt")
     game.deck.count(_.rank == Ace) should equal (3)
-    Then("history should reflect that player has bet minimum bet and has been dealt 2 Twos, and deck should reflect that 2 Twos have been dealt")
+    Then("player hand should reflect that it contains a pair of Twos")
+    game.players should have length (1)
+    game.players.head.hands should have length (1)
+    game.players.head.hands.head should have length (2)
+    game.players.head.hands.head.head.rank should equal (Two)
+    game.players.head.hands.head.tail.head.rank should equal (Two)
+    Then("dealer hand should reflect that it contains a Three and an Ace")
+    game.dealerHand.hand should have length (2)
+    game.dealerHand.hand.head.rank should equal (Three)
+    game.dealerHand.hand.tail.head.rank should equal (Ace)
+    Then("history should reflect that player has bet minimum bet")
     game.history should contain (Action(playerId = "player1", action = Bet, actionTokens = Some(game.minimumBet)))
+    Then("history should show only 2 actions player has taken as Bet and IsDealt")
+    game.history.filter(a => a.playerId == "player1") should have length (2)
+    game.history.filter(a => a.playerId == "player1").map(_.action) should equal (Seq(Bet, IsDealt))
+    Then("history should reflect that player has has been dealt 2 Twos")
+    val dealtPlayerActionCardsFromHistory: Seq[Card] = 
+      game.history.filter(a => a.playerId == "player1" && a.action == IsDealt).flatMap(_.actionCards)
+    val dealtPlayerAfterCardsFromHistory: Seq[Card] = 
+      game.history.filter(a => a.playerId == "player1" && a.action == IsDealt).flatMap(_.afterCards).flatten
+    dealtPlayerActionCardsFromHistory should have length (2)
+    dealtPlayerAfterCardsFromHistory should have length (2)
+    dealtPlayerActionCardsFromHistory.map(_.rank).head should equal (Two)
+    dealtPlayerActionCardsFromHistory.map(_.rank).tail.head should equal (Two)
+    Then("history should reflect that dealer has has been dealt a Three and an Ace")
+    val dealtDealerActionCardsFromHistory: Seq[Card] = 
+      game.history.filter(a => a.playerId.toLowerCase() == "dealer" && a.action == IsDealt).flatMap(_.actionCards)
+    val dealtDealerAfterCardsFromHistory: Seq[Card] = 
+      game.history.filter(a => a.playerId.toLowerCase() == "dealer" && a.action == IsDealt).flatMap(_.afterCards).flatten
+    dealtDealerActionCardsFromHistory should have length (2)
+    dealtDealerAfterCardsFromHistory should have length (2)
+    dealtDealerActionCardsFromHistory.map(_.rank).head should equal (Three)
+    dealtDealerActionCardsFromHistory.map(_.rank).tail.head should equal (Ace)
+  }
+
+  it should "init a new 3-player game with player and dealer initial ranks to be overridden" in {
+    Given("a BlackjackOptions which specifies player initial ranks override of [Two, Two] and dealer initial rank overrides of [Three, Ace]")
+    val options = BlackjackOptions(
+      deckCount = 6,
+      dealerHitLimit = S17,
+      blackjackPayout = ThreeToTwo,
+      allowSurrender = true,
+      hitOnSplitAces = true,
+      resplitOnSplitAces = true,
+      initialBank = 200, 
+      playerInitialRanks = Seq(Two, Two), 
+      dealerInitialRanks = Seq(Three, Ace)) 
+    When("initializing a new 3-player game") 
+    val game = module.init(3, options)
+    Then("game players should be length 3 with player IDs 'player1', 'player2', 'player3'")
+    game.players should have length (3)
+    game.players.head.id should equal ("player1")
+    game.players.tail.head.id should equal ("player2")
+    game.players.tail.tail.head.id should equal ("player3")
+    Then("each player's hand should reflect that it contains a pair of Twos")
+    game.players should have length (3)
+    game.players.head.hands should have length (1)
+    game.players.head.hands.head should have length (2)
+    game.players.head.hands.head.head.rank should equal (Two)
+    game.players.head.hands.head.tail.head.rank should equal (Two)
+    game.players.tail.head.hands should have length (1)
+    game.players.tail.head.hands.head should have length (2)
+    game.players.tail.head.hands.head.head.rank should equal (Two)
+    game.players.tail.head.hands.head.tail.head.rank should equal (Two)
+    game.players.tail.tail.head.hands should have length (1)
+    game.players.tail.tail.head.hands.head should have length (2)
+    game.players.tail.tail.head.hands.head.head.rank should equal (Two)
+    game.players.tail.tail.head.hands.head.tail.head.rank should equal (Two)
+    Then("dealer hand should reflect that it contains a Three and an Ace")
+    game.dealerHand.hand should have length (2)
+    game.dealerHand.hand.head.rank should equal (Three)
+    game.dealerHand.hand.tail.head.rank should equal (Ace)
+    Then("history should reflect that each player has bet minimum bet")
+    game.history should contain (Action(playerId = "player1", action = Bet, actionTokens = Some(game.minimumBet)))
+    game.history should contain (Action(playerId = "player2", action = Bet, actionTokens = Some(game.minimumBet)))
+    game.history should contain (Action(playerId = "player3", action = Bet, actionTokens = Some(game.minimumBet)))
+    Then("history should show only 2 actions player has taken as Bet and IsDealt")
+    game.history.filter(a => a.playerId == "player1") should have length (2)
+    game.history.filter(a => a.playerId == "player1").map(_.action) should equal (Seq(Bet, IsDealt))
+    Then("history should reflect that each player has has been dealt 2 Twos")
+    val dealtPlayer1ActionCardsFromHistory: Seq[Card] = 
+      game.history.filter(a => a.playerId == "player1" && a.action == IsDealt).flatMap(_.actionCards)
+    val dealtPlayer1AfterCardsFromHistory: Seq[Card] = 
+      game.history.filter(a => a.playerId == "player1" && a.action == IsDealt).flatMap(_.afterCards).flatten
+    dealtPlayer1ActionCardsFromHistory should have length (2)
+    dealtPlayer1AfterCardsFromHistory should have length (2)
+    dealtPlayer1ActionCardsFromHistory.map(_.rank).head should equal (Two)
+    dealtPlayer1ActionCardsFromHistory.map(_.rank).tail.head should equal (Two)
+    val dealtPlayer2ActionCardsFromHistory: Seq[Card] = 
+      game.history.filter(a => a.playerId == "player2" && a.action == IsDealt).flatMap(_.actionCards)
+    val dealtPlayer2AfterCardsFromHistory: Seq[Card] = 
+      game.history.filter(a => a.playerId == "player2" && a.action == IsDealt).flatMap(_.afterCards).flatten
+    dealtPlayer2ActionCardsFromHistory should have length (2)
+    dealtPlayer2AfterCardsFromHistory should have length (2)
+    dealtPlayer2ActionCardsFromHistory.map(_.rank).head should equal (Two)
+    dealtPlayer2ActionCardsFromHistory.map(_.rank).tail.head should equal (Two)
+    val dealtPlayer3ActionCardsFromHistory: Seq[Card] = 
+      game.history.filter(a => a.playerId == "player3" && a.action == IsDealt).flatMap(_.actionCards)
+    val dealtPlayer3AfterCardsFromHistory: Seq[Card] = 
+      game.history.filter(a => a.playerId == "player3" && a.action == IsDealt).flatMap(_.afterCards).flatten
+    dealtPlayer3ActionCardsFromHistory should have length (2)
+    dealtPlayer3AfterCardsFromHistory should have length (2)
+    dealtPlayer3ActionCardsFromHistory.map(_.rank).head should equal (Two)
+    dealtPlayer3ActionCardsFromHistory.map(_.rank).tail.head should equal (Two)
+    Then("history should reflect that dealer has has been dealt a Three and an Ace")
+    val dealtDealerActionCardsFromHistory: Seq[Card] = 
+      game.history.filter(a => a.playerId.toLowerCase() == "dealer" && a.action == IsDealt).flatMap(_.actionCards)
+    val dealtDealerAfterCardsFromHistory: Seq[Card] = 
+      game.history.filter(a => a.playerId.toLowerCase() == "dealer" && a.action == IsDealt).flatMap(_.afterCards).flatten
+    dealtDealerActionCardsFromHistory should have length (2)
+    dealtDealerAfterCardsFromHistory should have length (2)
+    dealtDealerActionCardsFromHistory.map(_.rank).head should equal (Three)
+    dealtDealerActionCardsFromHistory.map(_.rank).tail.head should equal (Ace)
   }
 
   it should "not allow init when only player's initial ranks are overridden but not the dealer's" in {

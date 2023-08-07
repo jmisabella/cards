@@ -24,3 +24,6 @@ server.pid
 .metals/metals.trace.db
 *.log
 .bsp/sbt.json
+.metals/.backup_logs/
+
+.metals/.reports/metals-full/
