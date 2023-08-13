@@ -3,7 +3,7 @@ ThisBuild / name := "cards"
 ThisBuild / organization := "io.github.jmisabella"
 ThisBuild / organizationName := "jmisabella"
 ThisBuild / organizationHomepage := Some(url("https://github.com/jmisabella"))
-ThisBuild / version := "0.1.18"
+ThisBuild / version := "0.1.19"
 ThisBuild / scalaVersion := "2.13.10"
 
 ThisBuild / scmInfo := Some(
@@ -22,9 +22,9 @@ ThisBuild / developers := List(
 )
 
 ThisBuild / libraryDependencies ++= Seq(
-  "com.typesafe.play" %% "play-json" % "2.10.0-RC6",
-  "com.fasterxml.jackson.core" % "jackson-core" % "2.13.4",
-  "org.scalatest" %% "scalatest" % "3.2.9" % "test"
+  "com.typesafe.play" %% "play-json" % "2.10.0-RC9",
+  "com.fasterxml.jackson.core" % "jackson-core" % "2.15.2",
+  "org.scalatest" %% "scalatest" % "3.2.16" % "test"
 )
 ThisBuild / description := "Scala library for card-playing functionality, including games Blackjack and Thirty-One"
 ThisBuild / licenses := List(
