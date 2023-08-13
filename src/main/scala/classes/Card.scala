@@ -11,6 +11,9 @@ object Rank extends Enumeration {
   
   val suited: Seq[Rank.Value] = values.toSeq.filter(r => !Seq(LeftBower, RightBower, FaceDown).contains(r))
   val unsuited: Seq[Rank.Value] = values.toSeq.filter(r => Seq(LeftBower, RightBower).contains(r))
+
+  def withNameOpt(s: String): Option[Value] = values.find(_.toString == s)
+
 }
 
 object Suit extends Enumeration {

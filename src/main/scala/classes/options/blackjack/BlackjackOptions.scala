@@ -1,5 +1,6 @@
 package cards.classes.options.blackjack
 
+import cards.classes.Rank
 import cards.classes.Rank._
 import play.api.libs.json.{ Json, Format, JsSuccess }
 
@@ -40,6 +41,8 @@ private case class SerializedBlackjackOptions(
   resplitOnSplitAces: String,
   initialBank: String,
   splitLimit: Option[String] = None,
+  playerInitialRanks: Option[String] = None,
+  dealerInitialRanks: Option[String] = None
 )
 
 private object SerializedBlackjackOptions {
@@ -116,7 +119,35 @@ object BlackjackOptions {
       },
       hitOnSplitAces = serialized.hitOnSplitAces.toBoolean,
       resplitOnSplitAces = serialized.resplitOnSplitAces.toBoolean,
-      initialBank = serialized.initialBank.toInt)
+      initialBank = serialized.initialBank.toInt,
+      playerInitialRanks = serialized.playerInitialRanks match {
+        case None => Nil 
+        case Some("") => Nil 
+        case Some("[]") => Nil 
+        case _ => serialized
+        .playerInitialRanks
+        .getOrElse("")
+        .replace("[", "")
+        .replace("]", "")
+        .split(",")
+        .map(s => Rank.withNameOpt(s).getOrElse(null: Rank))
+        .toSeq 
+      },
+      dealerInitialRanks = serialized.dealerInitialRanks match {
+        case None => Nil 
+        case Some("") => Nil 
+        case Some("[]") => Nil 
+        case _ => serialized
+        .dealerInitialRanks
+        .getOrElse("")
+        .replace("[", "")
+        .replace("]", "")
+        .split(",")
+        .map(s => Rank.withNameOpt(s).getOrElse(null: Rank))
+        .toSeq 
+
+      }
+    )
   }
 
   def apply(json: String): BlackjackOptions = {
