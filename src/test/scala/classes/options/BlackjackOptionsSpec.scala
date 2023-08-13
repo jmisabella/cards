@@ -153,4 +153,40 @@ class BlackjackOptionsSpec extends AnyFlatSpec with GivenWhenThen {
     result.hitOnSplitAces shouldBe (true)
     result.resplitOnSplitAces shouldBe (true)
   }
+
+  it should "be able to deserialize a json string specifying both player and dealer initial ranks" in {
+    Given("JSON string which includes the following fields: deck count 1, dealer hit limit H17, 3:2 blackjack payout, and allowances of " + 
+      " surrender, hit on split aces, resplit on split aces, player initial ranks of Queen/Queen, and dealer initial ranks of King/Two")
+    val json: String = 
+      (Json.obj(
+        "deck-count" -> 1.toString(),
+        "dealer-hit-limit" -> "H17",
+        "blackjack-payout" -> "ThreeToTwo",
+        "allow-surrender" -> true.toString(),
+        "hit-on-split-aces" -> true.toString(),
+        "resplit-on-split-aces" -> true.toString(),
+        "initial-bank" -> 2000.toString(),
+        "initial-player-ranks" -> Seq(Queen, Queen).mkString("[", ",", "]"),
+        "initial-dealer-ranks" -> Seq(King, Two).mkString("[", ",", "]")
+      )).toString()
+    When("converting the JSON string into a blackjack options object")
+    val result = BlackjackOptions(json)
+    Then("the object should be created as expected without any deserialization errors")
+    result.splitLimit should equal (None)
+    result.deckCount should equal (1)
+    result.blackjackPayout should equal (BlackjackPayout.ThreeToTwo)
+    result.dealerHitLimit should equal (DealerHitLimit.H17)
+    result.allowSurrender shouldBe (true)
+    result.hitOnSplitAces shouldBe (true)
+    result.resplitOnSplitAces shouldBe (true)
+    result.playerInitialRanks should have length (2)
+    result.playerInitialRanks should contain (Queen)
+    result.playerInitialRanks.head should equal (Queen)
+    result.playerInitialRanks.tail.head should equal (Queen)
+    result.dealerInitialRanks should have length (2)
+    result.dealerInitialRanks.head should equal (King)
+    result.dealerInitialRanks.tail.head should equal (Two)
+  }
+
+
 }
