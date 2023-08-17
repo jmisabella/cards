@@ -2,7 +2,7 @@ package cards.classes.options.blackjack
 
 import cards.classes.Rank
 import cards.classes.Rank._
-import play.api.libs.json.{ Json, Format, JsSuccess }
+import play.api.libs.json.{ Json, Format, JsSuccess, JsValue, JsError }
 
 // payout ratio if player gets a blackjack
 object BlackjackPayout extends Enumeration {
@@ -41,8 +41,8 @@ private case class SerializedBlackjackOptions(
   resplitOnSplitAces: String,
   initialBank: String,
   splitLimit: Option[String] = None,
-  playerInitialRanks: Option[String] = None,
-  dealerInitialRanks: Option[String] = None
+  playerInitialRanks: Option[Seq[String]] = None,
+  dealerInitialRanks: Option[Seq[String]] = None
 )
 
 private object SerializedBlackjackOptions {
@@ -120,38 +120,13 @@ object BlackjackOptions {
       hitOnSplitAces = serialized.hitOnSplitAces.toBoolean,
       resplitOnSplitAces = serialized.resplitOnSplitAces.toBoolean,
       initialBank = serialized.initialBank.toInt,
-      playerInitialRanks = serialized.playerInitialRanks match {
-        case None => Nil 
-        case Some("") => Nil 
-        case Some("[]") => Nil 
-        case _ => serialized
-        .playerInitialRanks
-        .getOrElse("")
-        .replace("[", "")
-        .replace("]", "")
-        .split(",")
-        .map(s => Rank.withNameOpt(s).getOrElse(null: Rank))
-        .toSeq 
-      },
-      dealerInitialRanks = serialized.dealerInitialRanks match {
-        case None => Nil 
-        case Some("") => Nil 
-        case Some("[]") => Nil 
-        case _ => serialized
-        .dealerInitialRanks
-        .getOrElse("")
-        .replace("[", "")
-        .replace("]", "")
-        .split(",")
-        .map(s => Rank.withNameOpt(s).getOrElse(null: Rank))
-        .toSeq 
-
-      }
+      playerInitialRanks = serialized.playerInitialRanks.getOrElse(Nil).map(Rank.withNameOpt(_).get),
+      dealerInitialRanks = serialized.dealerInitialRanks.getOrElse(Nil).map(Rank.withNameOpt(_).get) //match {
     )
   }
 
   def apply(json: String): BlackjackOptions = {
-    val replacements: String = json
+    def replacements(json: String): String = json  
       .replace("deck-count", "deckCount")
       .replace("dealer-hit-limit", "dealerHitLimit")
       .replace("blackjack-payout", "blackjackPayout")
@@ -162,28 +137,13 @@ object BlackjackOptions {
       .replace("initial-bank", "initialBank")
       .replace("initial-player-ranks", "playerInitialRanks")
       .replace("initial-dealer-ranks", "dealerInitialRanks")
-    
-    if (json.contains("\"deck-count\": \"") || 
-      json.contains("\"deck-count\":\"") ||
-      json.contains("\"initial-bank\": \"") ||
-      json.contains("\"initial-bank\":\"") ||
-      json.contains("\"allow-surrender\": \"") ||
-      json.contains("\"allow-surrender\":\"") ||
-      json.contains("\"hit-on-split-aces\": \"") ||
-      json.contains("\"hit-on-split-aces\":\"") ||
-      json.contains("\"resplit-on-split-aces\": \"") ||
-      json.contains("\"resplit-on-split-aces\":\"")) {
-      
-      Json.parse(replacements).validate[SerializedBlackjackOptions] match {
-        case JsSuccess(opts, _) => BlackjackOptions(opts)
-        case e => throw new IllegalArgumentException(s"Error occurred deserializing json [$replacements] to a SerializedBlackjackOptions object: " + e.toString())
-      }
-    } else {
-      Json.parse(replacements).validate[BlackjackOptions] match {
+
+    Json.parse(replacements(json)).validate[SerializedBlackjackOptions] match {
+      case JsSuccess(opts, _) => BlackjackOptions(opts)
+      case _ => Json.parse(replacements(json)).validate[BlackjackOptions] match {
         case JsSuccess(opts, _) => opts
-        case e => throw new IllegalArgumentException(s"Error occurred deserializing json [$replacements] to a BlackjackOptions object: " + e.toString())
+        case e => throw new IllegalArgumentException(s"Error occurred deserializing json [${json}] to a SerializedBlackjackOptions object: " + e.toString())
       }
     }
-    
   }
 }
