@@ -87,8 +87,8 @@ class BlackjackOptionsSpec extends AnyFlatSpec with GivenWhenThen {
         "hit-on-split-aces" -> true.toString(),
         "resplit-on-split-aces" -> true.toString(),
         "initial-bank" -> 2000.toString(),
-        "initial-player-ranks" -> Nil.mkString("[", ",", "]"),
-        "initial-dealer-ranks" -> Nil.mkString("[", ",", "]")
+        "initial-player-ranks" -> Nil,
+        "initial-dealer-ranks" -> Nil
       )).toString()
     When("converting the JSON string into a blackjack options object")
     val result = BlackjackOptions(json)
@@ -113,9 +113,9 @@ class BlackjackOptionsSpec extends AnyFlatSpec with GivenWhenThen {
         "allow-surrender" -> true.toString(),
         "hit-on-split-aces" -> true.toString(),
         "resplit-on-split-aces" -> true.toString(),
-        "initial-bank" -> 2000.toString(),
-        "initial-player-ranks" -> Nil.mkString("[", ",", "]"),
-        "initial-dealer-ranks" -> Nil.mkString("[", ",", "]")
+        "initial-bank" -> 2000.toString()//,
+        // "initial-player-ranks" -> Nil.mkString("[", ",", "]"),
+        // "initial-dealer-ranks" -> Nil.mkString("[", ",", "]")
       )).toString()
     When("converting the JSON string into a blackjack options object")
     val result = BlackjackOptions(json)
@@ -166,10 +166,10 @@ class BlackjackOptionsSpec extends AnyFlatSpec with GivenWhenThen {
         "hit-on-split-aces" -> true.toString(),
         "resplit-on-split-aces" -> true.toString(),
         "initial-bank" -> 2000.toString(),
-        "initial-player-ranks" -> Seq(Queen, Queen).mkString("[", ",", "]"),
-        "initial-dealer-ranks" -> Seq(King, Two).mkString("[", ",", "]")
+        "initial-player-ranks" -> Seq(Queen, Queen),
+        "initial-dealer-ranks" -> Seq(King, Two)
       )).toString()
-    When("converting the JSON string into a blackjack options object")
+    When("converting the JSON string into a blackjack options object: " + json)
     val result = BlackjackOptions(json)
     Then("the object should be created as expected without any deserialization errors")
     result.splitLimit should equal (None)
@@ -188,5 +188,27 @@ class BlackjackOptionsSpec extends AnyFlatSpec with GivenWhenThen {
     result.dealerInitialRanks.tail.head should equal (Two)
   }
 
+  it should "be able to deserialize a json string specifying both player and dealer initial ranks, version 2" in {
+    Given("JSON string which includes the following fields: deck count 1, dealer hit limit S17, 3:2 blackjack payout, and allowances of " + 
+      " surrender, hit on split aces, resplit on split aces, player initial ranks of Queen/Queen, and dealer initial ranks of King/Ace")
+    val json: String = """{"dealerHitLimit":"S17","blackjackPayout":"ThreeToTwo","deckCount":"1","splitLimit":"3","allowSurrender":"true","hitOnSplitAces":"true","resplitOnSplitAces":"true","initialBank":"2000","playerInitialRanks":["Queen","Queen"],"dealerInitialRanks":["King","Ace"]}""";
+    When("converting the JSON string into a blackjack options object")
+    val result = BlackjackOptions(json)
+    Then("the object should be created as expected without any deserialization errors")
+    result.splitLimit should equal (Some(3))
+    result.deckCount should equal (1)
+    result.blackjackPayout should equal (BlackjackPayout.ThreeToTwo)
+    result.dealerHitLimit should equal (DealerHitLimit.S17)
+    result.allowSurrender shouldBe (true)
+    result.hitOnSplitAces shouldBe (true)
+    result.resplitOnSplitAces shouldBe (true)
+    result.playerInitialRanks should have length (2)
+    result.playerInitialRanks should contain (Queen)
+    result.playerInitialRanks.head should equal (Queen)
+    result.playerInitialRanks.tail.head should equal (Queen)
+    result.dealerInitialRanks should have length (2)
+    result.dealerInitialRanks.head should equal (King)
+    result.dealerInitialRanks.tail.head should equal (Ace)
+  }
 
 }
