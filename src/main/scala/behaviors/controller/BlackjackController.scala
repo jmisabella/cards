@@ -148,7 +148,15 @@ trait BlackjackController extends Controller[BlackjackPlayerState, BlackjackActi
       }
       history = history ++ Seq(Action("dealer", IsDealt, actionCards = dealerHand.hand, afterCards = Seq(dealerHand.hand)))
     }
-    BlackjackGameState(players = players, minimumBet = minimum, options = options, deck = deck.copy(cards = remaining), dealerHand = dealerHand, history = history)
+    BlackjackGameState(
+      currentPlayerIndex = Some(0), 
+      currentHandIndex = Some(0), 
+      players = players, 
+      minimumBet = minimum, 
+      options = options,
+      deck = deck.copy(cards = remaining),
+      dealerHand = dealerHand,
+      history = history)
   }
   
   def init(playerCount: Int, options: BlackjackOptions): BlackjackGameState = {

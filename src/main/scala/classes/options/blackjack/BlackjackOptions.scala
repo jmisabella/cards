@@ -121,7 +121,7 @@ object BlackjackOptions {
       resplitOnSplitAces = serialized.resplitOnSplitAces.toBoolean,
       initialBank = serialized.initialBank.toInt,
       playerInitialRanks = serialized.playerInitialRanks.getOrElse(Nil).map(Rank.withNameOpt(_).get),
-      dealerInitialRanks = serialized.dealerInitialRanks.getOrElse(Nil).map(Rank.withNameOpt(_).get) //match {
+      dealerInitialRanks = serialized.dealerInitialRanks.getOrElse(Nil).map(Rank.withNameOpt(_).get)
     )
   }
 

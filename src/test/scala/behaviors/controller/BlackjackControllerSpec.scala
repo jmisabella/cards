@@ -590,9 +590,75 @@ class BlackjackControllerSpec extends AnyFlatSpec with GivenWhenThen {
     dealtDealerActionCardsFromHistory.map(_.rank).tail.head should equal (Ace)
   }
 
+  it should "init a new 1-player game with player and dealer initial ranks to be overridden" in {
+    Given("a BlackjackOptions which specifies player initial ranks override of [Ace, Ace] and dealer initial rank overrides of [Three, Four]")
+    val options = BlackjackOptions(
+      deckCount = 6,
+      dealerHitLimit = S17,
+      blackjackPayout = ThreeToTwo,
+      allowSurrender = true,
+      hitOnSplitAces = true,
+      resplitOnSplitAces = true,
+      initialBank = 200, 
+      playerInitialRanks = Seq(Ace, Ace), 
+      dealerInitialRanks = Seq(Three, Four)) 
+    When("initializing a new 1-player game") 
+    val game = module.init(1, options)
+    Then("game players should be length 1 with player IDs 'player1'")
+    game.players should have length (1)
+    game.players.head.id should equal ("player1")
+    Then("player's hand should reflect that it contains a pair of Aces")
+    game.players should have length (1)
+    game.players.head.hands.head.head.rank should equal (Ace)
+    game.players.head.hands.head.tail.head.rank should equal (Ace)
+    Then("dealer hand should reflect that it contains a Three and an Ace")
+    game.dealerHand.hand should have length (2)
+    game.dealerHand.hand.head.rank should equal (Three)
+    game.dealerHand.hand.tail.head.rank should equal (Four)
+    Then("history should reflect that player has bet minimum bet")
+    game.history should contain (Action(playerId = "player1", action = Bet, actionTokens = Some(game.minimumBet)))
+    Then("history should show only 2 actions player has taken as Bet and IsDealt")
+    game.history.filter(a => a.playerId == "player1") should have length (2)
+    game.history.filter(a => a.playerId == "player1").map(_.action) should equal (Seq(Bet, IsDealt))
+    Then("history should reflect that player has has been dealt 2 Twos")
+    var dealtPlayer1ActionCardsFromHistory: Seq[Card] = 
+      game.history.filter(a => a.playerId == "player1" && a.action == IsDealt).flatMap(_.actionCards)
+    var dealtPlayer1AfterCardsFromHistory: Seq[Card] = 
+      game.history.filter(a => a.playerId == "player1" && a.action == IsDealt).flatMap(_.afterCards).flatten
+    dealtPlayer1ActionCardsFromHistory should have length (2)
+    dealtPlayer1AfterCardsFromHistory should have length (2)
+    dealtPlayer1ActionCardsFromHistory.map(_.rank).head should equal (Ace)
+    dealtPlayer1ActionCardsFromHistory.map(_.rank).tail.head should equal (Ace)
+    Then("history should reflect that dealer has has been dealt a Three and an Ace")
+    val dealtDealerActionCardsFromHistory: Seq[Card] = 
+      game.history.filter(a => a.playerId.toLowerCase() == "dealer" && a.action == IsDealt).flatMap(_.actionCards)
+    val dealtDealerAfterCardsFromHistory: Seq[Card] = 
+      game.history.filter(a => a.playerId.toLowerCase() == "dealer" && a.action == IsDealt).flatMap(_.afterCards).flatten
+    dealtDealerActionCardsFromHistory should have length (2)
+    dealtDealerAfterCardsFromHistory should have length (2)
+    dealtDealerActionCardsFromHistory.map(_.rank).head should equal (Three)
+    dealtDealerActionCardsFromHistory.map(_.rank).tail.head should equal (Four)
+    // verify whether player Splits into 2 hands as expected
+    val next = module.next(game)
+    Then("history length: " + next.history.length)
+    Then("history: " + next.history.mkString("\r\n"))
+    Then("history should show player has Split")
+    if (next.history.length == 4) {
+      // length 4, player has split but hasn't yet next action beyond splitting 
+      next.history.reverse.head.action should equal (Split)
+      next.history.reverse.head.playerId.toLowerCase() should equal ("player1")
+    } else {
+      // length 5, player has both split and performed an additional action
+      next.history.reverse.tail.head.playerId.toLowerCase() should equal ("player1")
+      next.history.reverse.tail.head.action should equal (Split)
+      next.history.reverse.head.playerId.toLowerCase() should equal ("player1")
+    }
+  
+  }
+
   it should "not allow init when only player's initial ranks are overridden but not the dealer's" in {
 
-   pending 
+    pending 
   }
 
   it should "not allow init when only dealer's initial ranks are overridden but not the player's" in {
