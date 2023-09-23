@@ -10,6 +10,7 @@ import cards.classes.DeckType._
 import cards.classes.Rank._
 import cards.classes.Suit._
 import cards.classes.hand.Hand
+import cards.classes.bettingstrategy.BlackjackBettingStrategy._
 import cards.classes.state.{ BlackjackGameState, BlackjackPlayerState }
 import cards.classes.options.blackjack.BlackjackOptions
 import cards.classes.options.blackjack.BlackjackPayout._
@@ -591,7 +592,7 @@ class BlackjackControllerSpec extends AnyFlatSpec with GivenWhenThen {
   }
 
   it should "init a new 1-player game with player and dealer initial ranks to be overridden" in {
-    Given("a BlackjackOptions which specifies player initial ranks override of [Ace, Ace] and dealer initial rank overrides of [Three, Four]")
+    Given("a BlackjackOptions which specifies player initial ranks override of [Ace, Ace] and dealer initial rank overrides of [Three, Four] as well as initial betting strategy Martingale")
     val options = BlackjackOptions(
       deckCount = 6,
       dealerHitLimit = S17,
@@ -601,7 +602,9 @@ class BlackjackControllerSpec extends AnyFlatSpec with GivenWhenThen {
       resplitOnSplitAces = true,
       initialBank = 200, 
       playerInitialRanks = Seq(Ace, Ace), 
-      dealerInitialRanks = Seq(Three, Four)) 
+      dealerInitialRanks = Seq(Three, Four),
+      initialBettingStrategy = Some("Martingale")
+    )
     When("initializing a new 1-player game") 
     val game = module.init(1, options)
     Then("game players should be length 1 with player IDs 'player1'")
@@ -616,10 +619,13 @@ class BlackjackControllerSpec extends AnyFlatSpec with GivenWhenThen {
     game.dealerHand.hand.head.rank should equal (Three)
     game.dealerHand.hand.tail.head.rank should equal (Four)
     Then("history should reflect that player has bet minimum bet")
-    game.history should contain (Action(playerId = "player1", action = Bet, actionTokens = Some(game.minimumBet)))
+    game.history should contain (Action(playerId = "player1", action = Bet, actionTokens = Some(game.minimumBet), bettingStrategy = Some("Martingale")))
     Then("history should show only 2 actions player has taken as Bet and IsDealt")
     game.history.filter(a => a.playerId == "player1") should have length (2)
     game.history.filter(a => a.playerId == "player1").map(_.action) should equal (Seq(Bet, IsDealt))
+    Then("history should show all non-dealer player actions as having Martingale betting strategy")
+    val playerHistory = game.history.filter(a => !a.playerId.toLowerCase().contains("dealer"))
+    playerHistory.count(a => a.bettingStrategy == Some("Martingale")) should equal (playerHistory.length)
     Then("history should reflect that player has has been dealt 2 Twos")
     var dealtPlayer1ActionCardsFromHistory: Seq[Card] = 
       game.history.filter(a => a.playerId == "player1" && a.action == IsDealt).flatMap(_.actionCards)
@@ -653,7 +659,6 @@ class BlackjackControllerSpec extends AnyFlatSpec with GivenWhenThen {
       next.history.reverse.tail.head.action should equal (Split)
       next.history.reverse.head.playerId.toLowerCase() should equal ("player1")
     }
-  
   }
 
   it should "not allow init when only player's initial ranks are overridden but not the dealer's" in {
@@ -670,5 +675,33 @@ class BlackjackControllerSpec extends AnyFlatSpec with GivenWhenThen {
 
     pending
   }
+
+  it should "play a game to completion and verify that every history action belonging to a non-dealer player specifies betting strategy" in {
+    Given("a BlackjackOptions which specifies initial-betting-strategy Martingale")
+    val options = BlackjackOptions(
+      initialBank = 2,
+      initialBettingStrategy = Some("Martingale")
+    )
+    When("initializing a new 1-player game")
+    val game = module.init(1, options)
+    Then("new game state is initialized with an empty history")
+    game.history shouldBe empty
+    Then("game players should be length 1")
+    game.players should have length (1)
+    When("the game is played to completion")
+    val results = module.completeGame(game)
+    Then("history shall reflect that all non-dealer players' actions specify a bettingStrategy, starting with 'Martingale'")
+    val dealerHistory = results.history.filter(_.playerId.toLowerCase() == "dealer")
+    val playerHistory = results.history.diff(dealerHistory)
+    info("HISTORY NOT CONTAINING BETTING STRATEGY: " + playerHistory.filter(a => !a.bettingStrategy.isDefined).mkString("\r\n"))
+    info("HISTORY CONTAINING BETTING STRATEGY: " + playerHistory.filter(a => a.bettingStrategy.isDefined).mkString("\r\n"))
+    playerHistory.count(a => a.bettingStrategy.isDefined) should equal (playerHistory.length)
+    Then("history shall reflect that the dealer's actions do not specify a bettingStrategy")
+    dealerHistory.count(a => !a.bettingStrategy.isDefined) should equal (dealerHistory.length)
+    Then("history shall reflect that all non-dealer players' actions specify a minimum betting amount which was considered during this round")
+    Then("history shall reflect that the dealer's actions do not specify a minimum betting amount")
+  
+  }
+
 
 }

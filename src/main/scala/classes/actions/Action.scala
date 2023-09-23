@@ -14,8 +14,8 @@ case class Action[A <: Enumeration#Value](
   beforeCards: Seq[Card] = Nil, 
   afterCards: Seq[Seq[Card]] = Nil,
   beforeTokens: Option[Int] = None,
-  afterTokens: Option[Int] = None) {
-  
+  afterTokens: Option[Int] = None,
+  bettingStrategy: Option[String] = None) {
     override def toString(): String = 
       (Json.obj(
         "playerId" -> playerId,
@@ -26,6 +26,7 @@ case class Action[A <: Enumeration#Value](
         "afterCards" -> afterCards,
         "beforeTokens" -> beforeTokens,
         "afterTokens" -> afterTokens,
+        "bettingStrategy" -> bettingStrategy
       )).toString()
 }
 

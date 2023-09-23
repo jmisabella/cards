@@ -148,6 +148,11 @@ trait BlackjackController extends Controller[BlackjackPlayerState, BlackjackActi
       }
       history = history ++ Seq(Action("dealer", IsDealt, actionCards = dealerHand.hand, afterCards = Seq(dealerHand.hand)))
     }
+    if (options.initialBettingStrategy.isDefined) {
+      players = players.map(p => p.copy(bettingStrategy = BlackjackBettingStrategy.withNameOpt(options.initialBettingStrategy.get).getOrElse(NegativeProgression)))
+      history = history.map(a => a.copy(bettingStrategy = if (a.playerId.toLowerCase() == "dealer") None else options.initialBettingStrategy))
+      // history = history ++ Seq(Action("dealer", IsDealt, actionCards = dealerHand.hand, afterCards = Seq(dealerHand.hand)))
+    }
     BlackjackGameState(
       currentPlayerIndex = Some(0), 
       currentHandIndex = Some(0), 

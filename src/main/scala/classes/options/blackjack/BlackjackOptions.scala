@@ -3,6 +3,9 @@ package cards.classes.options.blackjack
 import cards.classes.Rank
 import cards.classes.Rank._
 import play.api.libs.json.{ Json, Format, JsSuccess, JsValue, JsError }
+import cards.classes.options.poker.BettingStructure
+import cards.classes.bettingstrategy.BlackjackBettingStrategy
+import cards.classes.bettingstrategy.BlackjackBettingStrategy._
 
 // payout ratio if player gets a blackjack
 object BlackjackPayout extends Enumeration {
@@ -42,7 +45,8 @@ private case class SerializedBlackjackOptions(
   initialBank: String,
   splitLimit: Option[String] = None,
   playerInitialRanks: Option[Seq[String]] = None,
-  dealerInitialRanks: Option[Seq[String]] = None
+  dealerInitialRanks: Option[Seq[String]] = None,
+  initialBettingStrategy: Option[String] = None
 )
 
 private object SerializedBlackjackOptions {
@@ -64,7 +68,9 @@ case class BlackjackOptions(
   resplitOnSplitAces: Boolean = true,
   initialBank: Int = 2000,
   playerInitialRanks: Seq[Rank] = Nil,
-  dealerInitialRanks: Seq[Rank] = Nil ) {
+  dealerInitialRanks: Seq[Rank] = Nil,
+  initialBettingStrategy: Option[String] = None 
+  ) {
   
   require(
     deckCount >= 1 && 
@@ -76,8 +82,8 @@ case class BlackjackOptions(
     "Optional initial rank overrides (for player and dealer) must both be either empty or exactly length 2, however " + 
     s"player initial rank length is [${playerInitialRanks.length}] and dealer initial rank length is [${dealerInitialRanks.length}]")
 
-  override def toString(): String = splitLimit match {
-    case None => 
+  override def toString(): String = (splitLimit, initialBettingStrategy) match {
+    case (None, None) => 
       (Json.obj(
         "deck-count" -> deckCount,
         "dealer-hit-limit" -> dealerHitLimit,
@@ -89,7 +95,20 @@ case class BlackjackOptions(
         "initial-player-ranks" -> playerInitialRanks.mkString("[", ",", "]"),
         "initial-dealer-ranks" -> dealerInitialRanks.mkString("[", ",", "]")
       )).toString()
-    case Some(limit) => 
+    case (None, Some(bs)) => 
+      (Json.obj(
+        "deck-count" -> deckCount,
+        "dealer-hit-limit" -> dealerHitLimit,
+        "blackjack-payout" -> blackjackPayout,
+        "allow-surrender" -> allowSurrender,
+        "hit-on-split-aces" -> hitOnSplitAces,
+        "resplit-on-split-aces" -> resplitOnSplitAces,
+        "initial-bank" -> initialBank,
+        "initial-player-ranks" -> playerInitialRanks.mkString("[", ",", "]"),
+        "initial-dealer-ranks" -> dealerInitialRanks.mkString("[", ",", "]"),
+        "initial-betting-strategy" -> bs
+      )).toString()
+    case (Some(limit), None) => 
       (Json.obj(
         "deck-count" -> deckCount,
         "dealer-hit-limit" -> dealerHitLimit,
@@ -101,6 +120,20 @@ case class BlackjackOptions(
         "initial-bank" -> initialBank,
         "initial-player-ranks" -> playerInitialRanks.mkString("[", ",", "]"),
         "initial-dealer-ranks" -> dealerInitialRanks.mkString("[", ",", "]")
+      )).toString()
+    case (Some(limit), Some(bs)) => 
+      (Json.obj(
+        "deck-count" -> deckCount,
+        "dealer-hit-limit" -> dealerHitLimit,
+        "blackjack-payout" -> blackjackPayout,
+        "allow-surrender" -> allowSurrender,
+        "split-limit" -> limit,
+        "hit-on-split-aces" -> hitOnSplitAces,
+        "resplit-on-split-aces" -> resplitOnSplitAces,
+        "initial-bank" -> initialBank,
+        "initial-player-ranks" -> playerInitialRanks.mkString("[", ",", "]"),
+        "initial-dealer-ranks" -> dealerInitialRanks.mkString("[", ",", "]"),
+        "initial-betting-strategy" -> bs
       )).toString()
   }
 }
@@ -121,7 +154,11 @@ object BlackjackOptions {
       resplitOnSplitAces = serialized.resplitOnSplitAces.toBoolean,
       initialBank = serialized.initialBank.toInt,
       playerInitialRanks = serialized.playerInitialRanks.getOrElse(Nil).map(Rank.withNameOpt(_).get),
-      dealerInitialRanks = serialized.dealerInitialRanks.getOrElse(Nil).map(Rank.withNameOpt(_).get)
+      dealerInitialRanks = serialized.dealerInitialRanks.getOrElse(Nil).map(Rank.withNameOpt(_).get),
+      initialBettingStrategy = serialized.initialBettingStrategy match {
+        case Some(bs) => Some(bs)
+        case None => None
+      }
     )
   }
 
@@ -137,6 +174,7 @@ object BlackjackOptions {
       .replace("initial-bank", "initialBank")
       .replace("initial-player-ranks", "playerInitialRanks")
       .replace("initial-dealer-ranks", "dealerInitialRanks")
+      .replace("initial-betting-strategy", "initialBettingStrategy")
 
     Json.parse(replacements(json)).validate[SerializedBlackjackOptions] match {
       case JsSuccess(opts, _) => BlackjackOptions(opts)

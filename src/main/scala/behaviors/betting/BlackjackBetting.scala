@@ -88,8 +88,8 @@ trait BlackjackBetting {
         case (_, _) => None 
       }
       val newHistory: Seq[Action[BlackjackAction]] = reasonForLeavingTable match {
-        case None => Seq(Action(game.currentPlayer().id, LeaveTable))
-        case Some(a) => Seq(Action(game.currentPlayer().id, a), Action(game.currentPlayer().id, LeaveTable))
+        case None => Seq(Action(game.currentPlayer().id, LeaveTable, bettingStrategy = Some(game.currentPlayer().bettingStrategy.toString())))
+        case Some(a) => Seq(Action(game.currentPlayer().id, a, bettingStrategy = Some(game.currentPlayer().bettingStrategy.toString())), Action(game.currentPlayer().id, LeaveTable,  bettingStrategy = Some(game.currentPlayer().bettingStrategy.toString())))
       }
       val updatedPlayerIndex: Option[Int] = game.currentPlayerIndex match {
         case None => None 
@@ -175,8 +175,9 @@ trait BlackjackBetting {
       else 
         p
     }
-    val updatedHistory = game.history ++ Seq(Action(game.currentPlayer().id, Bet, Nil, Some(amount)).copy(beforeTokens = Some(game.currentPlayer().bank)))
-    // val updatedHistory = game.history ++ Seq(Action(game.currentPlayer().id, Bet, Nil, Some(amount)))
+    val updatedHistory = game.history ++ 
+      Seq(
+        Action(game.currentPlayer().id, Bet, Nil, Some(amount)).copy(beforeTokens = Some(game.currentPlayer().bank), bettingStrategy = Some(game.currentPlayer().bettingStrategy.toString())))
     game.copy(currentPlayerIndex = Some(game.nextPlayerIndex()), players = updatedPlayers, history = updatedHistory)
   }
 
@@ -273,7 +274,9 @@ trait BlackjackBetting {
           Action(
             player, 
             outcome, 
-            actionTokens = if (negateAmount) Some(-amount) else Some(amount))
+            actionTokens = if (negateAmount) Some(-amount) else Some(amount),
+            bettingStrategy = Some(players.filter(_.id == player).head.bettingStrategy.toString()) 
+        )
         }).toSeq
       }
       val winningWagers1: Seq[Action[BlackjackAction]] = winningOrLosingWagers(game.players, BlackjackAction.Blackjack)
