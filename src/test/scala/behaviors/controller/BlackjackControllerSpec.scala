@@ -693,14 +693,15 @@ class BlackjackControllerSpec extends AnyFlatSpec with GivenWhenThen {
     Then("history shall reflect that all non-dealer players' actions specify a bettingStrategy, starting with 'Martingale'")
     val dealerHistory = results.history.filter(_.playerId.toLowerCase() == "dealer")
     val playerHistory = results.history.diff(dealerHistory)
-    info("HISTORY NOT CONTAINING BETTING STRATEGY: " + playerHistory.filter(a => !a.bettingStrategy.isDefined).mkString("\r\n"))
-    info("HISTORY CONTAINING BETTING STRATEGY: " + playerHistory.filter(a => a.bettingStrategy.isDefined).mkString("\r\n"))
+    // info("HISTORY NOT CONTAINING BETTING STRATEGY: " + playerHistory.filter(a => !a.bettingStrategy.isDefined).mkString("\r\n"))
+    // info("HISTORY CONTAINING BETTING STRATEGY: " + playerHistory.filter(a => a.bettingStrategy.isDefined).mkString("\r\n"))
     playerHistory.count(a => a.bettingStrategy.isDefined) should equal (playerHistory.length)
     Then("history shall reflect that the dealer's actions do not specify a bettingStrategy")
     dealerHistory.count(a => !a.bettingStrategy.isDefined) should equal (dealerHistory.length)
     Then("history shall reflect that all non-dealer players' actions specify a minimum betting amount which was considered during this round")
+    // TODO
     Then("history shall reflect that the dealer's actions do not specify a minimum betting amount")
-  
+    // TODO
   }
 
 

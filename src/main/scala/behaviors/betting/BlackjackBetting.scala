@@ -88,8 +88,8 @@ trait BlackjackBetting {
         case (_, _) => None 
       }
       val newHistory: Seq[Action[BlackjackAction]] = reasonForLeavingTable match {
-        case None => Seq(Action(game.currentPlayer().id, LeaveTable, bettingStrategy = Some(game.currentPlayer().bettingStrategy.toString())))
-        case Some(a) => Seq(Action(game.currentPlayer().id, a, bettingStrategy = Some(game.currentPlayer().bettingStrategy.toString())), Action(game.currentPlayer().id, LeaveTable,  bettingStrategy = Some(game.currentPlayer().bettingStrategy.toString())))
+        case None => Seq(Action(game.currentPlayer().id, LeaveTable, bettingStrategy = game.currentBettingStrategy()))
+        case Some(a) => Seq(Action(game.currentPlayer().id, a, bettingStrategy = game.currentBettingStrategy()), Action(game.currentPlayer().id, LeaveTable,  bettingStrategy = game.currentBettingStrategy()))
       }
       val updatedPlayerIndex: Option[Int] = game.currentPlayerIndex match {
         case None => None 
@@ -177,7 +177,7 @@ trait BlackjackBetting {
     }
     val updatedHistory = game.history ++ 
       Seq(
-        Action(game.currentPlayer().id, Bet, Nil, Some(amount)).copy(beforeTokens = Some(game.currentPlayer().bank), bettingStrategy = Some(game.currentPlayer().bettingStrategy.toString())))
+        Action(game.currentPlayer().id, Bet, Nil, Some(amount)).copy(beforeTokens = Some(game.currentPlayer().bank), bettingStrategy = game.currentBettingStrategy()))
     game.copy(currentPlayerIndex = Some(game.nextPlayerIndex()), players = updatedPlayers, history = updatedHistory)
   }
 
@@ -283,7 +283,7 @@ trait BlackjackBetting {
       val winningWagers2: Seq[Action[BlackjackAction]] = winningOrLosingWagers(game.players, BlackjackAction.Win)
       val losingWagers1: Seq[Action[BlackjackAction]] = winningOrLosingWagers(game.players, BlackjackAction.Bust, negateAmount = true)
       val losingWagers2: Seq[Action[BlackjackAction]] = winningOrLosingWagers(game.players, BlackjackAction.Lose, negateAmount = true)
-      val ties: Seq[Action[BlackjackAction]] = game.players.filter(p => p.handsAndBets.count(h => h.outcome == Some(Tie)) > 0).map(p => Action(p.id, Tie))
+      val ties: Seq[Action[BlackjackAction]] = game.players.filter(p => p.handsAndBets.count(h => h.outcome == Some(Tie)) > 0).map(p => Action(p.id, Tie, bettingStrategy = game.currentBettingStrategy()))
       var nextActions: Seq[Action[BlackjackAction]] = ties ++ losingWagers1 ++ losingWagers2 ++ winningWagers1 ++ winningWagers2
       val wagers: Map[String, Int] = getWagers(nextActions)
       val updatedPlayers: Seq[BlackjackPlayerState] = game.players.map { p => 
