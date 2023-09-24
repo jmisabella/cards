@@ -111,7 +111,7 @@ trait BlackjackPlay {
       deck = updatedDeck
       val history = if (hand.hand.length < 2) 
         // Some(Action(player.id, IsDealt, updatedCards, 0, hand.hand, Seq(hand.hand ++ updatedCards) ))
-        Some(Action(player.id, IsDealt, updatedCards, None, bettingStrategy = Some(player.bettingStrategy.toString()) ))
+        Some(Action(player.id, IsDealt, updatedCards, None ))
       else
         None
       (player.updateHand(hand.hand, updatedCards), history) // only updates hand when updatedCards isn't empty
@@ -384,8 +384,7 @@ trait BlackjackPlay {
         p
       }
     }
-    val newHistory2 = newHistory.map(a => a.copy(bettingStrategy = Some(updatedPlayers.filter(_.id == a.playerId).head.bettingStrategy.toString())))
-    val updatedState: BlackjackGameState = game.copy(deck = updatedDeck, history = game.history ++ newHistory2, players = updatedPlayers)
+    val updatedState: BlackjackGameState = game.copy(deck = updatedDeck, history = game.history ++ newHistory, players = updatedPlayers)
     if (outcomeHands.length == 1) {
       // only increment to the next hand if player did NOT split into an additional hand
       updatedState.toNextHand(action, evaluation.eval(outcomeHands.head.hand) > 21)

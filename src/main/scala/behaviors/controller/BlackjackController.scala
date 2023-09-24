@@ -141,7 +141,8 @@ trait BlackjackController extends Controller[BlackjackPlayerState, BlackjackActi
       }
       dealerHand = Hand(Seq(dealerRankFirstCard, dealerRankSecondCard), Map())
       for (p <- players) {
-        history = history ++ Seq(Action(p.id, Bet, actionTokens = Some(minimum)))
+        // for Bet action, specify betting strategy and min bet multiplier in action 
+        history = history ++ Seq(Action(p.id, Bet, actionTokens = Some(minimum), bettingStrategy = Some(p.bettingStrategy.toString()), minBetMultiplier = Some(1.0)))
       }
       for (p <- players) {
         history = history ++ Seq(Action(p.id, IsDealt, actionCards = p.hands.headOption.getOrElse(Nil), afterCards = p.hands))
@@ -150,8 +151,7 @@ trait BlackjackController extends Controller[BlackjackPlayerState, BlackjackActi
     }
     if (options.initialBettingStrategy.isDefined) {
       players = players.map(p => p.copy(bettingStrategy = BlackjackBettingStrategy.withNameOpt(options.initialBettingStrategy.get).getOrElse(NegativeProgression)))
-      history = history.map(a => a.copy(bettingStrategy = if (a.playerId.toLowerCase() == "dealer") None else options.initialBettingStrategy))
-      // history = history ++ Seq(Action("dealer", IsDealt, actionCards = dealerHand.hand, afterCards = Seq(dealerHand.hand)))
+      history = history.map(a => if (a.action == Bet) a.copy(bettingStrategy = options.initialBettingStrategy) else a)
     }
     BlackjackGameState(
       currentPlayerIndex = Some(0), 
@@ -162,8 +162,7 @@ trait BlackjackController extends Controller[BlackjackPlayerState, BlackjackActi
       deck = deck.copy(cards = remaining),
       dealerHand = dealerHand,
       history = history)
-  }
-  
+  } 
   def init(playerCount: Int, options: BlackjackOptions): BlackjackGameState = {
     val players: Seq[String] = for (i <- 0 until playerCount) yield s"player${i+1}"
     init(players, options)

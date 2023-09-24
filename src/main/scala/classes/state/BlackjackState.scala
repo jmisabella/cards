@@ -125,6 +125,10 @@ case class BlackjackGameState(
       case None => None
       case Some(i) => Some(currentPlayer().bettingStrategy.toString())
     }
+    def currentBetMultiplier(): Option[Double] = currentPlayerIndex match {
+      case None => None
+      case Some(i) => Some(currentPlayer().minBetMultiplier)
+    }
 
     def playerHistory(playerId: String): Seq[Action[BlackjackAction]] = history.filter(a => a.playerId == playerId)
 

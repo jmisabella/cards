@@ -487,7 +487,7 @@ class BlackjackControllerSpec extends AnyFlatSpec with GivenWhenThen {
     game.dealerHand.hand.head.rank should equal (Three)
     game.dealerHand.hand.tail.head.rank should equal (Ace)
     Then("history should reflect that player has bet minimum bet")
-    game.history should contain (Action(playerId = "player1", action = Bet, actionTokens = Some(game.minimumBet)))
+    game.history.map(a => a.copy(bettingStrategy = None, minBetMultiplier = None)) should contain (Action(playerId = "player1", action = Bet, actionTokens = Some(game.minimumBet)))
     Then("history should show only 2 actions player has taken as Bet and IsDealt")
     game.history.filter(a => a.playerId == "player1") should have length (2)
     game.history.filter(a => a.playerId == "player1").map(_.action) should equal (Seq(Bet, IsDealt))
@@ -549,9 +549,9 @@ class BlackjackControllerSpec extends AnyFlatSpec with GivenWhenThen {
     game.dealerHand.hand.head.rank should equal (Three)
     game.dealerHand.hand.tail.head.rank should equal (Ace)
     Then("history should reflect that each player has bet minimum bet")
-    game.history should contain (Action(playerId = "player1", action = Bet, actionTokens = Some(game.minimumBet)))
-    game.history should contain (Action(playerId = "player2", action = Bet, actionTokens = Some(game.minimumBet)))
-    game.history should contain (Action(playerId = "player3", action = Bet, actionTokens = Some(game.minimumBet)))
+    game.history.map(a => a.copy(bettingStrategy = None, minBetMultiplier = None)) should contain (Action(playerId = "player1", action = Bet, actionTokens = Some(game.minimumBet)))
+    game.history.map(a => a.copy(bettingStrategy = None, minBetMultiplier = None)) should contain (Action(playerId = "player2", action = Bet, actionTokens = Some(game.minimumBet)))
+    game.history.map(a => a.copy(bettingStrategy = None, minBetMultiplier = None)) should contain (Action(playerId = "player3", action = Bet, actionTokens = Some(game.minimumBet)))
     Then("history should show only 2 actions player has taken as Bet and IsDealt")
     game.history.filter(a => a.playerId == "player1") should have length (2)
     game.history.filter(a => a.playerId == "player1").map(_.action) should equal (Seq(Bet, IsDealt))
@@ -619,13 +619,12 @@ class BlackjackControllerSpec extends AnyFlatSpec with GivenWhenThen {
     game.dealerHand.hand.head.rank should equal (Three)
     game.dealerHand.hand.tail.head.rank should equal (Four)
     Then("history should reflect that player has bet minimum bet")
-    game.history should contain (Action(playerId = "player1", action = Bet, actionTokens = Some(game.minimumBet), bettingStrategy = Some("Martingale")))
+    game.history should contain (Action(playerId = "player1", action = Bet, actionTokens = Some(game.minimumBet), bettingStrategy = Some("Martingale"), minBetMultiplier = Some(1.0))) 
     Then("history should show only 2 actions player has taken as Bet and IsDealt")
     game.history.filter(a => a.playerId == "player1") should have length (2)
     game.history.filter(a => a.playerId == "player1").map(_.action) should equal (Seq(Bet, IsDealt))
     Then("history should show all non-dealer player actions as having Martingale betting strategy")
     val playerHistory = game.history.filter(a => !a.playerId.toLowerCase().contains("dealer"))
-    playerHistory.count(a => a.bettingStrategy == Some("Martingale")) should equal (playerHistory.length)
     Then("history should reflect that player has has been dealt 2 Twos")
     var dealtPlayer1ActionCardsFromHistory: Seq[Card] = 
       game.history.filter(a => a.playerId == "player1" && a.action == IsDealt).flatMap(_.actionCards)
@@ -676,7 +675,7 @@ class BlackjackControllerSpec extends AnyFlatSpec with GivenWhenThen {
     pending
   }
 
-  it should "play a game to completion and verify that every history action belonging to a non-dealer player specifies betting strategy" in {
+  it should "play a game to completion and verify that every Betting action belonging to a non-dealer player specifies betting strategy" in {
     Given("a BlackjackOptions which specifies initial-betting-strategy Martingale")
     val options = BlackjackOptions(
       initialBank = 2,
@@ -690,18 +689,18 @@ class BlackjackControllerSpec extends AnyFlatSpec with GivenWhenThen {
     game.players should have length (1)
     When("the game is played to completion")
     val results = module.completeGame(game)
-    Then("history shall reflect that all non-dealer players' actions specify a bettingStrategy, starting with 'Martingale'")
     val dealerHistory = results.history.filter(_.playerId.toLowerCase() == "dealer")
     val playerHistory = results.history.diff(dealerHistory)
     // info("HISTORY NOT CONTAINING BETTING STRATEGY: " + playerHistory.filter(a => !a.bettingStrategy.isDefined).mkString("\r\n"))
     // info("HISTORY CONTAINING BETTING STRATEGY: " + playerHistory.filter(a => a.bettingStrategy.isDefined).mkString("\r\n"))
-    playerHistory.count(a => a.bettingStrategy.isDefined) should equal (playerHistory.length)
-    Then("history shall reflect that the dealer's actions do not specify a bettingStrategy")
-    dealerHistory.count(a => !a.bettingStrategy.isDefined) should equal (dealerHistory.length)
-    Then("history shall reflect that all non-dealer players' actions specify a minimum betting amount which was considered during this round")
-    // TODO
-    Then("history shall reflect that the dealer's actions do not specify a minimum betting amount")
-    // TODO
+    Then("history shall reflect that all non-dealer players' Bet actions specify betting strategy used")
+    // playerHistory.count(a => a.action == Bet && a.bettingStrategy.isDefined) should equal (playerHistory.count(a => a.action == Bet))
+    playerHistory.count(a => a.action == Bet && a.bettingStrategy.isDefined) should equal (playerHistory.count(a => a.action == Bet))
+    Then("history shall reflect that the dealer made no Bet actions")
+    dealerHistory.count(a => a.action == Bet) should equal (0)
+    Then("history shall reflect that all non-dealer players' Bet actions specify a min-bet multiplier used")
+    // playerHistory.count(a => a.action == Bet && a.minBetMultiplier.isDefined) should equal (playerHistory.count(a => a.action == Bet))
+    playerHistory.count(a => a.action == Bet && a.minBetMultiplier.isDefined) should equal (playerHistory.count(a => a.action == Bet))
   }
 
 
