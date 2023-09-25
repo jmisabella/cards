@@ -699,9 +699,7 @@ class BlackjackControllerSpec extends AnyFlatSpec with GivenWhenThen {
     Then("history shall reflect that the dealer made no Bet actions")
     dealerHistory.count(a => a.action == Bet) should equal (0)
     Then("history shall reflect that all non-dealer players' Bet actions specify a min-bet multiplier used")
-    // playerHistory.count(a => a.action == Bet && a.minBetMultiplier.isDefined) should equal (playerHistory.count(a => a.action == Bet))
     playerHistory.count(a => a.action == Bet && a.minBetMultiplier.isDefined) should equal (playerHistory.count(a => a.action == Bet))
   }
-
 
 }
