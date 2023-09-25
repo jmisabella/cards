@@ -34,7 +34,7 @@ class BlackjackActionSerializationSpec extends AnyFlatSpec with GivenWhenThen {
 
     When("serializing the action object to json")
     val json: String = module.json(action)
-
+    info("BLACKJACK ACTION JSON: " + json)
     Then("the parsed JSON result should be valid JSON and successfully deserialize into the same Blackjack action")
     val result: Either[String, Seq[Action[BlackjackAction]]] = module.parse(json)
     result should be (right) 

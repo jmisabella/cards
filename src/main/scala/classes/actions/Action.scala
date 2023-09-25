@@ -14,8 +14,11 @@ case class Action[A <: Enumeration#Value](
   beforeCards: Seq[Card] = Nil, 
   afterCards: Seq[Seq[Card]] = Nil,
   beforeTokens: Option[Int] = None,
-  afterTokens: Option[Int] = None) {
-  
+  afterTokens: Option[Int] = None,
+  bettingStrategy: Option[String] = None,
+  minBetMultiplier: Option[Double] = None//,
+  // additionalData: Map[String, String] = Map() // TODO: put bet multiplier and betting strategy in additional data map
+  ) {
     override def toString(): String = 
       (Json.obj(
         "playerId" -> playerId,
@@ -26,6 +29,8 @@ case class Action[A <: Enumeration#Value](
         "afterCards" -> afterCards,
         "beforeTokens" -> beforeTokens,
         "afterTokens" -> afterTokens,
+        "betting-strategy" -> bettingStrategy,
+        "min-bet-multiplier" -> minBetMultiplier.map(_.toString())
       )).toString()
 }
 

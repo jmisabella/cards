@@ -175,8 +175,17 @@ trait BlackjackBetting {
       else 
         p
     }
-    val updatedHistory = game.history ++ Seq(Action(game.currentPlayer().id, Bet, Nil, Some(amount)).copy(beforeTokens = Some(game.currentPlayer().bank)))
-    // val updatedHistory = game.history ++ Seq(Action(game.currentPlayer().id, Bet, Nil, Some(amount)))
+    val updatedHistory = game.history ++ 
+      Seq(
+        Action(
+          game.currentPlayer().id, 
+          Bet, 
+          Nil, 
+          Some(amount), 
+          beforeTokens = Some(game.currentPlayer().bank),
+          bettingStrategy = game.currentBettingStrategy(),
+          minBetMultiplier = game.currentBetMultiplier()
+        ))
     game.copy(currentPlayerIndex = Some(game.nextPlayerIndex()), players = updatedPlayers, history = updatedHistory)
   }
 
@@ -273,7 +282,8 @@ trait BlackjackBetting {
           Action(
             player, 
             outcome, 
-            actionTokens = if (negateAmount) Some(-amount) else Some(amount))
+            actionTokens = if (negateAmount) Some(-amount) else Some(amount)
+        )
         }).toSeq
       }
       val winningWagers1: Seq[Action[BlackjackAction]] = winningOrLosingWagers(game.players, BlackjackAction.Blackjack)

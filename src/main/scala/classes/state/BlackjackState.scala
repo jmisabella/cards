@@ -121,6 +121,15 @@ case class BlackjackGameState(
       }
     }
 
+    def currentBettingStrategy(): Option[String] = currentPlayerIndex match {
+      case None => None
+      case Some(i) => Some(currentPlayer().bettingStrategy.toString())
+    }
+    def currentBetMultiplier(): Option[Double] = currentPlayerIndex match {
+      case None => None
+      case Some(i) => Some(currentPlayer().minBetMultiplier)
+    }
+
     def playerHistory(playerId: String): Seq[Action[BlackjackAction]] = history.filter(a => a.playerId == playerId)
 
     // true indicates a win, false indicates a loss; order is in the original order played, so most recent is last item
