@@ -29,8 +29,8 @@ case class Action[A <: Enumeration#Value](
         "afterCards" -> afterCards,
         "beforeTokens" -> beforeTokens,
         "afterTokens" -> afterTokens,
-        "betting-strategy" -> bettingStrategy,
-        "min-bet-multiplier" -> minBetMultiplier.map(_.toString())
+        "bettingStrategy" -> bettingStrategy,
+        "minBetMultiplier" -> minBetMultiplier.map(_.toString())
       )).toString()
 }
 
