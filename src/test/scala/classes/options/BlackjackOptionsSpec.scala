@@ -221,6 +221,19 @@ class BlackjackOptionsSpec extends AnyFlatSpec with GivenWhenThen {
     result.initialBettingStrategy should equal (Some("Martingale"))
   }
 
+  it should "be able to deserialize a json string which specifies an initial betting strategy of Martingale and alternate betting strategy false" in {
+    Given("JSON string which specifies optional initial betting strategy of Martingale")
+    val json: String = """{"initial-betting-strategy":"Martingale","alternate-betting-strategy":false,"dealerHitLimit":"S17","blackjackPayout":"ThreeToTwo","deckCount":"1","splitLimit":"3","allowSurrender":"true","hitOnSplitAces":"true","resplitOnSplitAces":"true","initialBank":"2000","playerInitialRanks":["Queen","Queen"],"dealerInitialRanks":["King","Ace"]}""";
+    When("converting the JSON string into a blackjack options object")
+    val result = BlackjackOptions(json)
+    Then("the object should be created to have initialBettingStrategy set to Martingale")
+    result.initialBettingStrategy shouldBe defined
+    result.initialBettingStrategy should equal (Some("Martingale"))
+    Then("the object should be created to have alternateBettingStrategy set to false")
+    result.alternateBettingStrategy shouldBe defined
+    result.alternateBettingStrategy should equal (Some(false))
+  }
+  
   it should "be able to serialize a BlackjackOptions object which specifies initialBettingStrategy Steady" in {
     Given("BlackjackOptions object which specifies initialBettingStrategy to be Steady")
     val options = BlackjackOptions(initialBettingStrategy = Some("Steady"))
@@ -230,4 +243,14 @@ class BlackjackOptionsSpec extends AnyFlatSpec with GivenWhenThen {
     result should include ("\"initial-betting-strategy\":\"Steady\"")
   }
 
+  it should "be able to serialize a BlackjackOptions object which specifies initialBettingStrategy Steady and alternateBettingStrategy false" in {
+    Given("BlackjackOptions object which specifies initialBettingStrategy to be Steady")
+    val options = BlackjackOptions(initialBettingStrategy = Some("Steady"), alternateBettingStrategy = Some(false))
+    When("serializing object to string")
+    val result = options.toString()
+    Then("JSON should specify initial-betting-strategy of Steady")
+    result should include ("\"initial-betting-strategy\":\"Steady\"")
+    Then("JSON should specify alternate-betting-strategy of false")
+    result should include ("\"alternate-betting-strategy\":false")
+  }
 }

@@ -219,24 +219,29 @@ trait BlackjackBetting {
     if (!game.players.contains(player)) {
       throw new IllegalArgumentException(s"Cannot alter player's state because player does not belong to this game. player [$player], game [$game]")
     }
-    // player.completedHands % 25 match { // check whether 25 hands have been completed since last min bet alteration
-    player.completedHands % 6 match { // check whether 6 hands have been completed since last min bet alteration
-      case 0 => {
-        val goal: Int = player.bankedLastStrategyUpdate + (player.bankedLastStrategyUpdate * 0.15).toInt 
-        // val goal: Int = player.bankEvery25Hands + (player.bankEvery25Hands * 0.15).toInt 
-        val nextStrategy: BlackjackBettingStrategy = (player.bank, goal) match {
-          case (actual, planned) if (actual >= planned) => player.bettingStrategy // goal reached, no need to alter betting strategy
-          case (_, _) => { // goal was not reached, change betting strategy
-            val otherStrategies: Seq[BlackjackBettingStrategy] = BlackjackBettingStrategy.values.toSeq.filter(_ != player.bettingStrategy)
-            val nex = otherStrategies(Random.nextInt(otherStrategies.length))
-            // println("ALTERING BETTING STRATEGY: " + nex)
-            nex
-          }
+    player.alternateBettingStrategy match {
+      case false => game // if explicitly configured to not alternate betting strategies, simply return original state
+      case true => {
+        // player.completedHands % 25 match { // check whether 25 hands have been completed since last min bet alteration
+        player.completedHands % 6 match { // check whether 6 hands have been completed since last min bet alteration
+          case 0 => {
+            val goal: Int = player.bankedLastStrategyUpdate + (player.bankedLastStrategyUpdate * 0.15).toInt 
+            // val goal: Int = player.bankEvery25Hands + (player.bankEvery25Hands * 0.15).toInt 
+            val nextStrategy: BlackjackBettingStrategy = (player.bank, goal) match {
+              case (actual, planned) if (actual >= planned) => player.bettingStrategy // goal reached, no need to alter betting strategy
+              case (_, _) => { // goal was not reached, change betting strategy
+                val otherStrategies: Seq[BlackjackBettingStrategy] = BlackjackBettingStrategy.values.toSeq.filter(_ != player.bettingStrategy)
+                val nex = otherStrategies(Random.nextInt(otherStrategies.length))
+                // println("ALTERING BETTING STRATEGY: " + nex)
+                nex
+              }
+            }
+            val updatedPlayer: BlackjackPlayerState = player.copy(bettingStrategy = nextStrategy)
+            game.copy(players = game.players.map(p => if (p.id == player.id) updatedPlayer else p))
+          } 
+          case _ => game // no change to state since player hasn't yet reached 250 hands played since last check
         }
-        val updatedPlayer: BlackjackPlayerState = player.copy(bettingStrategy = nextStrategy)
-        game.copy(players = game.players.map(p => if (p.id == player.id) updatedPlayer else p))
-      } 
-      case _ => game // no change to state since player hasn't yet reached 250 hands played since last check
+      }
     }
   }
   

@@ -660,6 +660,31 @@ class BlackjackControllerSpec extends AnyFlatSpec with GivenWhenThen {
     }
   }
 
+  it should "init a new 1-player game with alternate-betting-strategy explicitly configured to be false, resulting in player configured to be unable to alternate betting strategies" in {
+    Given("a BlackjackOptions which specifies alternateBettingStrategy to be false as well as initial betting strategy Martingale")
+    val options = BlackjackOptions(
+      deckCount = 6,
+      dealerHitLimit = S17,
+      blackjackPayout = ThreeToTwo,
+      allowSurrender = true,
+      hitOnSplitAces = true,
+      resplitOnSplitAces = true,
+      initialBank = 200, 
+      initialBettingStrategy = Some("Martingale"),
+      alternateBettingStrategy = Some(false) 
+    )
+    When("initializing a new 1-player game") 
+    val game = module.init(1, options)
+    Then("game players should be length 1 with player IDs 'player1'")
+    game.players should have length (1)
+    game.players.head.id should equal ("player1")
+    Then("game player should have bettingStrategy Martingale")
+    game.players.head.bettingStrategy should equal (Martingale) 
+    Then("game player should have alternateBettingStrategy false")
+    game.players.head.alternateBettingStrategy shouldBe (false)
+  }
+
+
   it should "not allow init when only player's initial ranks are overridden but not the dealer's" in {
 
     pending 

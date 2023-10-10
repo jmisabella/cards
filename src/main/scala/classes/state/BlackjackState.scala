@@ -27,6 +27,8 @@ import play.api.libs.json.{ Json, Format }
 // oscarsGoalMultiplier: only applicable for Oscar's betting strategy, player's bank multiplied by this value is the incremental 
 //                       goal of Oscar's betting
 // oscarsGoal: only applicable for Oscar's betting strategy, intermediate goal to be achieved
+// alternateBettingStrategy: whether to change betting strategies to a randomly selected different strategy when bank has lost an 
+//                            unacceptable amount
 // bankedLastBettingAmountUpdate: to be reset every 25 games to update to bank amount, used to determine whether to increase or decrease  
 //                            player's minimum bet, based on whether bank increases or decreases after 25 games
 // bankedLastStrategyUpdate: to be reset every 250 games to update to current bank amount, used to determine whether to change betting strategy, 
@@ -38,13 +40,14 @@ import play.api.libs.json.{ Json, Format }
 // goal: overall goal upon which reaching player would leave the table
 case class BlackjackPlayerState(
   override val id: String, 
-  override val bank: Int = 200, 
-  handsAndBets: Seq[Hand] = Nil, 
+  override val bank: Int = 200,
+  handsAndBets: Seq[Hand] = Nil,
   minBetMultiplier: Double = 1.0,
   maxBet: Option[Int] = None,
   bettingStrategy: BlackjackBettingStrategy = NegativeProgression,
-  oscarsGoalMultiplier: Double = 1.25, 
+  oscarsGoalMultiplier: Double = 1.25,
   oscarsGoal: Int = 0,
+  alternateBettingStrategy: Boolean = true,
   bankedLastBettingAmountUpdate: Int = 1,
   bankedLastStrategyUpdate: Int = 1,
   completedHands: Int = 0,
